@@ -89,147 +89,11 @@ const activities = [
 
 export default function AdminDashboardPage() {
   return (
-    <>
-      <style global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
-        @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
-
-        html {
-          scroll-behavior: smooth;
-        }
-
-        body {
-          margin: 0;
-          background: #fcf9f8;
-          color: #1c1b1b;
-          font-family: "Manrope", sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-
-        .material-symbols-outlined {
-          font-family: "Material Symbols Outlined";
-          font-weight: normal;
-          font-style: normal;
-          font-size: 24px;
-          line-height: 1;
-          letter-spacing: normal;
-          text-transform: none;
-          display: inline-block;
-          white-space: nowrap;
-          word-wrap: normal;
-          direction: ltr;
-          -webkit-font-feature-settings: "liga";
-          -webkit-font-smoothing: antialiased;
-          font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
-        }
-
-        .tonal-card {
-          background-color: #f2f0e9;
-          transition: all 0.3s ease;
-        }
-
-        .tonal-card:hover {
-          box-shadow: 0 4px 20px rgba(15, 61, 62, 0.04);
-        }
-      `}</style>
-
       <div className="min-h-screen bg-[#fcf9f8] font-['Manrope',sans-serif] text-[#1c1b1b] antialiased">
-        <header className="fixed top-4 z-50 w-full px-6">
-          <div className="mx-auto max-w-[1440px]">
-            <nav className="flex items-center justify-between rounded-full border border-stone-100 bg-white px-8 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#002627]">
-                  <span className="material-symbols-outlined text-xl text-white">architecture</span>
-                </div>
-                <div className="text-sm font-bold tracking-[0.2em] text-[#002627]">GET YOUR CAVE</div>
-              </div>
-
-              <div className="hidden items-center gap-8 lg:flex">
-                {navLinks.map((link) => (
-                  <a
-                    key={link}
-                    className="text-sm font-semibold text-[#002627] transition-colors hover:text-[#002627]/70"
-                    href="#"
-                  >
-                    {link}
-                  </a>
-                ))}
-
-                <div className="group relative">
-                  <button className="flex items-center gap-1 py-4 text-sm font-semibold text-[#002627] transition-colors hover:text-[#002627]/70">
-                    For Owners
-                    <span className="material-symbols-outlined text-sm">expand_more</span>
-                  </button>
-
-                  <div className="absolute left-1/2 top-full hidden w-[900px] -translate-x-1/2 pt-2 group-hover:block">
-                    <div className="flex gap-12 rounded-[2rem] border border-stone-100 bg-white p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
-                      {ownerMenu.map((column) => (
-                        <div key={column.title} className="flex-1">
-                          <h4 className="mb-6 font-bold text-[#002627]">{column.title}</h4>
-                          <div className="space-y-4">
-                            {column.items.map(([icon, label]) => (
-                              <a
-                                key={label}
-                                className="flex items-center gap-3 text-stone-600 transition-colors hover:text-[#002627]"
-                                href="#"
-                              >
-                                <span className="material-symbols-outlined text-stone-400">{icon}</span>
-                                <span className="text-sm font-medium">{label}</span>
-                              </a>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-
-                      <div className="relative flex w-72 flex-col justify-between overflow-hidden rounded-[1.5rem] bg-[#002627] p-8 text-white">
-                        <div className="relative z-10">
-                          <h4 className="mb-3 text-xl font-bold">Become an Owner</h4>
-                          <p className="mb-6 text-sm leading-relaxed text-white/70">
-                            Turn your unused space into a steady income.
-                          </p>
-                        </div>
-                        <button className="group/btn relative z-10 flex items-center justify-between rounded-full bg-[#CDEBC5] px-6 py-3 text-sm font-bold text-[#002627] transition-colors hover:bg-white">
-                          List Your Space
-                          <span className="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-1">
-                            arrow_forward
-                          </span>
-                        </button>
-                        <div className="absolute bottom-0 right-0 translate-y-1/4 opacity-10">
-                          <svg fill="none" height="200" viewBox="0 0 200 200" width="200">
-                            <circle cx="100" cy="100" r="90" stroke="white" strokeWidth="0.5" />
-                            <circle cx="100" cy="100" r="70" stroke="white" strokeWidth="0.5" />
-                            <circle cx="100" cy="100" r="50" stroke="white" strokeWidth="0.5" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <a
-                  className="text-sm font-semibold text-[#002627] transition-colors hover:text-[#002627]/70"
-                  href="#"
-                >
-                  Pricing
-                </a>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <button className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 text-stone-600 transition-colors hover:bg-stone-50">
-                  <span className="material-symbols-outlined text-xl">person</span>
-                </button>
-                <button className="rounded-full bg-[#002627] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#002627]/20 transition-all hover:opacity-90 active:scale-95">
-                  List Your Space
-                </button>
-              </div>
-            </nav>
-          </div>
-        </header>
-
-        <main className="mx-auto max-w-[1440px] space-y-12 px-12 pb-20 pt-32">
+        
+        <main className="mx-auto max-w-[1440px] space-y-8 px-4 sm:px-6 lg:px-12 pb-20 pt-24 sm:pt-28 lg:pt-32 lg:space-y-12">
           <div className="mb-10 flex flex-col gap-2">
-            <h1 className="text-[48px] font-bold leading-[1.1] text-[#0F3D3E]">Admin Dashboard</h1>
+            <h1 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold leading-[1.1] text-[#0F3D3E]">Admin Dashboard</h1>
             <p className="font-medium text-stone-500">
               Overview of the network&apos;s current performance and recent growth.
             </p>
@@ -237,7 +101,7 @@ export default function AdminDashboardPage() {
 
           <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {stats.map((item) => (
-              <div key={item.label} className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-12">
+              <div key={item.label} className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848]">
                     {item.label}
@@ -255,8 +119,8 @@ export default function AdminDashboardPage() {
           </section>
 
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-12 lg:col-span-2">
-              <div className="mb-12 flex items-center justify-between">
+            <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12 lg:col-span-2">
+              <div className="mb-8 lg:mb-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">Revenue Performance</h3>
                 <div className="flex gap-2">
                   <span className="rounded-full border border-[#c0c8c8] bg-white px-3 py-1 text-sm leading-[1.5]">
@@ -342,7 +206,7 @@ export default function AdminDashboardPage() {
           </section>
 
           <section className="tonal-card overflow-hidden rounded-[2rem] border border-[#EBEBE8]">
-            <div className="flex items-center justify-between border-b border-[#EBEBE8] px-12 py-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#EBEBE8] px-4 sm:px-6 lg:px-12 py-6">
               <h2 className="text-[28px] font-bold leading-[1.3] text-[#0f3d3e]">Recent Activity</h2>
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -368,36 +232,36 @@ export default function AdminDashboardPage() {
                     {["Name / ID", "Type", "Status", "Date"].map((heading) => (
                       <th
                         key={heading}
-                        className="px-12 py-4 text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848]"
+                        className="px-4 sm:px-6 lg:px-12 py-4 text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848]"
                       >
                         {heading}
                       </th>
                     ))}
-                    <th className="px-12 py-4" />
+                    <th className="px-4 sm:px-6 lg:px-12 py-4" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EBEBE8]">
                   {activities.map((activity) => (
                     <tr key={activity.id} className="transition-colors hover:bg-white/50">
-                      <td className="px-12 py-4">
+                      <td className="px-4 sm:px-6 lg:px-12 py-4">
                         <div className="flex flex-col">
                           <span className="text-base font-bold leading-[1.6] text-[#0f3d3e]">{activity.name}</span>
                           <span className="text-sm leading-[1.5] text-[#404848]">{activity.id}</span>
                         </div>
                       </td>
-                      <td className="px-12 py-4">
+                      <td className="px-4 sm:px-6 lg:px-12 py-4">
                         <span className={`rounded-full px-3 py-1 text-xs font-medium ${activity.typeClass}`}>
                           {activity.type}
                         </span>
                       </td>
-                      <td className="px-12 py-4">
+                      <td className="px-4 sm:px-6 lg:px-12 py-4">
                         <div className="flex items-center gap-2">
                           <span className={`h-2 w-2 rounded-full ${activity.statusDot}`} />
                           <span className="text-sm font-medium leading-[1.5]">{activity.status}</span>
                         </div>
                       </td>
-                      <td className="px-12 py-4 text-sm leading-[1.5] text-[#404848]">{activity.date}</td>
-                      <td className="px-12 py-4 text-right">
+                      <td className="px-4 sm:px-6 lg:px-12 py-4 text-sm leading-[1.5] text-[#404848]">{activity.date}</td>
+                      <td className="px-4 sm:px-6 lg:px-12 py-4 text-right">
                         <button className="material-symbols-outlined text-[#404848] hover:text-[#0f3d3e]">
                           more_horiz
                         </button>
@@ -422,50 +286,6 @@ export default function AdminDashboardPage() {
           </section>
         </main>
 
-        <footer className="mt-20 w-full rounded-t-[48px] bg-[#F2F0E9]">
-          <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-12 px-12 py-20 md:flex-row">
-            <div className="max-w-xs">
-              <div className="mb-4 text-2xl font-bold text-[#0F3D3E]">GETYOURCAVE</div>
-              <p className="mb-8 text-sm leading-relaxed text-stone-600">
-                Architectural Serenity in Storage. Curating the world&apos;s most secure and beautiful private
-                storage networks.
-              </p>
-              <div className="flex gap-4">
-                {["share", "public"].map((icon) => (
-                  <span
-                    key={icon}
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white text-[#002627] transition-colors hover:bg-[#002627] hover:text-white"
-                  >
-                    <span className="material-symbols-outlined text-xl">{icon}</span>
-                  </span>
-                ))}
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-16 md:grid-cols-3">
-              {[
-                ["Platform", "Find Storage", "List Your Space", "How it works"],
-                ["Trust", "Privacy", "Terms", "Host Guarantee"],
-                ["Resources", "Support", "Safety", "Cookies"],
-              ].map(([heading, ...links]) => (
-                <div key={heading} className="flex flex-col gap-4">
-                  <h5 className="text-sm font-bold uppercase tracking-widest text-[#002627]">{heading}</h5>
-                  {links.map((link) => (
-                    <a key={link} className="text-sm text-stone-500 transition-colors hover:text-[#0F3D3E]" href="#">
-                      {link}
-                    </a>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-4 border-t border-[#002627]/5 px-12 pb-12 pt-8 md:flex-row">
-            <p className="text-sm text-stone-600">© 2024 GETYOURCAVE. Architectural Serenity in Storage.</p>
-            <p className="text-xs text-stone-400">Designed for the discerning minimalist.</p>
-          </div>
-        </footer>
-      </div>
-    </>
   );
 }

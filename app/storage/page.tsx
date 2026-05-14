@@ -2,314 +2,10 @@
 
 export default function BrowseStoragePage() {
   return (
-    <>
-      <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
-        @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
-
-        :global(*) {
-          box-sizing: border-box;
-        }
-        :global(body) {
-          margin: 0;
-          background: #fcf9f8;
-          font-family: Manrope, sans-serif;
-          color: #1c1b1b;
-        }
-        :global(.material-symbols-outlined) {
-          font-family: "Material Symbols Outlined";
-          font-weight: normal;
-          font-style: normal;
-          font-size: 24px;
-          line-height: 1;
-          letter-spacing: normal;
-          text-transform: none;
-          display: inline-block;
-          white-space: nowrap;
-          word-wrap: normal;
-          direction: ltr;
-          -webkit-font-feature-settings: "liga";
-          -webkit-font-smoothing: antialiased;
-          font-variation-settings:
-            "FILL" 0,
-            "wght" 400,
-            "GRAD" 0,
-            "opsz" 24;
-        }
-        :global(.active-nav-border) {
-          border-bottom: 2px solid #0f3d3e;
-        }
-        :global(.custom-scrollbar::-webkit-scrollbar) {
-          width: 4px;
-        }
-        :global(.custom-scrollbar::-webkit-scrollbar-track) {
-          background: transparent;
-        }
-        :global(.custom-scrollbar::-webkit-scrollbar-thumb) {
-          background: #ebebe8;
-          border-radius: 10px;
-        }
-        :global(.card-shadow) {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        }
-        :global(.card-hover:hover) {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
-        }
-
-        :global(.font-body-md),
-        :global(.font-body-sm),
-        :global(.font-body-lg),
-        :global(.font-h1),
-        :global(.font-h2),
-        :global(.font-h3),
-        :global(.font-display),
-        :global(.font-label-caps),
-        :global(.font-italic-emphasis),
-        :global(.font-manrope) {
-          font-family: Manrope, sans-serif;
-        }
-        :global(.font-label-caps) {
-          font-size: 12px;
-          line-height: 1;
-          letter-spacing: 0.05em;
-          font-weight: 600;
-        }
-        :global(.font-h1) {
-          font-size: 36px;
-          line-height: 1.2;
-          letter-spacing: -0.01em;
-          font-weight: 700;
-        }
-        :global(.font-h2) {
-          font-size: 28px;
-          line-height: 1.3;
-          font-weight: 700;
-        }
-        :global(.font-h3) {
-          font-size: 22px;
-          line-height: 1.4;
-          font-weight: 600;
-        }
-        :global(.text-body-sm) {
-          font-size: 14px;
-          line-height: 1.5;
-        }
-        :global(.text-body-md) {
-          font-size: 16px;
-          line-height: 1.6;
-        }
-        :global(.text-body-lg) {
-          font-size: 18px;
-          line-height: 1.6;
-        }
-        :global(.text-label-caps) {
-          font-size: 12px;
-          line-height: 1;
-          letter-spacing: 0.05em;
-          font-weight: 600;
-        }
-        :global(.text-h2) {
-          font-size: 28px;
-          line-height: 1.3;
-          font-weight: 700;
-        }
-        :global(.text-h3) {
-          font-size: 22px;
-          line-height: 1.4;
-          font-weight: 600;
-        }
-        :global(.italic-emphasis) {
-          font-style: italic;
-        }
-
-        :global(.rounded-lg) {
-          border-radius: 2rem;
-        }
-        :global(.rounded-xl) {
-          border-radius: 3.5rem;
-        }
-        :global(.gap-gutter) {
-          gap: 24px;
-        }
-        :global(.gap-lg) {
-          gap: 24px;
-        }
-        :global(.mt-xxl) {
-          margin-top: 80px;
-        }
-        :global(.py-xxl) {
-          padding-top: 80px;
-          padding-bottom: 80px;
-        }
-        :global(.p-xl) {
-          padding: 48px;
-        }
-        :global(.px-xl) {
-          padding-left: 48px;
-          padding-right: 48px;
-        }
-        :global(.py-xl) {
-          padding-top: 48px;
-          padding-bottom: 48px;
-        }
-        :global(.mb-xl) {
-          margin-bottom: 48px;
-        }
-        :global(.mt-xl) {
-          margin-top: 48px;
-        }
-
-        :global(.bg-background) {
-          background-color: #fcf9f8;
-        }
-        :global(.bg-primary) {
-          background-color: #002627;
-        }
-        :global(.bg-primary-container) {
-          background-color: #0f3d3e;
-        }
-        :global(.bg-secondary) {
-          background-color: #4b6547;
-        }
-        :global(.bg-surface-container) {
-          background-color: #f0eded;
-        }
-        :global(.bg-surface-container-low) {
-          background-color: #f6f3f2;
-        }
-        :global(.bg-surface-container-high) {
-          background-color: #eae7e7;
-        }
-        :global(.bg-surface-container-lowest) {
-          background-color: #ffffff;
-        }
-        :global(.bg-primary-fixed) {
-          background-color: #beebeb;
-        }
-        :global(.text-primary) {
-          color: #002627;
-        }
-        :global(.text-primary-container) {
-          color: #0f3d3e;
-        }
-        :global(.text-on-surface) {
-          color: #1c1b1b;
-        }
-        :global(.text-on-surface-variant) {
-          color: #404848;
-        }
-        :global(.text-on-secondary-container) {
-          color: #516b4d;
-        }
-        :global(.border-outline-variant) {
-          border-color: #c0c8c8;
-        }
-        :global(.border-primary) {
-          border-color: #002627;
-        }
-        :global(.border-outline-variant\/20) {
-          border-color: rgba(192, 200, 200, 0.2);
-        }
-        :global(.border-outline-variant\/30) {
-          border-color: rgba(192, 200, 200, 0.3);
-        }
-        :global(.border-outline-variant\/40) {
-          border-color: rgba(192, 200, 200, 0.4);
-        }
-        :global(.bg-primary\/5) {
-          background-color: rgba(0, 38, 39, 0.05);
-        }
-        :global(.bg-primary\/20) {
-          background-color: rgba(0, 38, 39, 0.2);
-        }
-        :global(.bg-primary-container\/60) {
-          background-color: rgba(15, 61, 62, 0.6);
-        }
-        :global(.text-primary-container\/60) {
-          color: rgba(15, 61, 62, 0.6);
-        }
-        :global(.text-on-surface-variant\/50) {
-          color: rgba(64, 72, 72, 0.5);
-        }
-        :global(.bg-surface-container-low\/20) {
-          background-color: rgba(246, 243, 242, 0.2);
-        }
-        :global(.bg-surface-container-low\/40) {
-          background-color: rgba(246, 243, 242, 0.4);
-        }
-        :global(.bg-secondary\/10) {
-          background-color: rgba(75, 101, 71, 0.1);
-        }
-        :global(.bg-white\/90) {
-          background-color: rgba(255, 255, 255, 0.9);
-        }
-        :global(.bg-white\/95) {
-          background-color: rgba(255, 255, 255, 0.95);
-        }
-        :global(.hover\:text-primary:hover) {
-          color: #002627;
-        }
-        :global(.hover\:bg-primary:hover) {
-          background-color: #002627;
-        }
-        :global(.hover\:bg-primary-container:hover) {
-          background-color: #0f3d3e;
-        }
-        :global(.hover\:border-primary:hover) {
-          border-color: #002627;
-        }
-        :global(.hover\:text-white:hover) {
-          color: #fff;
-        }
-      `}</style>
       <div className="bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed min-h-screen">
         {/* TopAppBar Navigation */}
-        <header className="sticky top-0 z-50 bg-[#F7F7F5]/80 backdrop-blur-md border-b border-outline-variant/30">
-          <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-10">
-              <a
-                className="text-2xl font-extrabold tracking-tighter text-primary"
-                href="#"
-              >
-                GETYOURCAVE
-              </a>
-              <nav className="hidden md:flex items-center gap-8 font-medium tracking-tight">
-                <a
-                  className="text-primary font-bold active-nav-border pb-1"
-                  href="#"
-                >
-                  Find Storage
-                </a>
-                <a
-                  className="text-on-surface-variant hover:text-primary transition-colors"
-                  href="#"
-                >
-                  For Owners
-                </a>
-                <a
-                  className="text-on-surface-variant hover:text-primary transition-colors"
-                  href="#"
-                >
-                  Locations
-                </a>
-                <a
-                  className="text-on-surface-variant hover:text-primary transition-colors"
-                  href="#"
-                >
-                  Pricing
-                </a>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="bg-primary text-white px-7 py-2.5 rounded-full font-bold text-body-sm hover:bg-primary-container transition-all active:scale-95 shadow-sm">
-                List Your Cave
-              </button>
-            </div>
-          </div>
-        </header>
-        {/* Level 1: Dominant Search Bar */}
-        <section className="mt-12 px-8 max-w-5xl mx-auto">
+                {/* Level 1: Dominant Search Bar */}
+        <section className="mt-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
           <div className="bg-white border border-outline-variant/40 rounded-xl px-2 py-2 flex flex-wrap md:flex-nowrap items-center gap-2 shadow-[0_10px_40px_-10px_rgba(0,38,39,0.12)]">
             <div className="flex items-center flex-1 min-w-[200px] pl-6 h-14">
               <span
@@ -362,7 +58,7 @@ export default function BrowseStoragePage() {
           </div>
         </section>
         {/* Level 2: Results & Filter Header */}
-        <section className="max-w-7xl mx-auto px-8 mt-12 mb-8 flex items-end justify-between border-b border-outline-variant/20 pb-6">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-outline-variant/20 pb-6">
           <div>
             <h2 className="font-h1 text-h2 text-primary-container flex items-center gap-3">
               128 Storage Caves
@@ -371,7 +67,7 @@ export default function BrowseStoragePage() {
               </span>
             </h2>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6">
             <button className="flex items-center gap-2 text-primary font-bold text-body-sm hover:underline">
               <span
                 className="material-symbols-outlined text-[20px]"
@@ -394,10 +90,10 @@ export default function BrowseStoragePage() {
           </div>
         </section>
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-8 py-4 flex gap-gutter">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row gap-gutter">
           {/* Level 4: Sidebar Filters */}
-          <aside className="w-[280px] flex-shrink-0 space-y-10">
-            <div className="bg-surface-container-low/40 p-6 rounded-lg border border-outline-variant/20 sticky top-24">
+          <aside className="w-full lg:w-[280px] flex-shrink-0 space-y-10">
+            <div className="bg-surface-container-low/40 p-6 rounded-lg border border-outline-variant/20 lg:sticky lg:top-24">
               <h3 className="font-label-caps text-label-caps text-primary mb-6 tracking-widest uppercase">
                 Refine Search
               </h3>
@@ -486,7 +182,7 @@ export default function BrowseStoragePage() {
             </div>
           </aside>
           {/* Level 3: Listing Grid (Strict 3-column) */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Card 1 */}
               <article className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 card-shadow card-hover transition-all duration-300 flex flex-col h-full">
@@ -788,45 +484,7 @@ export default function BrowseStoragePage() {
           </div>
         </main>
         {/* Footer */}
-        <footer className="w-full py-16 px-8 mt-20 border-t border-outline-variant/20 bg-surface-container-low/20">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
-            <div className="flex flex-col gap-4 items-center md:items-start">
-              <span className="text-3xl font-black text-primary opacity-30">
-                GETYOURCAVE
-              </span>
-              <p className="font-manrope text-sm text-on-surface-variant max-w-xs text-center md:text-left">
-                © 2024 GETYOURCAVE. Architectural Serenity in Storage.
-              </p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-10 gap-y-4">
-              <a
-                className="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Terms
-              </a>
-              <a
-                className="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Privacy
-              </a>
-              <a
-                className="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Insurance
-              </a>
-              <a
-                className="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Support
-              </a>
-            </div>
-          </div>
-        </footer>
-        {/* BottomNavBar (Mobile Only) */}
+                {/* BottomNavBar (Mobile Only) */}
         <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 md:hidden bg-white/90 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[32px]">
           <a
             className="flex flex-col items-center justify-center text-primary bg-primary/5 rounded-full px-5 py-1.5"
@@ -863,6 +521,5 @@ export default function BrowseStoragePage() {
           </a>
         </nav>
       </div>
-    </>
   );
 }
