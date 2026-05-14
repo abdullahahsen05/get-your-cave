@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Browse Storage | GETYOURCAVE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#c8c6c0",
+                    "primary-container": "#0f3d3e",
+                    "tertiary-fixed": "#e4e2dc",
+                    "surface-bright": "#fcf9f8",
+                    "on-primary-fixed-variant": "#224d4e",
+                    "outline-variant": "#c0c8c8",
+                    "surface-dim": "#dcd9d9",
+                    "secondary-fixed": "#cdebc5",
+                    "primary-fixed-dim": "#a3cfcf",
+                    "primary": "#002627",
+                    "on-surface-variant": "#404848",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e5e2e1",
+                    "surface": "#fcf9f8",
+                    "secondary-fixed-dim": "#b1cfaa",
+                    "surface-container": "#f0eded",
+                    "on-tertiary-container": "#a1a09a",
+                    "surface-tint": "#3b6566",
+                    "surface-container-low": "#f6f3f2",
+                    "surface-container-high": "#eae7e7",
+                    "primary-fixed": "#beebeb",
+                    "on-primary-fixed": "#002020",
+                    "on-background": "#1c1b1b",
+                    "tertiary-container": "#373733",
+                    "background": "#fcf9f8",
+                    "outline": "#717978",
+                    "inverse-surface": "#313030",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#092009",
+                    "on-primary": "#ffffff",
+                    "on-surface": "#1c1b1b",
+                    "error": "#ba1a1a",
+                    "secondary-container": "#cdebc5",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#a3cfcf",
+                    "on-secondary-container": "#516b4d",
+                    "tertiary": "#21221e",
+                    "inverse-on-surface": "#f3f0ef",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#1b1c18",
+                    "surface-variant": "#e5e2e1",
+                    "secondary": "#4b6547",
+                    "on-secondary-fixed-variant": "#344d31",
+                    "on-primary-container": "#7da8a8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3.5rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "lg": "24px",
+                    "container-max": "1200px",
+                    "xxl": "80px",
+                    "sm": "8px",
+                    "xl": "48px",
+                    "unit": "8px",
+                    "xs": "4px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "h1": ["Manrope"],
+                    "h2": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "h3": ["Manrope"],
+                    "display": ["Manrope"],
+                    "label-caps": ["Manrope"],
+                    "italic-emphasis": ["Manrope"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav-border { border-bottom: 2px solid #0F3D3E; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #EBEBE8; border-radius: 10px; }
+        .card-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed">
+<!-- TopAppBar Navigation -->
+<header class="sticky top-0 z-50 bg-[#F7F7F5]/80 backdrop-blur-md border-b border-outline-variant/30">
+<div class="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+<div class="flex items-center gap-10">
+<a class="text-2xl font-extrabold tracking-tighter text-primary" href="#">GETYOURCAVE</a>
+<nav class="hidden md:flex items-center gap-8 font-medium tracking-tight">
+<a class="text-primary font-bold active-nav-border pb-1" href="#">Find Storage</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">For Owners</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Locations</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-white px-7 py-2.5 rounded-full font-bold text-body-sm hover:bg-primary-container transition-all active:scale-95 shadow-sm">
+                List Your Cave
+            </button>
+</div>
+</div>
+</header>
+<!-- Level 1: Dominant Search Bar -->
+<section class="mt-12 px-8 max-w-5xl mx-auto">
+<div class="bg-white border border-outline-variant/40 rounded-xl px-2 py-2 flex flex-wrap md:flex-nowrap items-center gap-2 shadow-[0_10px_40px_-10px_rgba(0,38,39,0.12)]">
+<div class="flex items-center flex-1 min-w-[200px] pl-6 h-14">
+<span class="material-symbols-outlined text-primary-container/60 mr-3" data-icon="location_on">location_on</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-on-surface-variant/50" placeholder="Where do you need storage?" type="text"/>
+</div>
+<div class="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
+<div class="flex items-center flex-1 min-w-[150px] px-4 h-14">
+<span class="material-symbols-outlined text-primary-container/60 mr-3" data-icon="straighten">straighten</span>
+<select class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface appearance-none cursor-pointer">
+<option>Any Size</option>
+<option>Small (5x5 ft)</option>
+<option>Medium (10x10 ft)</option>
+<option>Large (20x20 ft)</option>
+</select>
+</div>
+<div class="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
+<div class="flex items-center flex-1 min-w-[150px] px-4 h-14">
+<span class="material-symbols-outlined text-primary-container/60 mr-3" data-icon="calendar_month">calendar_month</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-on-surface-variant/50" placeholder="Move-in date" type="text"/>
+</div>
+<button class="bg-primary text-white h-14 px-8 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-primary-container active:scale-95 shadow-md">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-bold">Search</span>
+</button>
+</div>
+</section>
+<!-- Level 2: Results & Filter Header -->
+<section class="max-w-7xl mx-auto px-8 mt-12 mb-8 flex items-end justify-between border-b border-outline-variant/20 pb-6">
+<div>
+<h2 class="font-h1 text-h2 text-primary-container flex items-center gap-3">
+            128 Storage Caves
+            <span class="text-body-sm font-normal text-on-surface-variant px-3 py-1 bg-surface-container rounded-full italic-emphasis">Greater San Francisco Area</span>
+</h2>
+</div>
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 text-primary font-bold text-body-sm hover:underline">
+<span class="material-symbols-outlined text-[20px]" data-icon="map">map</span>
+            Show Map
+        </button>
+<div class="flex items-center gap-2">
+<span class="text-label-caps text-on-surface-variant">Sort by:</span>
+<select class="bg-transparent border-none focus:ring-0 font-bold text-body-sm text-primary appearance-none cursor-pointer pr-4">
+<option>Recommended</option>
+<option>Price: Low to High</option>
+<option>Size: Largest</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto px-8 py-4 flex gap-gutter">
+<!-- Level 4: Sidebar Filters -->
+<aside class="w-[280px] flex-shrink-0 space-y-10">
+<div class="bg-surface-container-low/40 p-6 rounded-lg border border-outline-variant/20 sticky top-24">
+<h3 class="font-label-caps text-label-caps text-primary mb-6 tracking-widest uppercase">Refine Search</h3>
+<!-- Price Range -->
+<div class="mb-8 pb-8 border-b border-outline-variant/20">
+<label class="font-bold text-[13px] text-on-surface mb-5 block">Price Range (Monthly)</label>
+<div class="relative w-full h-1 bg-surface-container-high rounded-full mt-4 mb-3">
+<div class="absolute h-full w-2/3 bg-secondary rounded-full left-1/4"></div>
+<div class="absolute -top-1.5 left-1/4 w-4 h-4 bg-primary rounded-full shadow-md border-2 border-white"></div>
+<div class="absolute -top-1.5 left-[91%] w-4 h-4 bg-primary rounded-full shadow-md border-2 border-white"></div>
+</div>
+<div class="flex justify-between text-[13px] font-semibold text-on-surface-variant">
+<span>$50</span>
+<span>$1,200+</span>
+</div>
+</div>
+<!-- Unit Size -->
+<div class="mb-8 pb-8 border-b border-outline-variant/20">
+<label class="font-bold text-[13px] text-on-surface mb-5 block">Unit Size</label>
+<div class="space-y-4">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary-fixed transition-colors" type="checkbox"/>
+<span class="text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">Small (up to 50 sq ft)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary-fixed transition-colors" type="checkbox"/>
+<span class="text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">Medium (50 - 150 sq ft)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary-fixed transition-colors" type="checkbox"/>
+<span class="text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">Large (150 - 300 sq ft)</span>
+</label>
+</div>
+</div>
+<!-- Storage Type -->
+<div class="mb-8 pb-8 border-b border-outline-variant/20">
+<label class="font-bold text-[13px] text-on-surface mb-5 block">Storage Type</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-1.5 rounded-full border-2 border-primary text-primary font-bold text-[11px] uppercase tracking-wider bg-primary/5">Garage</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/40 text-on-surface-variant font-medium text-[11px] uppercase tracking-wider hover:border-primary transition-all">Loft</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/40 text-on-surface-variant font-medium text-[11px] uppercase tracking-wider hover:border-primary transition-all">Warehouse</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant/40 text-on-surface-variant font-medium text-[11px] uppercase tracking-wider hover:border-primary transition-all">Basement</button>
+</div>
+</div>
+<!-- Distance -->
+<div class="mb-4">
+<label class="font-bold text-[13px] text-on-surface mb-5 block">Distance</label>
+<select class="w-full bg-white border border-outline-variant/30 rounded-lg p-2.5 text-body-sm focus:border-primary focus:ring-0">
+<option>Within 5 miles</option>
+<option selected="">Within 10 miles</option>
+<option>Within 25 miles</option>
+</select>
+</div>
+</div>
+</aside>
+<!-- Level 3: Listing Grid (Strict 3-column) -->
+<div class="flex-1">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<article class="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 card-shadow card-hover transition-all duration-300 flex flex-col h-full">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlVrURlNSg8iNTE9GnvU2o749hEm4jvya_479eNJNEJuNxUGk326cH62rq6vsHGIFdviZFAypKjio5NUT03Qde9CSstZbrXPTmlKWG5wAQXy2y_QCA_kqlFlF_vcVS98caXI4B4kRi4DoOhBWRb2qYlkcfa3xAmA8yDRyWth2RqopXRtvlioOa2xgHDPpQG-r1SkjwF0mKLtPF9EJNSTtHYx9-svR9yNa0_kEEsgIncvy-Cg56WpW2T-MPs2_P_MISm2CjJCiFwTo"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full shadow-lg">Garage</span>
+</div>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-yellow-500 text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-primary">4.9</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<h4 class="font-h3 text-h3 text-primary leading-tight mb-1">The Heights Private Cave</h4>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1 mb-6">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        Pacific Heights, SF
+                    </p>
+<div class="flex items-center gap-4 pt-4 border-t border-outline-variant/20 mt-auto">
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="square_foot">square_foot</span>
+                            120 sq ft
+                        </div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="lock">lock</span>
+                            Secured
+                        </div>
+<div class="ml-auto text-right">
+<span class="font-extrabold text-primary text-body-lg">$240</span><span class="text-on-surface-variant font-medium text-xs">/mo</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 card-shadow card-hover transition-all duration-300 flex flex-col h-full">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDw84qwg0THJU2cauzlq0hxSGVCgZDgertD0b0qnmJPBQEajr3Na7dufLLtuwponbZvNuvOdX6a39dv25rCydPEGYH3-QHDJuy1apGLeqvUjgKa4fMzEUvGUXZsefr-lhBwZdSPm7qWZOFWjca3P28NBg_1E9C1wSIBQuIQlXerhqpHtxVQqZfI_iXhhgkib47CJQgW9Vz2zOquncqC_ht8JBoJ09Vpw_UP7EFUKomySxMXMVQBqfP_c8iDgWFYnZbL0l2blyNV10E"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full shadow-lg">Loft</span>
+</div>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-yellow-500 text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-primary">5.0</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<h4 class="font-h3 text-h3 text-primary leading-tight mb-1">Mission District Studio</h4>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1 mb-6">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        Mission St, SF
+                    </p>
+<div class="flex items-center gap-4 pt-4 border-t border-outline-variant/20 mt-auto">
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="square_foot">square_foot</span>
+                            85 sq ft
+                        </div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="thermostat">thermostat</span>
+                            Climate
+                        </div>
+<div class="ml-auto text-right">
+<span class="font-extrabold text-primary text-body-lg">$185</span><span class="text-on-surface-variant font-medium text-xs">/mo</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 card-shadow card-hover transition-all duration-300 flex flex-col h-full">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7fb8InKvLc3zUDR5NGmnt7jEr0yX3_Vn364WGCdYkS7JeB3ouKzmy_vTSMNKDOBnEmFHbAN1OBsx8_Jwg2gkDVv1gPtuDshnP808GgPmjgD1aSHNOxsApyIsMyBb3EC_VvlCty7O_bNJ-hZKA8d_etiruKYkH9MMMkcwq0Gn1qrl1idHSVUUQOo5IV22GQNMBN2Wc1V3vC4RtZuKkforSnpagbLoCUTUEA5l83G-AEYGNaUIzeCgKQl5TcS5jShmj8Hq_ulWw7qE"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full shadow-lg">Warehouse</span>
+</div>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-yellow-500 text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-primary">4.8</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<h4 class="font-h3 text-h3 text-primary leading-tight mb-1">Presidio Tech Vault</h4>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1 mb-6">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        Presidio, SF
+                    </p>
+<div class="flex items-center gap-4 pt-4 border-t border-outline-variant/20 mt-auto">
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="square_foot">square_foot</span>
+                            300 sq ft
+                        </div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="camera_indoor">camera_indoor</span>
+                            CCTV
+                        </div>
+<div class="ml-auto text-right">
+<span class="font-extrabold text-primary text-body-lg">$410</span><span class="text-on-surface-variant font-medium text-xs">/mo</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 4 -->
+<article class="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 card-shadow card-hover transition-all duration-300 flex flex-col h-full">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEMzWCKTMW9myHE10w7l7ipIN-rMkLrVcUnbwBYq2ox_sZt3uy0tPn09J1wKbn815LUaVdKfKyWW3UMBq0KDvdAL1VheQetC6yVh-o8PF0A4o9qNlKLqJ57L0aYlP8cpfbuXAquCPUDAIoXu9Heh4txqVmX5yvphIEPPjxiayU07yHfC_D8CI7CBBB1UD2na5hNtuvtmSsyvyC4moLz8IoYfKij4qgZg24GClZxmB43gCKImnlbdBeW06oOQmwKqWvaaLR194ykFQ"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full shadow-lg">Basement</span>
+</div>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-yellow-500 text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-primary">4.7</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<h4 class="font-h3 text-h3 text-primary leading-tight mb-1">Marina Serene Unit</h4>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1 mb-6">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        Marina Dist, SF
+                    </p>
+<div class="flex items-center gap-4 pt-4 border-t border-outline-variant/20 mt-auto">
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="square_foot">square_foot</span>
+                            45 sq ft
+                        </div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="verified">verified</span>
+                            Verified
+                        </div>
+<div class="ml-auto text-right">
+<span class="font-extrabold text-primary text-body-lg">$115</span><span class="text-on-surface-variant font-medium text-xs">/mo</span>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- Level 5: Enhanced Pagination -->
+<div class="py-20 flex justify-center">
+<nav class="flex items-center gap-4">
+<button class="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant hover:text-primary transition-all bg-white shadow-sm">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex items-center gap-2">
+<button class="w-12 h-12 rounded-full bg-primary text-white font-extrabold text-body-md shadow-lg shadow-primary/20">1</button>
+<button class="w-12 h-12 rounded-full bg-white border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant transition-all font-bold">2</button>
+<button class="w-12 h-12 rounded-full bg-white border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant transition-all font-bold">3</button>
+<span class="px-2 text-outline-variant">...</span>
+<button class="w-12 h-12 rounded-full bg-white border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant transition-all font-bold">12</button>
+</div>
+<button class="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant hover:text-primary transition-all bg-white shadow-sm">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</nav>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-16 px-8 mt-20 border-t border-outline-variant/20 bg-surface-container-low/20">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+<div class="flex flex-col gap-4 items-center md:items-start">
+<span class="text-3xl font-black text-primary opacity-30">GETYOURCAVE</span>
+<p class="font-manrope text-sm text-on-surface-variant max-w-xs text-center md:text-left">
+                © 2024 GETYOURCAVE. Architectural Serenity in Storage.
+            </p>
+</div>
+<div class="flex flex-wrap justify-center gap-x-10 gap-y-4">
+<a class="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms</a>
+<a class="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Insurance</a>
+<a class="font-bold text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 md:hidden bg-white/90 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-primary bg-primary/5 rounded-full px-5 py-1.5" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/50" href="#">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Saved</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/50" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Profile</span>
+</a>
+</nav>
+</body></html>

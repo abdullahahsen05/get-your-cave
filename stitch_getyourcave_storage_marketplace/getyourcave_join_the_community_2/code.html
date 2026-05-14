@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="light scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-on-surface": "#f3f0ef",
+                      "primary-container": "#0f3d3e",
+                      "on-tertiary-fixed": "#1b1c18",
+                      "surface-container-highest": "#e5e2e1",
+                      "on-surface": "#1c1b1b",
+                      "secondary": "#4b6547",
+                      "surface-container-high": "#eae7e7",
+                      "surface-container": "#f0eded",
+                      "outline": "#717978",
+                      "on-surface-variant": "#404848",
+                      "inverse-primary": "#a3cfcf",
+                      "surface-tint": "#3b6566",
+                      "on-error": "#ffffff",
+                      "tertiary-container": "#373733",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#7da8a8",
+                      "inverse-surface": "#313030",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed-variant": "#344d31",
+                      "surface-variant": "#e5e2e1",
+                      "surface-container-low": "#f6f3f2",
+                      "surface-container-lowest": "#ffffff",
+                      "primary": "#002627",
+                      "error-container": "#ffdad6",
+                      "on-background": "#1c1b1b",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#cdebc5",
+                      "on-error-container": "#93000a",
+                      "on-primary-fixed": "#002020",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-container": "#a1a09a",
+                      "secondary-fixed": "#cdebc5",
+                      "secondary-fixed-dim": "#b1cfaa",
+                      "tertiary-fixed-dim": "#c8c6c0",
+                      "surface": "#fcf9f8",
+                      "on-tertiary-fixed-variant": "#474742",
+                      "on-primary-fixed-variant": "#224d4e",
+                      "primary-fixed": "#beebeb",
+                      "primary-fixed-dim": "#a3cfcf",
+                      "surface-bright": "#fcf9f8",
+                      "outline-variant": "#c0c8c8",
+                      "on-secondary-fixed": "#092009",
+                      "background": "#fcf9f8",
+                      "tertiary": "#21221e",
+                      "tertiary-fixed": "#e4e2dc",
+                      "surface-dim": "#dcd9d9",
+                      "on-secondary-container": "#516b4d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "xs": "4px",
+                      "container-max": "1200px",
+                      "lg": "24px",
+                      "xl": "48px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "xxl": "80px",
+                      "unit": "8px"
+              },
+              "fontFamily": {
+                      "display": ["Manrope"],
+                      "body-md": ["Manrope"],
+                      "body-sm": ["Manrope"],
+                      "h1": ["Manrope"],
+                      "italic-emphasis": ["Manrope"],
+                      "h3": ["Manrope"],
+                      "body-lg": ["Manrope"],
+                      "label-caps": ["Manrope"],
+                      "h2": ["Manrope"]
+              },
+              "fontSize": {
+                      "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "h1": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "h3": ["22px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "h2": ["28px", {"lineHeight": "1.3", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased flex flex-col min-h-screen">
+<!-- Navbar from Admin Dashboard -->
+<header class="fixed top-4 w-full z-50 px-6">
+<div class="max-w-[1440px] mx-auto">
+<nav class="bg-white rounded-full px-8 py-3 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-stone-100">
+<!-- Logo -->
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#002627]">
+<span class="material-symbols-outlined text-white text-xl">architecture</span>
+</div>
+<div class="text-sm font-bold tracking-[0.2em] text-[#002627]">GET YOUR CAVE</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="hidden lg:flex items-center gap-8">
+<a class="font-semibold text-sm text-[#002627] hover:text-[#002627]/70 transition-colors" href="#">Home</a>
+<a class="font-semibold text-sm text-[#002627] hover:text-[#002627]/70 transition-colors" href="#">Browse Storage</a>
+<a class="font-semibold text-sm text-[#002627] hover:text-[#002627]/70 transition-colors" href="#">How it Works</a>
+<!-- Mega Menu Trigger -->
+<div class="relative group">
+<button class="flex items-center gap-1 font-semibold text-sm text-[#002627] hover:text-[#002627]/70 transition-colors py-4">
+                            For Owners
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<!-- Mega Menu Container -->
+<div class="absolute left-1/2 -translate-x-1/2 top-full pt-2 hidden group-hover:block w-[900px]">
+<div class="bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-stone-100 p-10 flex gap-12">
+<!-- Columns same as source -->
+<div class="flex-1">
+<h4 class="font-bold text-[#002627] mb-6">List &amp; Earn</h4>
+<div class="space-y-4">
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">deployed_code</span><span class="text-sm font-medium">Why List Your Space</span></a>
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">monitoring</span><span class="text-sm font-medium">Earning Potential</span></a>
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">star</span><span class="text-sm font-medium">Success Stories</span></a>
+</div>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-[#002627] mb-6">Resources</h4>
+<div class="space-y-4">
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">menu_book</span><span class="text-sm font-medium">Owner Guide</span></a>
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">verified_user</span><span class="text-sm font-medium">Safety &amp; Security</span></a>
+</div>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-[#002627] mb-6">Tools</h4>
+<div class="space-y-4">
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">dashboard</span><span class="text-sm font-medium">Dashboard Overview</span></a>
+<a class="flex items-center gap-3 text-stone-600 hover:text-[#002627] transition-colors" href="#"><span class="material-symbols-outlined text-stone-400">payments</span><span class="text-sm font-medium">Payouts &amp; Payments</span></a>
+</div>
+</div>
+<!-- Featured Card -->
+<div class="w-72 bg-[#002627] rounded-[1.5rem] p-8 text-white relative overflow-hidden flex flex-col justify-between">
+<div class="relative z-10">
+<h4 class="text-xl font-bold mb-3">Become an Owner</h4>
+<p class="text-white/70 text-sm mb-6 leading-relaxed">Turn your unused space into a steady income.</p>
+</div>
+<button class="relative z-10 bg-[#CDEBC5] text-[#002627] px-6 py-3 rounded-full font-bold text-sm flex items-center justify-between group/btn hover:bg-white transition-colors">
+                                        List Your Space
+                                        <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<a class="font-semibold text-sm text-[#002627] hover:text-[#002627]/70 transition-colors" href="#">Pricing</a>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center text-stone-600 hover:bg-stone-50 transition-colors">
+<span class="material-symbols-outlined text-xl">person</span>
+</button>
+<button class="bg-[#002627] text-white px-6 py-3 rounded-full font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[#002627]/20">
+                        List Your Space
+                    </button>
+</div>
+</nav>
+</div>
+</header>
+<main class="flex-grow flex flex-col lg:flex-row pt-24 min-h-[calc(100vh-200px)]">
+<!-- LEFT PANE: Split Content -->
+<div class="hidden lg:flex w-1/2 relative overflow-hidden bg-primary-container">
+<!-- Background Image -->
+<img alt="Secure high-end storage interior" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6JKCZg96XH_OcBwei1DFM6uy6aCmq2LZndtmXdjhEDG6Xy149HMG7vcWRZoQGuWSJaIWB3eXazNrplb1AJIS3RQ782xqjDZB54nfjvxf_jarCk-_YAYPHVI5KFgY_UwxuSjJUwa6SebsUANnQ-ysmUcRRzGAjcK5Ap1bOqxka-wByMgyZ204Mp7xP_vuDIPrCmJ-Jzcs2TM5nsvJUY_TVCzwaqNN0znNvT9AxRr4OIDpEjXnI-P86AosPyJwWDmVHCDBAKhxT6NQ"/>
+<!-- Overlay -->
+<div class="absolute inset-0 bg-primary-container/60 backdrop-blur-[2px]"></div>
+<!-- Content -->
+<div class="relative z-10 w-full h-full flex flex-col justify-center px-xxl text-white">
+<h2 class="text-[56px] font-bold leading-tight mb-md max-w-lg">Start your journey with secure storage</h2>
+<p class="text-white/80 text-body-lg mb-xl max-w-md">Join the most exclusive network of architectural storage spaces, curated for the discerning asset owner.</p>
+<div class="space-y-lg">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-secondary-container">verified_user</span>
+</div>
+<span class="text-body-md font-semibold">Verified Owners</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-secondary-container">payments</span>
+</div>
+<span class="text-body-md font-semibold">Secure Payments</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-secondary-container">contract</span>
+</div>
+<span class="text-body-md font-semibold">Easy Contracts</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PANE: Signup Form -->
+<div class="flex-grow lg:w-1/2 flex items-center justify-center p-lg md:p-xxl bg-background">
+<div class="w-full max-w-[480px]">
+<div class="bg-white p-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,61,62,0.05)] border border-stone-100">
+<div class="text-center mb-xl">
+<h3 class="text-h2 text-primary-container mb-xs">Join GETYOURCAVE</h3>
+<p class="text-on-surface-variant text-body-sm">Create your account to start listing or browsing storage.</p>
+</div>
+<form class="space-y-lg">
+<div class="space-y-xs">
+<label class="text-label-caps text-stone-500 ml-sm">Email Address</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-container transition-colors">mail</span>
+<input class="w-full pl-12 pr-lg py-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container/10 transition-all font-body-md text-on-surface placeholder:text-stone-300" placeholder="name@example.com" type="email"/>
+</div>
+</div>
+<div class="space-y-xs">
+<label class="text-label-caps text-stone-500 ml-sm">Password</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-container transition-colors">lock</span>
+<input class="w-full pl-12 pr-14 py-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container/10 transition-all font-body-md text-on-surface placeholder:text-stone-300" placeholder="••••••••••••" type="password"/>
+<button class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-primary-container cursor-pointer transition-colors" type="button">visibility</button>
+</div>
+</div>
+<div class="space-y-xs">
+<label class="text-label-caps text-stone-500 ml-sm">Confirm Password</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-container transition-colors">lock</span>
+<input class="w-full pl-12 pr-lg py-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container/10 transition-all font-body-md text-on-surface placeholder:text-stone-300" placeholder="••••••••••••" type="password"/>
+</div>
+</div>
+<div class="pt-4 space-y-md">
+<button class="w-full bg-[#0F3D3E] text-white py-4 rounded-full font-bold text-body-md shadow-lg shadow-[#0F3D3E]/10 transition-transform active:scale-[0.98] duration-200" type="submit">
+                                Create Account
+                            </button>
+<div class="relative flex items-center justify-center py-2">
+<div class="w-full border-t border-stone-100"></div>
+<span class="absolute bg-white px-md text-label-caps text-stone-300">OR</span>
+</div>
+<button class="w-full flex items-center justify-center gap-3 border border-stone-200 py-4 rounded-full font-semibold text-primary-container bg-white hover:bg-stone-50 transition-all active:scale-[0.98] duration-200" type="button">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"></path>
+</svg>
+                                Continue with Google
+                            </button>
+</div>
+</form>
+<div class="mt-xl text-center">
+<p class="text-body-sm text-on-surface-variant">
+                            Already have an account? 
+                            <a class="text-primary-container font-bold hover:underline underline-offset-4 decoration-2" href="#">Log in</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer from Admin Dashboard -->
+<footer class="bg-[#F2F0E9] w-full rounded-t-[48px]">
+<div class="flex flex-col md:flex-row justify-between items-start py-20 px-12 max-w-[1440px] mx-auto gap-12">
+<div class="max-w-xs">
+<div class="text-2xl font-bold text-[#0F3D3E] mb-4">GETYOURCAVE</div>
+<p class="font-manrope text-sm text-stone-600 mb-8 leading-relaxed">Architectural Serenity in Storage. Curating the world's most secure and beautiful private storage networks.</p>
+<div class="flex gap-4">
+<span class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary cursor-pointer hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">share</span>
+</span>
+<span class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary cursor-pointer hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">public</span>
+</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-16">
+<div class="flex flex-col gap-4">
+<h5 class="font-bold text-primary text-sm uppercase tracking-widest">Platform</h5>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Find Storage</a>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">List Your Space</a>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">How it works</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-bold text-primary text-sm uppercase tracking-widest">Trust</h5>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Privacy</a>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Terms</a>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Host Guarantee</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-bold text-primary text-sm uppercase tracking-widest">Resources</h5>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Support</a>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Safety</a>
+<a class="text-stone-500 hover:text-[#0F3D3E] transition-colors text-sm" href="#">Cookies</a>
+</div>
+</div>
+</div>
+<div class="max-w-[1440px] mx-auto px-12 pb-12 border-t border-primary/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-manrope text-sm text-stone-600">© 2024 GETYOURCAVE. Architectural Serenity in Storage.</p>
+<p class="text-xs text-stone-400">Designed for the discerning minimalist.</p>
+</div>
+</footer>
+</body></html>
