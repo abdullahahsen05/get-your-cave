@@ -113,7 +113,7 @@ export default function MessagesPageScalableExact() {
               <div className="flex flex-col gap-sm max-w-[86%] sm:max-w-[70%]">
                 <div className="message-bubble message-bubble-incoming p-md bg-[#F2F0E9] text-body-md text-on-surface leading-relaxed">
                   
-                            Hello! I saw your inquiry about the climate-controlled unit in West Chelsea. It's currently available and perfectly suited for fine art or vintage furniture.
+                            Hello! I saw your inquiry about the climate-controlled unit in West Chelsea. It&apos;s currently available and perfectly suited for fine art or vintage furniture.
                         
                 </div>
                 <span className="text-label-caps text-stone-400 px-sm">

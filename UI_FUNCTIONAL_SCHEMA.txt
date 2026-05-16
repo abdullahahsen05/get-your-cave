@@ -1,0 +1,2505 @@
+UI_FUNCTIONAL_SCHEMA
+
+Project: GETYOURCAVE
+Purpose: Document the current hardcoded frontend structure so the app can later be wired to PostgreSQL, Prisma, Socket.IO, Stripe, file uploads, contracts, and authentication without changing the existing design.
+
+Important constraint for future implementation:
+- Preserve all current spacing, colors, layout, typography, borders, shadows, cards, button shapes, responsive behavior, and overall visual composition.
+- Replace only hardcoded data with dynamic data.
+- Do not use another page’s temporary state as the source of truth. Every page must fetch its own data using the URL, session, or API.
+
+============================================================
+1. PROJECT OVERVIEW
+============================================================
+
+Current frontend impression:
+- The app is a premium storage marketplace with a strong architectural / minimalist brand style.
+- The public site supports discovery of storage spaces, trust messaging, and conversion to owner listing.
+- The application already visually includes the major business areas needed for the marketplace:
+  - Landing page and marketing sections
+  - Browse/search listings page
+  - Listing detail page
+  - Owner dashboard
+  - Renter dashboard
+  - Admin dashboard
+  - Signup / onboarding flow
+  - Verification document upload page
+  - Listing creation flow
+  - Messaging / chat UI
+  - Contracts UI
+  - Invoices UI
+
+Business flow currently implied by the UI:
+1. Public user lands on the homepage.
+2. Public user browses listings and opens a listing detail page.
+3. Renter books a listing and later pays invoices.
+4. Owner creates a listing, manages bookings, views payouts, and signs contracts.
+5. Both parties exchange messages in chat.
+6. Users upload verification documents.
+7. Contracts are generated, previewed, signed, and downloaded.
+8. Admin monitors platform activity, listings, users, and revenue.
+
+What is still hardcoded:
+- Counts, totals, dates, names, addresses, locations, and status labels are all sample values.
+- Images are fixed assets / remote placeholders.
+- Tables, cards, and timelines are currently static.
+- No page is yet wired to database queries or API endpoints.
+- There is no visible login page route in the current file set.
+
+============================================================
+2. ROUTE / PAGE MAP
+============================================================
+
+Page: app/page.tsx
+Route: /
+Role: Public
+Purpose: Landing page and primary marketing entry point.
+Main UI sections:
+- Hero section with headline, CTA, and trust metric
+- Featured-in logos row
+- “Storage made simple” intro copy
+- Three-step value proposition cards
+- Owner promotional section
+- Available caves / map preview section
+- Security value cards
+- Large stats banner
+- FAQ accordion
+- Final CTA section
+Current hardcoded data shown:
+- “Find secure storage near you”
+- “4.9/5 from 2,000+ users”
+- “56+ Cities Nationwide”
+- “$196,000 Host Earnings”
+- Featured-in labels: Architectural Digest, Wired, Forbes, Dwell, Monocle
+- Marketing copy about curated hospitality and architectural serenity
+- Step labels: Search, Book, Store
+- Stats: 12,000+ active storage spaces, 50+ cities nationwide, 99.9% safety rating
+- Available listings:
+  - The Heights Garage, $120/mo, Pacific Heights, SF, 150 sq ft
+  - Mission Loft Storage, $85/mo, Mission District, SF, 75 sq ft
+- FAQ text about insurance, payments, and access
+Dynamic data needed:
+- Marketing stats if they should be real platform metrics
+- Listing previews / featured listings
+- FAQ content if managed from CMS later
+- Trust signals if platform metrics become real
+API needed:
+- GET /api/public/featured-listings
+- GET /api/public/platform-stats
+- GET /api/public/faqs
+Related models:
+- Listing
+- ListingImage
+- Review
+- PlatformMetric
+- FAQ if content is managed in database
+Actions/buttons/forms:
+- Find Storage
+- Start Listing
+- View full map
+- FAQ accordion toggles
+- Final CTA buttons: Find Storage, List Your Space
+Auth protection:
+- Public
+Notes:
+- Preserve the current hero grid, feature cards, CTA placement, and CTA styling exactly.
+- The page should not depend on a listing card click state; it should only use its own fetched featured data.
+
+Page: app/storage/page.tsx
+Route: /storage
+Role: Public
+Purpose: Search/browse listings page with filters and listing cards.
+Main UI sections:
+- Dominant search bar
+- Results header
+- Left filter sidebar
+- Three-column listing grid
+- Pagination control
+- Mobile bottom nav
+Current hardcoded data shown:
+- Search placeholders:
+  - Where do you need storage?
+  - Any Size
+  - Move-in date
+- Results header:
+  - 128 Storage Caves
+  - Greater San Francisco Area
+- Filter values:
+  - Price range labels $50 to $1,200+
+  - Unit sizes Small / Medium / Large
+  - Storage type chips Garage / Loft / Warehouse / Basement
+  - Distance within 5 / 10 / 25 miles
+- Listing cards:
+  - The Heights Private Cave, Garage, 4.9, Pacific Heights, SF, 120 sq ft, Secured, $240/mo
+  - Mission District Studio, Loft, 5.0, Mission St, SF, 85 sq ft, Climate, $185/mo
+  - Presidio Tech Vault, Warehouse, 4.8, Presidio, SF, 300 sq ft, CCTV, $410/mo
+  - Marina Serene Unit, Basement, 4.7, Marina Dist, SF, 45 sq ft, Verified, $115/mo
+- Pagination: 1, 2, 3, 12
+Dynamic data needed:
+- Search query results from database
+- Filter options populated from actual categories if needed
+- Sort options applied server-side or client-side
+- Page count and pagination state
+- Listing thumbnails, prices, ratings, sizes, amenities, status
+API needed:
+- GET /api/listings
+- GET /api/listings?location=&size=&type=&distance=&priceMin=&priceMax=&sort=
+- GET /api/listings/filters
+Related models:
+- Listing
+- ListingImage
+- Review
+- ListingAmenity if modeled separately
+Actions/buttons/forms:
+- Search
+- Show Map
+- Sort dropdown
+- Price range control
+- Unit size checkboxes
+- Storage type chips
+- Distance select
+- Pagination arrows and page buttons
+Auth protection:
+- Public
+Notes:
+- Keep the current search bar, sidebar layout, card size, pagination style, and mobile bottom nav visually unchanged.
+- This page should fetch its own result set from query parameters, not from the homepage.
+
+Page: app/storage/listing-details/page.tsx
+Route: /storage/listing-details
+Role: Public
+Purpose: Listing detail page with gallery, host info, amenities, reviews, and booking summary.
+Main UI sections:
+- Listing title and rating header
+- Share / save buttons
+- Multi-image gallery
+- Listing summary and feature row
+- About this space section
+- Owner profile section
+- Review cards
+- Booking sidebar with breakdown
+- Protection notice
+Current hardcoded data shown:
+- Title: The Emerald Vault – Lower Manhattan
+- Rating: 4.98, 124 reviews
+- Location: Chelsea, New York City
+- Host: Julian
+- Feature line: 120 sq ft, Climate Controlled, 24/7 Monitoring
+- Description paragraphs about the space
+- Owner section:
+  - Joined in August 2019
+  - Response rate 100%
+  - 48 Reviews
+  - Identity verified
+- Reviews:
+  - Eleanor Shellstrop, October 2023
+  - Michael Koh, September 2023
+- Booking sidebar:
+  - $240 / month
+  - Move-in: May 12, 2024
+  - Duration: Monthly
+  - Unit size: 10' x 12' Studio
+  - Monthly rate x 1: $240
+  - Security deposit: $0
+  - Cave insurance: $12
+  - Total (monthly): $252
+- Protection notice: Covered by CaveShield, $100k asset protection guarantee
+Dynamic data needed:
+- Listing details by ID
+- Owner profile summary
+- Reviews
+- Booking price breakdown
+- Insurance / deposit / fees / commission breakdown
+API needed:
+- GET /api/listings/[id]
+- GET /api/listings/[id]/reviews
+- GET /api/listings/[id]/pricing
+- POST /api/bookings
+Related models:
+- Listing
+- ListingImage
+- User
+- OwnerProfile
+- Review
+- Booking
+- PricingRule or FeeRule
+Actions/buttons/forms:
+- Share
+- Save
+- Show more
+- Contact Owner
+- Book Now
+- Details
+Auth protection:
+- Public for viewing
+- Booking action should require renter authentication
+Notes:
+- This page is currently static and should become dynamic via route params.
+- Recommended future pattern: `/storage/[id]` or `/listings/[id]` so the page always loads by URL.
+
+Page: app/owner/dashboard/page.tsx
+Route: /owner/dashboard
+Role: Owner
+Purpose: Owner overview dashboard for earnings, listings, contracts, invoices, and activity.
+Main UI sections:
+- Dashboard header
+- Metric cards
+- Revenue overview chart
+- Earnings and legal cards
+- Invoice table
+- Listings grid
+- Recent activity sidebar
+Current hardcoded data shown:
+- Welcome back Julian (Owner)
+- Total earnings: $4,280
+- Growth note: +12% from last month
+- Active listings: 3
+- Tenant activity: 2
+- Pending payouts: $1,120.00, scheduled for release on Jun 25
+- Unsigned contracts: 2
+- Invoice rows:
+  - #INV-2024-081, West Chelsea Studio, $1,850.00, Paid
+  - #INV-2024-080, Tribeca Vault, $2,430.00, Paid
+  - #INV-2024-079, Midtown Locker, $920.00, Processing
+- Listing cards:
+  - West Chelsea Studio, Climate Controlled, 200 sq ft, OCCUPIED, $1,850
+  - Tribeca Vault, High Security, 150 sq ft, OCCUPIED, $2,430
+- Recent activity items:
+  - Sarah M. booked West Chelsea Studio, 2 hours ago
+  - Message from David K. regarding Tribeca accessibility, 5 hours ago
+  - Payout of $1,250 initiated, Yesterday
+Dynamic data needed:
+- Owner profile
+- Earnings totals and chart series
+- Listings owned by the user
+- Occupancy status
+- Booking requests
+- Pending payouts
+- Contract signature status
+- Recent invoices
+- Recent messages
+- Recent activity feed
+API needed:
+- GET /api/owner/dashboard
+- GET /api/owner/listings
+- GET /api/owner/bookings
+- GET /api/owner/payments
+- GET /api/owner/contracts
+- GET /api/owner/activity
+Related models:
+- User
+- OwnerProfile
+- Listing
+- Booking
+- Payment
+- Invoice
+- Contract
+- Conversation
+- Message
+Actions/buttons/forms:
+- Review Contracts
+- View All Invoices
+- Add New Cave
+- Manage
+- Recent activity menu button
+Auth protection:
+- Protected, owner only
+Notes:
+- Keep the existing card sizes, grid split, chart shape, table formatting, and sidebar layout unchanged.
+
+Page: app/renter/dashboard/page.tsx
+Route: /renter/dashboard
+Role: Renter
+Purpose: Renter dashboard for active rentals, payments, invoices, and past rentals.
+Main UI sections:
+- Welcome header
+- Three metric cards
+- Active rentals cards
+- Payment and invoices section
+- Invoice table
+- Past rentals list
+Current hardcoded data shown:
+- Welcome back Julian
+- “You have 2 active rentals and 1 message waiting for your response.”
+- Active Units: 2
+- Next Payment: Oct 15
+- Total Saved: 120 sq ft
+- Active rentals:
+  - The Heights Private Cave, 1200 Westview Pkwy, Suite 4, $240/mo
+  - Downtown Micro-Cell, 45 Market St, Vault B, $185/mo
+- Total Paid YTD: $3,245
+- Outstanding: $0
+- Last Payment: Oct 15, 2024
+- Invoice table:
+  - #INV-8824, The Heights Private Cave, $240.00, Paid, Oct 15, 2024
+  - #INV-8712, Downtown Micro-Cell, $185.00, Paid, Oct 01, 2024
+- Past rentals:
+  - Oak Creek Depot, Jan 2023 - June 2024, Completed, $120/mo
+  - Riverside Box, Aug 2022 - Dec 2022, Completed, $95/mo
+Dynamic data needed:
+- Renter profile
+- Active bookings / rentals
+- Upcoming payment date
+- Saved capacity or storage usage
+- Invoices and payment history
+- Active contracts
+- Recent messages
+- Optional favorites/saved listings if UI is added later
+API needed:
+- GET /api/renter/dashboard
+- GET /api/renter/bookings
+- GET /api/renter/invoices
+- GET /api/renter/contracts
+- GET /api/renter/messages
+Related models:
+- User
+- RenterProfile
+- Booking
+- Invoice
+- Payment
+- Contract
+- Conversation
+- Message
+Actions/buttons/forms:
+- View All
+- Manage Unit
+- More menu
+- View All Invoices
+- Download Receipt
+Auth protection:
+- Protected, renter only
+Notes:
+- Preserve the current card treatment, spacing, and table styling.
+
+Page: app/admin/dashboard/page.tsx
+Route: /admin/dashboard
+Role: Admin
+Purpose: Platform admin overview dashboard.
+Main UI sections:
+- Dashboard header
+- Stat cards
+- Revenue chart
+- Market insights card
+- Recent activity table
+- Pagination footer
+Current hardcoded data shown:
+- Total Users: 12,482
+- Active Listings: 3,904
+- Monthly Revenue: $412,890
+- Chart series: chartHeights array
+- Revenue Performance chart labels: Week 01 to Week 04, 7 Days, 30 Days toggle
+- Market insight copy:
+  - Demand for climate-controlled Premium Vaults has increased by 18% in the urban sector
+  - New York City +24%
+  - Los Angeles +16%
+- Recent activity rows:
+  - Alexander Thorne, USR-88219, User, Verified, Oct 24, 2023
+  - Suburban Haven Vault, LST-4492, Listing, Pending, Oct 23, 2023
+  - Elena Rodriguez, USR-90112, User, Verified, Oct 22, 2023
+- Table footer text: Showing 3 of 482 activities
+Dynamic data needed:
+- Admin KPIs
+- Revenue time series
+- Listing/user moderation queue
+- Activity log
+- Search and filter results
+- Pagination totals
+API needed:
+- GET /api/admin/dashboard
+- GET /api/admin/activity
+- GET /api/admin/users
+- GET /api/admin/listings
+- GET /api/admin/revenue
+Related models:
+- User
+- Listing
+- Booking
+- Payment
+- Invoice
+- AdminLog
+- VerificationDocument
+Actions/buttons/forms:
+- Revenue range toggle
+- Activity filter search
+- Filter button
+- Row menu button
+- Pagination arrows
+Auth protection:
+- Protected, admin only
+Notes:
+- `navLinks`, `ownerMenu`, `stats`, `chartHeights`, and `activities` are the obvious hardcoded inventory in this file.
+
+Page: app/create-listing/page.tsx
+Route: /create-listing
+Role: Owner
+Purpose: Multi-step listing creation form.
+Main UI sections:
+- Stepper with five steps
+- Progress bar
+- Conditional step content area
+- Back / Save Draft / Next Step buttons
+Current hardcoded data shown:
+- Step names:
+  - Basic Details
+  - Photos
+  - Pricing
+  - Location
+  - Amenities
+- Basic details placeholders:
+  - Cave Title placeholder
+  - Description placeholder
+  - Storage types: Garage, Basement, Room, Warehouse
+- Photo upload card:
+  - Upload Storage Photos (Min 3 required)
+- Pricing guidance:
+  - Spaces like yours in Downtown typically range from $250 - $450 per month
+- Location placeholders:
+  - Street Address
+  - City
+  - Zip Code
+  - Map preview image
+- Amenities options:
+  - Security Camera
+  - 24/7 Access
+  - Climate Control
+  - Private Entry
+  - Gated
+  - Loading Dock
+Dynamic data needed:
+- Draft listing data
+- Uploaded images
+- Selected storage type
+- Pricing
+- Location fields
+- Amenity selection
+- Map/geocoding preview
+API needed:
+- POST /api/listings
+- PATCH /api/listings/[id]
+- POST /api/uploads/listing-images
+- GET /api/listings/[id]
+- PUT /api/listings/[id]/draft
+Related models:
+- Listing
+- ListingImage
+- ListingAmenity
+- User
+- VerificationDocument if listing publishing requires verification
+Actions/buttons/forms:
+- Step buttons
+- Back
+- Save Draft
+- Next Step
+- Submit Listing
+- Storage type radio cards
+- File browse / drag-drop upload
+- Amenity checkboxes
+Auth protection:
+- Protected, owner only
+Notes:
+- `steps` is the main hardcoded step metadata array.
+- `step` state is local UI state and should not be treated as backend state.
+- The current UI is a wizard shell; future implementation should persist form values per step without changing layout.
+
+Page: app/messaging/page.tsx
+Route: /messaging
+Role: Shared, authenticated
+Purpose: Internal messaging / chat UI between renter and owner.
+Main UI sections:
+- Conversation list sidebar
+- Search conversations input
+- Chat header
+- Message history
+- Message composer
+Current hardcoded data shown:
+- Conversation list items:
+  - Julian (Owner), 12:45 PM, preview about temperature control
+  - The Emerald Vault, Yesterday, booking confirmed preview
+  - Sarah M., Oct 24, preview about cabinet space
+- Chat header:
+  - Julian (Owner)
+  - Active now
+- Messages:
+  - Incoming message about climate-controlled unit in West Chelsea
+  - Outgoing message about oil paintings and humidity levels
+  - Incoming message with 21°C / 70°F and 50% relative humidity
+- Composer placeholders:
+  - Type your message...
+Dynamic data needed:
+- Conversation list for current user
+- Messages for the selected conversation
+- Read state
+- Typing state
+- Participant status
+- Unread counts
+API needed:
+- GET /api/messages/conversations
+- GET /api/messages/conversations/[id]
+- POST /api/messages/conversations/[id]
+- POST /api/messages/conversations
+Related models:
+- Conversation
+- Message
+- User
+- Listing
+Actions/buttons/forms:
+- Search messages
+- View Listing
+- Attach file
+- Send message
+Auth protection:
+- Protected, authenticated users only
+Notes:
+- Socket.IO should be used only for real-time delivery and typing/read events.
+- PostgreSQL must remain the system of record for conversation and message history.
+
+Page: app/contracts/page.tsx
+Route: /contracts
+Role: Shared, authenticated
+Purpose: Contracts list and contract preview/signing flow.
+Main UI sections:
+- Page header
+- Filter / sort controls
+- Contract table
+- Contract preview side panel
+- Contract timeline
+- Sign / download actions
+Current hardcoded data shown:
+- Filter values:
+  - All Statuses
+  - Draft
+  - Sent
+  - Signed
+  - Cancelled
+  - Newest First
+  - Oldest First
+  - Amount High-Low
+- Contract table rows:
+  - The Obsidian Vault, ID BK-77429, PREMIUM, SENT
+  - Alpine Climate Cell, ID BK-22108, STANDARD, SIGNED, Oct 12, 2023
+  - Minimalist Loft Space, ID BK-99831, FLEX, DRAFT
+  - Heritage Archives C02, ID BK-44102, PREMIUM, CANCELLED
+- Contract preview:
+  - The Obsidian Vault
+  - Contract Document #LGL-2024-V4
+- Timeline:
+  - Contract Generated, Jan 14, 2024 10:45 AM
+  - Sent to Parties, Jan 14, 2024 11:02 AM
+  - Owner Signed, Jan 15, 2024 09:30 AM
+  - Renter Signed, awaiting signature
+Dynamic data needed:
+- Contracts by user and role
+- Contract template type
+- Signature status
+- Preview PDF URL
+- Timeline events
+- Signer metadata
+API needed:
+- GET /api/contracts
+- GET /api/contracts/[id]
+- POST /api/contracts
+- POST /api/contracts/[id]/sign
+- POST /api/contracts/[id]/send
+- GET /api/contracts/[id]/pdf
+Related models:
+- ContractTemplate
+- Contract
+- Booking
+- User
+- Listing
+Actions/buttons/forms:
+- Status filter
+- Sort dropdown
+- View Contract
+- Close preview
+- Sign Now
+- Download PDF
+- Fullscreen Preview
+Auth protection:
+- Protected, authenticated users only
+Notes:
+- The preview is currently a visual placeholder for a generated PDF.
+- The three contract templates required by the business should map to `ContractTemplate`.
+
+Page: app/invoices/page.tsx
+Route: /invoices
+Role: Shared, authenticated
+Purpose: Invoice list plus invoice detail and payment action page.
+Main UI sections:
+- Summary metric cards
+- Filter bar
+- Invoice table
+- Invoice detail panel
+Current hardcoded data shown:
+- Total Invoiced: $12,450.00
+- Paid: $11,200.00
+- Outstanding: $1,250.00
+- Filter values:
+  - All Statuses
+  - Paid
+  - Issued
+  - Draft
+  - Cancelled
+  - Jan 2024 - Dec 2024
+- Invoice rows:
+  - INV-8821, The High-Ceiling Vault, Zurich, Oct 12, 2024, $450.00, Paid
+  - INV-8904, Climate Controlled Atelier, Berlin, Nov 01, 2024, $800.00, Issued
+  - INV-9120, Private Marble Chamber, Milan, Nov 15, 2024, $1,250.00, Draft
+- Invoice detail:
+  - Invoice #INV-8821
+  - Booking: The High-Ceiling Vault, Zurich
+  - Issued: October 12, 2024
+  - Paid: October 14, 2024
+  - From: GETYOURCAVE AG, Bahnhofstrasse 12, 8001 Zurich, Switzerland, VAT CHE-123.456.789
+  - To: Julian Henderson, Rue de la Paix 24, 1202 Geneva, Switzerland
+  - Itemized breakdown:
+    - Monthly Rent - High-Ceiling Vault (October) $380.00
+    - Premium Security & Insurance Add-on $70.00
+    - Total $450.00
+Dynamic data needed:
+- Invoice summaries
+- Invoice list
+- Invoice status
+- Issued / due / paid dates
+- Itemized charges
+- Payer and payee details
+- Stripe payment state
+API needed:
+- GET /api/invoices
+- GET /api/invoices/[id]
+- POST /api/invoices/[id]/pay
+- GET /api/invoices/[id]/pdf
+Related models:
+- Invoice
+- Payment
+- Booking
+- Listing
+- User
+Actions/buttons/forms:
+- Status filter
+- Date range field
+- Apply Filters
+- View
+- Download
+- Pay
+- Pay Now
+- Download PDF
+Auth protection:
+- Protected, authenticated users only
+Notes:
+- The invoice detail panel should be driven by the selected invoice ID or route param in the future.
+
+Page: app/signup/page.tsx
+Route: /signup
+Role: Public
+Purpose: Multi-step signup / onboarding / profile-verification entry UI.
+Main UI sections:
+- Step progress header
+- Marketing side panel
+- Signup form
+- Back / Next navigation
+Current hardcoded data shown:
+- Step labels:
+  - Account
+  - Profile
+  - Verify
+  - Finish
+- Step count: Step 1 of 4
+- Marketing points:
+  - Verified Owners
+  - Secure Payments
+  - Easy Contracts
+- Join 5,000+ hosts securing assets globally
+- Form placeholders:
+  - name@luxury.com
+  - password fields
+- Google sign-in button
+Dynamic data needed:
+- Auth signup action
+- Role selection if added later
+- Social auth callback
+- Onboarding state
+API needed:
+- POST /api/auth/signup
+- POST /api/auth/oauth/google
+- POST /api/auth/session
+Related models:
+- User
+- OwnerProfile
+- RenterProfile
+Actions/buttons/forms:
+- Email input
+- Password input
+- Confirm password input
+- Continue with Google
+- Back
+- Next Step
+- Log in link
+Auth protection:
+- Public
+Notes:
+- This is the clearest onboarding shell but it currently does not submit anywhere.
+- If login is added, it should be a separate `/login` route because none exists now.
+
+Page: app/document/page.tsx
+Route: /document
+Role: Shared, authenticated
+Purpose: Verification document upload and review page.
+Main UI sections:
+- Verification header
+- Account status card
+- Security notice
+- Documentation upload buttons
+- Recent documents table
+- Review / submission sidebar
+Current hardcoded data shown:
+- Account status: PENDING
+- Upload cards:
+  - Upload ID Card
+  - Upload Proof of Ownership
+- Recent documents:
+  - Passport_Scan_v1.pdf, VERIFIED, Oct 12, 2024
+  - Insurance_Cert_2024.jpg, REJECTED, Nov 04, 2024
+- Submit for Review button
+Dynamic data needed:
+- User verification state
+- Uploaded document list
+- Document review status
+- Re-upload and delete actions
+API needed:
+- POST /api/uploads/verification-documents
+- GET /api/verification-documents
+- DELETE /api/verification-documents/[id]
+- POST /api/verification/submit
+Related models:
+- VerificationDocument
+- User
+- OwnerProfile
+- RenterProfile
+Actions/buttons/forms:
+- Upload ID Card
+- Upload Proof of Ownership
+- View
+- Delete
+- Re-upload
+- Submit for Review
+Auth protection:
+- Protected, authenticated users only
+Notes:
+- The UI is a two-file upload entry point and a table-based document history view.
+
+Page: app/layout.tsx
+Route: Root layout
+Role: Shared
+Purpose: Global shell for all app routes.
+Main UI sections:
+- Root html/body wrapper
+- Material Symbols font link
+- Shared Navbar
+- Shared Footer
+Current hardcoded data shown:
+- Metadata title: GETYOURCAVE
+- Metadata description: Architectural Serenity in Storage
+Dynamic data needed:
+- None directly, unless metadata is later dynamic
+API needed:
+- None
+Related models:
+- None
+Actions/buttons/forms:
+- None
+Auth protection:
+- Shared shell only
+Notes:
+- This file wraps every page, so any auth-aware nav changes should happen here or inside the navbar.
+
+Page: components/layout/Navbar.tsx
+Route: Shared navigation component
+Role: Shared
+Purpose: Main top navigation and owner mega-menu.
+Main UI sections:
+- Brand mark
+- Primary nav links
+- Owner dropdown mega-menu
+- Profile icon button
+- List Your Space CTA
+Current hardcoded data shown:
+- Nav links: Home, Browse Storage, How it Works, Pricing
+- Owner mega-menu titles:
+  - List & Earn
+  - Resources
+  - Tools
+- Owner menu items:
+  - Why List Your Space
+  - Earning Potential
+  - Success Stories
+  - Owner Benefits
+  - Owner Guide
+  - Safety & Security
+  - Pricing & Fees
+  - Help Center
+  - Dashboard Overview
+  - Payouts & Payments
+  - Contracts & Docs
+  - Verification Process
+- Promo panel: Become an Owner
+Dynamic data needed:
+- Logged-in user state
+- Role-aware nav targets
+- Account menu / avatar
+API needed:
+- GET /api/auth/session
+Related models:
+- User
+- OwnerProfile
+Actions/buttons/forms:
+- Nav links
+- For Owners dropdown
+- Profile button
+- List Your Space button
+Auth protection:
+- Shared component
+Notes:
+- `navLinks`, `ownerMenu`, and the CTA are currently hardcoded menu metadata.
+
+Page: components/layout/Footer.tsx
+Route: Shared footer component
+Role: Shared
+Purpose: Global footer navigation and brand block.
+Main UI sections:
+- Brand description block
+- Social icons
+- Footer link columns
+- Copyright row
+Current hardcoded data shown:
+- Brand text GETYOURCAVE
+- Brand description paragraph
+- Link groups:
+  - Platform: Find Storage, List Your Space, How it works
+  - Trust: Privacy, Terms, Host Guarantee
+  - Resources: Support, Safety, Cookies
+- Copyright: © 2024 GETYOURCAVE
+Dynamic data needed:
+- Footer link destinations if CMS-driven later
+API needed:
+- None
+Related models:
+- None
+Actions/buttons/forms:
+- Social icon buttons
+- Footer links
+Auth protection:
+- Shared component
+
+Page: components/ui/Card.tsx
+Route: Shared UI primitive
+Role: Shared
+Purpose: Generic card wrapper components.
+Current hardcoded data shown:
+- No business data; only styling wrappers
+Dynamic data needed:
+- None
+API needed:
+- None
+Related models:
+- None
+Actions/buttons/forms:
+- None
+Auth protection:
+- Shared component
+Notes:
+- `Card`, `CardHeader`, `CardBody`, and `CardFooter` are reusable layout primitives.
+
+Page: components/ui/Button.tsx
+Route: Shared UI primitive
+Role: Shared
+Purpose: Generic primary, secondary, and ghost button primitives.
+Current hardcoded data shown:
+- No business data; only style wrappers
+Dynamic data needed:
+- None
+API needed:
+- None
+Related models:
+- None
+Actions/buttons/forms:
+- None
+Auth protection:
+- Shared component
+
+Page: components/ui/Input.tsx
+Route: Shared UI primitive
+Role: Shared
+Purpose: Generic input and select primitives.
+Current hardcoded data shown:
+- No business data; only style wrappers
+Dynamic data needed:
+- None
+API needed:
+- None
+Related models:
+- None
+Actions/buttons/forms:
+- None
+Auth protection:
+- Shared component
+
+Page: app/globals.css
+Route: Global styling
+Role: Shared
+Purpose: Defines theme tokens, color variables, utility classes, shared card/input/button styling, and layout helpers.
+Current hardcoded data shown:
+- No business data
+Dynamic data needed:
+- None
+API needed:
+- None
+Related models:
+- None
+Notes:
+- This file contains theme tokens that should remain stable when backend wiring begins.
+
+============================================================
+3. HARDCODED DATA INVENTORY
+============================================================
+
+Admin dashboard:
+- File path: app/admin/dashboard/page.tsx
+- Variable: navLinks
+  - Represents top nav labels
+  - Sample fields: ["Home", "Browse Storage", "How it Works"]
+  - Model mapping: Navigation/CMS, not a core Prisma model
+  - Source later: local UI config or CMS
+- Variable: ownerMenu
+  - Represents owner mega-menu groups and items
+  - Sample fields: title, items, icon, label
+  - Model mapping: Navigation/CMS
+  - Source later: local UI config or CMS
+- Variable: stats
+  - Represents admin KPI cards
+  - Sample fields: label, icon, value, note
+  - Model mapping: analytics aggregates from User, Listing, Booking, Payment
+  - Source later: API/database
+- Variable: chartHeights
+  - Represents chart bar heights
+  - Sample fields: numeric percentages
+  - Model mapping: revenue analytics series
+  - Source later: API/database
+- Variable: activities
+  - Represents recent moderation / platform activity
+  - Sample fields: name, id, type, typeClass, status, statusDot, date
+  - Model mapping: AdminLog, User, Listing
+  - Source later: API/database
+
+Create listing:
+- File path: app/create-listing/page.tsx
+- Variable: steps
+  - Represents wizard stages
+  - Sample fields: label, icon
+  - Model mapping: UI state only
+  - Source later: local UI state
+- Variable: step
+  - Represents active wizard step
+  - Model mapping: UI state only
+  - Source later: local UI state
+- Variable: progress
+  - Represents progress percent
+  - Model mapping: UI state only
+  - Source later: derived local UI state
+- Variable: imageSrc
+  - Represents sample listing photo in preview
+  - Model mapping: ListingImage
+  - Source later: API/database or upload preview state
+
+Landing page:
+- File path: app/page.tsx
+- Hardcoded headline, value props, counts, featured-in names, and listing previews
+- Model mapping: PlatformMetric, Listing, ListingImage, FAQ, Review
+- Source later: API/database for metrics and featured listings; local UI or CMS for marketing copy
+
+Browse storage:
+- File path: app/storage/page.tsx
+- Hardcoded search placeholders, filter options, counts, and listing card sample data
+- Model mapping: Listing, ListingImage, Review, ListingAmenity
+- Source later: API/database for listings and filters; local UI for static filter labels if desired
+
+Listing detail:
+- File path: app/storage/listing-details/page.tsx
+- Hardcoded listing title, host name, review count, feature text, description, review samples, booking breakdown
+- Model mapping: Listing, ListingImage, User, OwnerProfile, Review, Booking, PricingRule
+- Source later: API/database
+
+Owner dashboard:
+- File path: app/owner/dashboard/page.tsx
+- Hardcoded total earnings, active listings, tenant activity, payout amount, contract count, invoice rows, listing cards, recent activity
+- Model mapping: User, OwnerProfile, Listing, Booking, Payment, Invoice, Contract, Message
+- Source later: API/database
+
+Renter dashboard:
+- File path: app/renter/dashboard/page.tsx
+- Hardcoded active units, payment date, saved capacity, active rental cards, invoice table, past rentals
+- Model mapping: User, RenterProfile, Booking, Invoice, Payment, Contract
+- Source later: API/database
+
+Contracts:
+- File path: app/contracts/page.tsx
+- Hardcoded contract rows, statuses, document IDs, preview title, timeline timestamps
+- Model mapping: ContractTemplate, Contract, Booking, Listing, User
+- Source later: API/database
+
+Invoices:
+- File path: app/invoices/page.tsx
+- Hardcoded totals, status filters, invoice rows, invoice detail data, line items
+- Model mapping: Invoice, Payment, Booking, Listing, User
+- Source later: API/database
+
+Messaging:
+- File path: app/messaging/page.tsx
+- Hardcoded conversation list, message thread, timestamps, typing / active text
+- Model mapping: Conversation, Message, User, Listing
+- Source later: API/database plus Socket.IO for live updates
+
+Signup:
+- File path: app/signup/page.tsx
+- Hardcoded onboarding step labels, counts, marketing claims, placeholders
+- Model mapping: User, OwnerProfile, RenterProfile
+- Source later: UI state + auth API
+
+Verification:
+- File path: app/document/page.tsx
+- Hardcoded account status, upload card labels, document filenames, review statuses, dates
+- Model mapping: VerificationDocument, User, OwnerProfile, RenterProfile
+- Source later: API/database
+
+Shared layout:
+- File path: components/layout/Navbar.tsx
+- Hardcoded menu labels and CTA strings
+- Model mapping: Navigation config, role-aware auth state
+- Source later: local config or CMS + auth session
+
+Shared footer:
+- File path: components/layout/Footer.tsx
+- Hardcoded footer sections and copyright line
+- Model mapping: Navigation config / static content
+- Source later: local config or CMS
+
+============================================================
+4. REUSABLE UI PATTERNS
+============================================================
+
+Card patterns:
+- Landing stats cards, feature cards, trust cards, listing cards, owner dashboard metric cards, renter dashboard cards, admin KPI cards, contract preview card, invoice detail card, verification upload cards, message panels.
+- Should later receive:
+  - title
+  - subtitle
+  - metric/value
+  - icon
+  - image
+  - status
+  - action button(s)
+- Must remain visually unchanged:
+  - Rounded corners
+  - Shadow depth
+  - Border color
+  - Spacing
+  - Typography hierarchy
+
+Metric / stat cards:
+- Appear in:
+  - app/owner/dashboard/page.tsx
+  - app/renter/dashboard/page.tsx
+  - app/admin/dashboard/page.tsx
+  - app/invoices/page.tsx
+  - app/page.tsx
+- Should later receive:
+  - label
+  - numeric value
+  - delta / note
+  - icon
+- Preserve:
+  - Card size
+  - Text alignment
+  - Tonal card colors
+
+Listing cards:
+- Appear in:
+  - app/storage/page.tsx
+  - app/page.tsx
+  - app/owner/dashboard/page.tsx
+  - app/renter/dashboard/page.tsx
+- Should later receive:
+  - image
+  - category badge
+  - rating
+  - title
+  - location
+  - size
+  - features
+  - monthly price
+  - status badge
+- Preserve:
+  - Image aspect ratios
+  - Badge positions
+  - Footer row with features and price
+
+User cards / profile blocks:
+- Appear in:
+  - listing detail host section
+  - messaging conversation avatars
+  - owner dashboard activity feed
+- Should later receive:
+  - avatar
+  - display name
+  - role label
+  - verification badge
+  - response rate / last seen if relevant
+
+Payment / invoice cards:
+- Appear in:
+  - app/invoices/page.tsx
+  - app/renter/dashboard/page.tsx
+  - app/owner/dashboard/page.tsx
+- Should later receive:
+  - amount
+  - currency
+  - status
+  - due date
+  - invoice number
+  - booking/listing reference
+
+Contract cards / panels:
+- Appear in:
+  - app/contracts/page.tsx
+  - app/owner/dashboard/page.tsx
+- Should later receive:
+  - contract id
+  - template type
+  - status
+  - signer state
+  - PDF URL
+
+Tables:
+- Appear in:
+  - owner dashboard invoices
+  - renter dashboard invoices
+  - contracts
+  - invoices
+  - verification documents
+  - admin activity
+- Should later receive:
+  - rows from API
+  - status badges
+  - action buttons
+  - pagination if needed
+- Preserve:
+  - Header text
+  - Column widths
+  - Scrollable container behavior
+
+Tabs / segmented controls / filters:
+- Appear in:
+  - contracts status sort selectors
+  - invoices filters
+  - admin revenue range toggle
+  - create-listing stepper
+- Should later receive:
+  - active value
+  - options list
+  - onChange handlers
+- Preserve:
+  - Pill shapes
+  - Active/inactive color state
+
+Modals / previews:
+- Appear in:
+  - contracts PDF preview panel
+  - invoice detail panel
+  - potential future listing manage menus
+- Should later receive:
+  - selected entity
+  - open/closed state
+  - preview URLs
+- Preserve:
+  - Panel width
+  - Shadow
+  - Sticky positioning
+
+Forms:
+- Appear in:
+  - signup
+  - create-listing
+  - browse search bar
+  - invoices filter bar
+  - contracts filters
+  - messaging composer
+  - verification uploads
+- Should later receive:
+  - controlled values
+  - validation errors
+  - submit handlers
+
+Status badges:
+- Examples:
+  - Active
+  - OCCUPIED
+  - Paid
+  - Issued
+  - Draft
+  - Sent
+  - Signed
+  - Cancelled
+  - VERIFIED
+  - REJECTED
+  - PENDING
+  - ACTION REQUIRED
+- Should later receive:
+  - status enum values from backend
+- Preserve:
+  - Pill size
+  - Color semantics
+
+Buttons:
+- Examples:
+  - primary CTA buttons
+  - outline buttons
+  - icon-only buttons
+  - circular icon buttons
+  - full-width booking / submit buttons
+- Should later receive:
+  - action handlers
+  - loading / disabled state
+  - role-aware destination
+- Preserve:
+  - Shape
+  - Typography
+  - Hover feedback
+
+Sidebar / navbar items:
+- Appear in:
+  - shared Navbar
+  - browse filter sidebar
+  - messaging conversation list
+  - contracts preview sidebar
+  - verification sidebar
+- Should later receive:
+  - list items
+  - selected state
+  - counts / unread indicators
+
+Empty states:
+- Not strongly implemented yet.
+- Missing / needed later:
+  - no results state in browse
+  - no bookings state in renter dashboard
+  - no invoices state
+  - no conversations state
+  - no contracts / verification documents state
+
+============================================================
+5. FORMS AND INPUT SCHEMA
+============================================================
+
+Signup form:
+- File path: app/signup/page.tsx
+- Purpose: account creation / onboarding start
+- Input fields:
+  - email
+  - password
+  - confirm password
+- Current hardcoded/default values:
+  - placeholders only, no defaults
+- Required fields:
+  - email
+  - password
+  - confirm password
+- Validation needed later:
+  - valid email format
+  - password length / strength
+  - password confirmation match
+- Submit action needed:
+  - create user account
+  - start session
+- API endpoint needed:
+  - POST /api/auth/signup
+- Related Prisma model:
+  - User
+
+Google auth button:
+- File path: app/signup/page.tsx
+- Purpose: social auth entry
+- Input fields:
+  - none
+- Validation needed later:
+  - provider callback success
+- Submit action needed:
+  - OAuth sign-in
+- API endpoint needed:
+  - POST /api/auth/oauth/google
+- Related Prisma model:
+  - User
+
+Create listing step 1:
+- File path: app/create-listing/page.tsx
+- Purpose: basic listing details
+- Input fields:
+  - cave title
+  - description
+  - storage type radio
+- Validation needed later:
+  - required title
+  - required description
+  - required storage type
+- Submit action needed:
+  - persist draft step data
+- API endpoint needed:
+  - POST /api/listings/draft
+  - PATCH /api/listings/[id]
+- Related Prisma model:
+  - Listing
+
+Create listing step 2:
+- File path: app/create-listing/page.tsx
+- Purpose: photo upload
+- Input fields:
+  - listing images
+- Validation needed later:
+  - minimum 3 images
+  - file type limits
+  - primary image selection
+- Submit action needed:
+  - upload images and store URLs
+- API endpoint needed:
+  - POST /api/uploads/listing-images
+- Related Prisma model:
+  - ListingImage
+
+Create listing step 3:
+- File path: app/create-listing/page.tsx
+- Purpose: pricing
+- Input fields:
+  - monthly rate
+- Validation needed later:
+  - numeric
+  - greater than zero
+  - optional range guidance
+- Submit action needed:
+  - save pricing
+- API endpoint needed:
+  - PATCH /api/listings/[id]
+- Related Prisma model:
+  - Listing
+  - PricingRule if introduced
+
+Create listing step 4:
+- File path: app/create-listing/page.tsx
+- Purpose: location
+- Input fields:
+  - street address
+  - city
+  - zip code
+- Validation needed later:
+  - required
+  - address normalization
+  - geocoding
+- Submit action needed:
+  - save location and coordinates
+- API endpoint needed:
+  - PATCH /api/listings/[id]
+- Related Prisma model:
+  - Listing
+
+Create listing step 5:
+- File path: app/create-listing/page.tsx
+- Purpose: amenity selection
+- Input fields:
+  - security camera
+  - 24/7 access
+  - climate control
+  - private entry
+  - gated
+  - loading dock
+- Validation needed later:
+  - optional
+- Submit action needed:
+  - save amenity set
+- API endpoint needed:
+  - PATCH /api/listings/[id]
+- Related Prisma model:
+  - ListingAmenity or many-to-many ListingAmenity table
+
+Browse search bar:
+- File path: app/storage/page.tsx
+- Purpose: listing search query
+- Input fields:
+  - location
+  - size
+  - move-in date
+- Validation needed later:
+  - location optional
+  - date format
+- Submit action needed:
+  - query listing search
+- API endpoint needed:
+  - GET /api/listings?...
+- Related Prisma model:
+  - Listing
+
+Browse filters:
+- File path: app/storage/page.tsx
+- Purpose: refine results
+- Input fields:
+  - price range
+  - unit size
+  - storage type
+  - distance
+- Validation needed later:
+  - numeric range consistency
+- Submit action needed:
+  - update query params and refetch
+- API endpoint needed:
+  - GET /api/listings?...
+- Related Prisma model:
+  - Listing
+
+Messaging composer:
+- File path: app/messaging/page.tsx
+- Purpose: send message
+- Input fields:
+  - message text
+  - attachment button
+- Validation needed later:
+  - non-empty content or attachment
+  - length limit
+- Submit action needed:
+  - send message to conversation
+- API endpoint needed:
+  - POST /api/messages/conversations/[id]
+- Related Prisma model:
+  - Message
+
+Verification uploads:
+- File path: app/document/page.tsx
+- Purpose: identity and ownership upload
+- Input fields:
+  - ID card
+  - proof of ownership
+- Validation needed later:
+  - allowed file types
+  - max size 10MB
+  - required document types
+- Submit action needed:
+  - upload files
+  - mark verification as submitted
+- API endpoint needed:
+  - POST /api/uploads/verification-documents
+  - POST /api/verification/submit
+- Related Prisma model:
+  - VerificationDocument
+
+Invoices filter bar:
+- File path: app/invoices/page.tsx
+- Purpose: filter invoices by status and date range
+- Input fields:
+  - status select
+  - date range text field
+- Validation needed later:
+  - date range format
+- Submit action needed:
+  - load filtered invoices
+- API endpoint needed:
+  - GET /api/invoices?...
+- Related Prisma model:
+  - Invoice
+
+Contracts filters:
+- File path: app/contracts/page.tsx
+- Purpose: filter and sort contract list
+- Input fields:
+  - status select
+  - sort select
+- Validation needed later:
+  - valid option values
+- Submit action needed:
+  - fetch filtered contract list
+- API endpoint needed:
+  - GET /api/contracts?...
+- Related Prisma model:
+  - Contract
+
+============================================================
+6. DASHBOARD DATA REQUIREMENTS
+============================================================
+
+Owner dashboard data requirements:
+- Owner profile:
+  - display name
+  - avatar
+  - role
+  - verification status
+- Listings count:
+  - total listings
+- Active listings:
+  - currently active / occupied / published counts
+- Pending booking requests:
+  - booking requests awaiting owner action
+- Current renters / tenants:
+  - active renter per listing
+- Monthly earnings:
+  - revenue total by month
+- Wallet / available balance:
+  - pending and available balances
+- Recent bookings:
+  - recent booking requests and confirmations
+- Recent messages:
+  - latest message summaries
+- Verification status:
+  - owner verification state
+
+Renter dashboard data requirements:
+- Renter profile:
+  - display name
+  - avatar
+  - verification status
+- Active rentals:
+  - active bookings
+- Pending requests:
+  - pending booking or payment items
+- Invoices:
+  - invoice list and totals
+- Contracts:
+  - contract list and signer state
+- Messages:
+  - unread / recent conversation info
+- Saved / favorite listings:
+  - only if a favorites UI is later added
+
+Admin dashboard data requirements:
+- Total users
+- Owners
+- Renters
+- Pending verifications
+- Pending listings
+- Total bookings
+- Revenue
+- Payments
+- Contracts
+- Recent activity / logs
+- Conversion / occupancy analytics if desired
+
+============================================================
+7. API ENDPOINT PLAN
+============================================================
+
+Auth
+- POST /api/auth/signup
+  - Purpose: create new account
+  - Pages: app/signup/page.tsx
+  - Request body: email, password, role, optional referral or onboarding metadata
+  - Response: user profile, session token / cookie status
+  - Models: User, OwnerProfile, RenterProfile
+- POST /api/auth/login
+  - Purpose: sign in user
+  - Pages: future login page
+  - Request body: email, password
+  - Response: session
+  - Models: User
+- POST /api/auth/logout
+  - Purpose: destroy session
+  - Pages: all protected pages
+  - Request body: none
+  - Response: success
+  - Models: User session
+- GET /api/auth/session
+  - Purpose: return current logged-in user and role
+  - Pages: Navbar, protected pages, dashboards
+  - Response: user, role, permissions, verification status
+  - Models: User, OwnerProfile, RenterProfile
+
+Users
+- GET /api/users/me
+  - Purpose: current user profile
+  - Pages: dashboards, profile pages, navbar
+  - Response: user, profile, role
+  - Models: User, OwnerProfile, RenterProfile
+- PATCH /api/users/me
+  - Purpose: update profile
+  - Pages: future profile pages
+  - Request body: profile fields, avatar, preferences
+  - Response: updated user
+  - Models: User, OwnerProfile, RenterProfile
+
+Owner
+- GET /api/owner/dashboard
+  - Purpose: owner dashboard aggregate
+  - Pages: app/owner/dashboard/page.tsx
+  - Response: earnings, listings, pending payouts, contracts, recent activity
+  - Models: User, OwnerProfile, Listing, Booking, Payment, Invoice, Contract, Message
+- GET /api/owner/listings
+  - Purpose: owner listing collection
+  - Pages: owner dashboard, future owner listing management page
+  - Response: listings array
+  - Models: Listing, ListingImage
+- GET /api/owner/bookings
+  - Purpose: booking requests and active tenants
+  - Pages: owner dashboard, future booking management
+  - Response: bookings array
+  - Models: Booking, User, Listing
+- GET /api/owner/payments
+  - Purpose: payouts and earnings
+  - Pages: owner dashboard, future payout page
+  - Response: balances, payout history
+  - Models: Payment, Invoice
+- GET /api/owner/contracts
+  - Purpose: contracts for owner listings
+  - Pages: owner dashboard, contracts page
+  - Response: contracts array
+  - Models: Contract, ContractTemplate
+
+Renter
+- GET /api/renter/dashboard
+  - Purpose: renter dashboard aggregate
+  - Pages: app/renter/dashboard/page.tsx
+  - Response: active rentals, invoices, contracts, messages, payment dates
+  - Models: User, RenterProfile, Booking, Invoice, Payment, Contract, Message
+- GET /api/renter/bookings
+  - Purpose: renter bookings
+  - Pages: renter dashboard, listing detail, booking flow
+  - Response: bookings array
+  - Models: Booking, Listing
+- GET /api/renter/invoices
+  - Purpose: renter invoices
+  - Pages: renter dashboard, invoices page
+  - Response: invoices array
+  - Models: Invoice, Payment
+- GET /api/renter/contracts
+  - Purpose: renter contracts
+  - Pages: renter dashboard, contracts page
+  - Response: contracts array
+  - Models: Contract
+
+Listings
+- GET /api/listings
+  - Purpose: searchable listing index
+  - Pages: app/storage/page.tsx, app/page.tsx featured sections
+  - Query: location, size, type, priceMin, priceMax, distance, sort, page
+  - Response: paginated listings array + metadata
+  - Models: Listing, ListingImage, Review
+- GET /api/listings/[id]
+  - Purpose: single listing detail
+  - Pages: listing detail page
+  - Response: listing object, owner, images, amenity list, pricing, reviews summary
+  - Models: Listing, ListingImage, OwnerProfile, Review
+- POST /api/listings
+  - Purpose: create listing
+  - Pages: create listing wizard
+  - Request body: listing core fields
+  - Response: created listing
+  - Models: Listing
+- PATCH /api/listings/[id]
+  - Purpose: update listing
+  - Pages: create/edit listing, owner management
+  - Request body: partial listing update
+  - Response: updated listing
+  - Models: Listing
+- DELETE /api/listings/[id]
+  - Purpose: remove listing
+  - Pages: owner management, admin moderation
+  - Response: success
+  - Models: Listing
+- GET /api/listings/[id]/reviews
+  - Purpose: load reviews
+  - Pages: listing detail
+  - Response: reviews array
+  - Models: Review, User
+
+Bookings
+- POST /api/bookings
+  - Purpose: create booking request / reservation
+  - Pages: listing detail, booking flow
+  - Request body: listingId, renterId, dates, duration, notes
+  - Response: booking object
+  - Models: Booking
+- GET /api/bookings/[id]
+  - Purpose: booking details
+  - Pages: booking flow, contracts, invoices
+  - Response: booking object
+  - Models: Booking
+- PATCH /api/bookings/[id]
+  - Purpose: approve / reject / update booking
+  - Pages: owner dashboard, admin moderation
+  - Request body: status, note, pricing overrides
+  - Response: updated booking
+  - Models: Booking
+
+Contracts
+- GET /api/contracts
+  - Purpose: contract list
+  - Pages: contracts page, dashboards
+  - Response: contracts array
+  - Models: Contract, ContractTemplate
+- GET /api/contracts/[id]
+  - Purpose: single contract data and preview
+  - Pages: contracts page, contract detail modal
+  - Response: contract object, timeline, signer state, PDF URL
+  - Models: Contract, ContractTemplate
+- POST /api/contracts
+  - Purpose: create contract from booking
+  - Pages: booking completion, admin / owner workflows
+  - Request body: bookingId, templateId, parties, pricing data
+  - Response: created contract
+  - Models: Contract, ContractTemplate
+- POST /api/contracts/[id]/send
+  - Purpose: send contract to parties
+  - Pages: contracts page, owner dashboard
+  - Response: updated status
+  - Models: Contract
+- POST /api/contracts/[id]/sign
+  - Purpose: sign contract electronically
+  - Pages: contracts page, renter/owner signing flow
+  - Request body: signature data, signer identity, timestamp
+  - Response: updated contract
+  - Models: Contract
+- GET /api/contracts/[id]/pdf
+  - Purpose: generate or fetch PDF
+  - Pages: contracts page, invoice/receipt flows
+  - Response: PDF URL / binary
+  - Models: Contract
+
+Payments
+- POST /api/payments/checkout
+  - Purpose: create Stripe checkout session or payment intent
+  - Pages: listing detail, invoices, booking flow
+  - Request body: bookingId, amount, currency, customer info
+  - Response: checkout URL or client secret
+  - Models: Payment, Booking, Invoice
+- GET /api/payments/[id]
+  - Purpose: payment status
+  - Pages: invoices, dashboards
+  - Response: payment object
+  - Models: Payment
+- POST /api/payments/[id]/refund
+  - Purpose: initiate refund
+  - Pages: admin / owner moderation if needed
+  - Response: refund result
+  - Models: Payment
+
+Invoices
+- GET /api/invoices
+  - Purpose: invoice list
+  - Pages: app/invoices/page.tsx, dashboards
+  - Query: status, date range, user role, bookingId
+  - Response: invoices array + summary totals
+  - Models: Invoice, Payment
+- GET /api/invoices/[id]
+  - Purpose: single invoice detail
+  - Pages: invoices page
+  - Response: invoice object, line items, payment state
+  - Models: Invoice, Payment, Booking
+- POST /api/invoices/[id]/pay
+  - Purpose: trigger payment for issued invoice
+  - Pages: invoices page, renter dashboard
+  - Response: Stripe checkout / payment intent
+  - Models: Invoice, Payment
+- GET /api/invoices/[id]/pdf
+  - Purpose: invoice PDF download
+  - Pages: invoices page
+  - Response: PDF URL
+  - Models: Invoice
+
+Messages
+- GET /api/messages/conversations
+  - Purpose: list conversations for current user
+  - Pages: app/messaging/page.tsx
+  - Response: conversation summary list
+  - Models: Conversation, Message, User, Listing
+- GET /api/messages/conversations/[id]
+  - Purpose: load message history
+  - Pages: app/messaging/page.tsx
+  - Response: messages array, participant info
+  - Models: Conversation, Message
+- POST /api/messages/conversations
+  - Purpose: start conversation
+  - Pages: listing detail, messaging
+  - Request body: participant ids, listingId
+  - Response: conversation object
+  - Models: Conversation
+- POST /api/messages/conversations/[id]
+  - Purpose: store a new message
+  - Pages: messaging composer
+  - Request body: message text, attachments
+  - Response: message object
+  - Models: Message
+
+File uploads
+- POST /api/uploads/listing-images
+  - Purpose: upload and store listing photos
+  - Pages: create listing, future edit listing
+  - Request body: multipart files
+  - Response: file URLs and metadata
+  - Models: ListingImage
+- POST /api/uploads/verification-documents
+  - Purpose: upload ID / ownership proof
+  - Pages: verification page
+  - Request body: multipart files
+  - Response: document URLs and metadata
+  - Models: VerificationDocument
+- POST /api/uploads/contracts
+  - Purpose: upload generated or signed contract PDFs if stored externally
+  - Pages: contracts page
+  - Response: PDF URL
+  - Models: Contract
+- POST /api/uploads/profile-photo
+  - Purpose: user avatar upload if profile pages add it later
+  - Pages: future profile pages
+  - Response: avatar URL
+  - Models: User, OwnerProfile, RenterProfile
+
+Admin
+- GET /api/admin/dashboard
+  - Purpose: admin KPI data
+  - Pages: admin dashboard
+  - Response: users, listings, revenue, booking counts, pending items
+  - Models: User, Listing, Booking, Payment, Invoice, Contract
+- GET /api/admin/activity
+  - Purpose: recent activity log
+  - Pages: admin dashboard
+  - Response: activity rows
+  - Models: AdminLog
+- GET /api/admin/users
+  - Purpose: user moderation list
+  - Pages: future admin users page
+  - Response: users array
+  - Models: User, OwnerProfile, RenterProfile
+- GET /api/admin/listings
+  - Purpose: admin listing moderation
+  - Pages: future admin listing approval screen
+  - Response: listings array
+  - Models: Listing
+- PATCH /api/admin/listings/[id]/approve
+  - Purpose: approve listing
+  - Pages: admin approval screens
+  - Response: updated listing status
+  - Models: Listing, AdminLog
+- PATCH /api/admin/listings/[id]/reject
+  - Purpose: reject listing
+  - Pages: admin approval screens
+  - Response: updated listing status
+  - Models: Listing, AdminLog
+- PATCH /api/admin/verifications/[id]/approve
+  - Purpose: approve verification document
+  - Pages: admin approval screens
+  - Response: updated verification status
+  - Models: VerificationDocument, AdminLog
+- PATCH /api/admin/verifications/[id]/reject
+  - Purpose: reject verification document
+  - Pages: admin approval screens
+  - Response: updated verification status
+  - Models: VerificationDocument, AdminLog
+
+============================================================
+8. DATABASE MODEL MAPPING
+============================================================
+
+User
+- Needed by:
+  - Signup
+  - Navbar auth state
+  - Owner dashboard
+  - Renter dashboard
+  - Admin dashboard
+  - Messaging
+  - Contracts
+  - Invoices
+  - Verification
+- UI fields mapping:
+  - display name
+  - email
+  - avatar
+  - role
+  - verification status
+- Hardcoded values to replace:
+  - Julian
+  - Sarah M.
+  - Eleanor Shellstrop
+  - Michael Koh
+  - Alexander Thorne
+  - Elena Rodriguez
+  - David K.
+
+OwnerProfile
+- Needed by:
+  - Owner dashboard
+  - Listing detail host block
+  - Messaging
+  - Contract parties
+- UI fields mapping:
+  - owner bio
+  - response rate
+  - join date
+  - verification badge
+  - payout info
+- Hardcoded values to replace:
+  - Joined in August 2019
+  - Response rate 100%
+  - host name and photo
+
+RenterProfile
+- Needed by:
+  - Renter dashboard
+  - Contracts
+  - Messaging
+  - Booking flow
+- UI fields mapping:
+  - renter bio
+  - verified capacity
+  - favorite listings
+- Hardcoded values to replace:
+  - renter display name
+  - active rentals summary
+
+Listing
+- Needed by:
+  - Landing featured listings
+  - Browse listings
+  - Listing detail
+  - Owner dashboard
+  - Renter dashboard
+  - Contracts
+  - Invoices
+  - Messaging
+- UI fields mapping:
+  - title
+  - description
+  - monthly price
+  - square footage
+  - location
+  - storage type
+  - amenities
+  - occupancy status
+  - rating summary
+- Hardcoded values to replace:
+  - all listing names, cities, prices, sizes, ratings, labels
+
+ListingImage
+- Needed by:
+  - Landing hero cards
+  - Browse cards
+  - Listing detail gallery
+  - Owner dashboard cards
+  - Listing creation preview
+- UI fields mapping:
+  - image URL
+  - alt text
+  - primary flag
+  - display order
+- Hardcoded values to replace:
+  - all remote image URLs
+
+Booking
+- Needed by:
+  - Listing detail booking sidebar
+  - Owner dashboard
+  - Renter dashboard
+  - Contracts
+  - Invoices
+- UI fields mapping:
+  - booking id
+  - status
+  - move-in date
+  - duration
+  - tenant / owner IDs
+  - selected listing
+- Hardcoded values to replace:
+  - move-in dates
+  - booking IDs
+  - monthly booking status labels
+
+ContractTemplate
+- Needed by:
+  - Contracts page
+  - Booking completion
+  - PDF generation
+- UI fields mapping:
+  - template type
+  - legal text
+  - placeholder variables
+- Hardcoded values to replace:
+  - contract type labels and preview text
+
+Contract
+- Needed by:
+  - Contracts page
+  - Owner dashboard
+  - Renter dashboard
+  - Listing detail booking flow
+- UI fields mapping:
+  - contract number
+  - status
+  - signed timestamps
+  - PDF URL
+  - signer completion state
+- Hardcoded values to replace:
+  - all contract ids, statuses, timeline timestamps
+
+Payment
+- Needed by:
+  - Owner dashboard
+  - Renter dashboard
+  - Invoices
+  - Stripe webhook processing
+- UI fields mapping:
+  - payment id
+  - amount
+  - currency
+  - status
+  - payout status
+  - provider reference
+- Hardcoded values to replace:
+  - earnings totals
+  - payout amount
+  - invoice payment statuses
+
+Invoice
+- Needed by:
+  - Owner dashboard
+  - Renter dashboard
+  - Invoices page
+  - Stripe / PDF generation
+- UI fields mapping:
+  - invoice number
+  - issued date
+  - due date
+  - paid date
+  - line items
+  - status
+  - total
+- Hardcoded values to replace:
+  - every invoice row and detail line
+
+Conversation
+- Needed by:
+  - Messaging page
+  - Notification / unread counters
+  - Listing detail contact flow
+- UI fields mapping:
+  - participant ids
+  - linked listing
+  - last message preview
+  - updated at
+  - unread count
+- Hardcoded values to replace:
+  - “Julian (Owner)”
+  - “The Emerald Vault”
+  - “Sarah M.”
+
+Message
+- Needed by:
+  - Messaging page
+  - chat notifications
+- UI fields mapping:
+  - sender id
+  - conversation id
+  - text
+  - attachment URL
+  - read timestamp
+  - created timestamp
+- Hardcoded values to replace:
+  - all sample message bubbles
+  - times
+
+VerificationDocument
+- Needed by:
+  - Verification page
+  - Admin review flows
+  - Signup / onboarding
+- UI fields mapping:
+  - file name
+  - file URL
+  - type
+  - status
+  - review notes
+  - uploaded by
+- Hardcoded values to replace:
+  - Passport_Scan_v1.pdf
+  - Insurance_Cert_2024.jpg
+
+AdminLog
+- Needed by:
+  - Admin dashboard
+  - moderation and audit trails
+- UI fields mapping:
+  - actor
+  - entity type
+  - entity id
+  - action
+  - created at
+- Hardcoded values to replace:
+  - admin activity rows
+
+Optional supporting models likely needed later:
+- ListingAmenity
+- Review
+- FavoriteListing
+- Notification
+- PricingRule
+- FeeRule
+
+============================================================
+9. SOCKET.IO CHAT REQUIREMENTS
+============================================================
+
+Chat UI exists in:
+- app/messaging/page.tsx
+
+Current hardcoded messages:
+- The page shows one active conversation and two additional conversation previews.
+- The thread contains alternating incoming and outgoing bubbles with timestamps.
+
+Conversation list fields needed:
+- conversation id
+- participant names
+- participant avatars
+- linked listing title if relevant
+- last message preview
+- last message timestamp
+- unread count
+- online status
+
+Message bubble fields needed:
+- message id
+- sender id
+- sender name
+- sender avatar if needed
+- message text
+- attachment metadata
+- created timestamp
+- read status
+- direction: incoming / outgoing
+
+Sender / receiver logic:
+- Determine sender by comparing `message.senderId` to the logged-in user id.
+- Incoming bubbles should render on the left.
+- Outgoing bubbles should render on the right.
+- Conversation list selection should be driven by route state or local selection state, not by another page.
+
+Socket.IO events needed:
+- join-conversation
+- send-message
+- new-message
+- typing
+- user-typing
+- message-read
+
+Persistence rule:
+- Socket.IO must only deliver realtime updates.
+- PostgreSQL must store conversations, all messages, read receipts, and attachments.
+
+API needed to load history:
+- GET /api/messages/conversations
+- GET /api/messages/conversations/[id]
+
+Database models needed:
+- Conversation
+- Message
+
+============================================================
+10. FILE UPLOAD REQUIREMENTS
+============================================================
+
+Listing images:
+- Page/component: app/create-listing/page.tsx
+- File type: image files
+- Who uploads it: owner
+- Database field: ListingImage.url, ListingImage.order, ListingImage.isPrimary
+- API endpoint: POST /api/uploads/listing-images
+- Notes:
+  - Min 3 required in the current UI
+  - Drag/drop and primary image selection are already implied visually
+
+Owner ID / renter ID verification:
+- Page/component: app/document/page.tsx
+- File type: PDF, JPG, PNG
+- Who uploads it: authenticated user
+- Database field: VerificationDocument.url, VerificationDocument.type, VerificationDocument.status
+- API endpoint: POST /api/uploads/verification-documents
+
+Proof of ownership:
+- Page/component: app/document/page.tsx
+- File type: PDF, JPG, PNG
+- Who uploads it: owner
+- Database field: VerificationDocument.url and type = proof_of_ownership
+- API endpoint: POST /api/uploads/verification-documents
+
+Contract files:
+- Page/component: app/contracts/page.tsx
+- File type: generated PDF
+- Who uploads it: backend / system, or user if signing locally generates an upload
+- Database field: Contract.pdfUrl, Contract.signedPdfUrl
+- API endpoint: POST /api/uploads/contracts or generated server-side
+
+Signed contract PDFs:
+- Page/component: app/contracts/page.tsx
+- File type: PDF
+- Who uploads it: owner or renter signature flow, or server after signing
+- Database field: Contract.signedPdfUrl
+- API endpoint: POST /api/contracts/[id]/sign and/or POST /api/uploads/contracts
+
+Potential future profile photo:
+- Page/component: future profile pages
+- File type: image
+- Who uploads it: user
+- Database field: User.avatarUrl
+- API endpoint: POST /api/uploads/profile-photo
+
+============================================================
+11. CONTRACT REQUIREMENTS
+============================================================
+
+Existing contract-related UI:
+- app/contracts/page.tsx shows a contract list, a PDF preview placeholder, a timeline, and signing/downloading actions.
+- app/owner/dashboard/page.tsx shows unsigned contract warnings.
+- app/page.tsx and app/storage/listing-details/page.tsx both mention legal contracts in marketing copy.
+
+Current hardcoded contract values:
+- Contract document number: LGL-2024-V4
+- Booking IDs: BK-77429, BK-22108, BK-99831, BK-44102
+- Status labels: Sent, Signed, Draft, Cancelled
+- Timeline timestamps: Jan 14 and Jan 15, 2024
+
+Dynamic values needed:
+- owner name
+- renter name
+- listing address
+- storage size in m² or sq ft
+- price
+- signature date
+- contract type
+- booking / rental dates
+- legal terms and template body
+
+Required templates:
+- Long-term rental contract
+- Seasonal rental contract
+- Platform introduction contract
+
+PDF generation flow:
+1. Booking is created.
+2. ContractTemplate is selected.
+3. Contract is generated with booking + user + listing data.
+4. Server renders contract PDF.
+5. PDF URL is stored in Contract.pdfUrl.
+6. Signature flow updates the contract status.
+7. Final signed PDF URL is stored in Contract.signedPdfUrl.
+
+E-signature flow:
+1. User opens contract preview.
+2. User signs in browser or confirms a signature action.
+3. Signature metadata is stored.
+4. Contract status changes from draft/sent to signed.
+5. Timeline is appended.
+
+Database models needed:
+- ContractTemplate
+- Contract
+- Booking
+- Listing
+- User
+- AdminLog for audit history
+
+============================================================
+12. STRIPE PAYMENT REQUIREMENTS
+============================================================
+
+Payment-related UI:
+- app/storage/listing-details/page.tsx booking summary
+- app/invoices/page.tsx invoice list and pay actions
+- app/renter/dashboard/page.tsx payment summary
+- app/owner/dashboard/page.tsx earnings / payout section
+- app/page.tsx marketing copy references secure payments
+
+Current hardcoded payment values:
+- Monthly rate: $240
+- Security deposit: $0
+- Cave insurance: $12
+- Total monthly: $252
+- Invoice totals: $12,450.00, $11,200.00, $1,250.00
+- Payout example: $1,120.00
+- Owner earnings example: $4,280 and $1,850 / $2,430 listing revenue
+
+Values that should come from models:
+- Booking base rent
+- Add-on fees
+- Insurance fee
+- Platform commission
+- Tax if applicable
+- Total invoice amount
+- Paid / outstanding amount
+- Owner payout amount
+
+Required API endpoints:
+- POST /api/payments/checkout
+- POST /api/payments/[id]/refund
+- GET /api/payments/[id]
+- POST /api/invoices/[id]/pay
+- GET /api/invoices/[id]
+
+Stripe webhook requirements:
+- payment_intent.succeeded
+- payment_intent.payment_failed
+- checkout.session.completed
+- charge.refunded
+- payout.paid if using connected payouts or transfer reporting
+
+Notes:
+- Stripe should be source of truth for payment state transitions, while PostgreSQL stores the app’s normalized payment and invoice records.
+- Invoice and payment records should be linked to Booking and possibly Contract.
+
+============================================================
+13. ROLE-BASED ACCESS RULES
+============================================================
+
+Public:
+- /
+- /storage
+- /storage/listing-details
+- /signup
+- Any future public marketing pages
+
+Logged-in renter:
+- /renter/dashboard
+- /messaging
+- /contracts
+- /invoices
+- /document
+- listing booking flow after auth
+
+Logged-in owner:
+- /owner/dashboard
+- /create-listing
+- /messaging
+- /contracts
+- /invoices
+- /document
+- listing management flow
+
+Admin only:
+- /admin/dashboard
+- future approval/moderation routes
+- future admin users/listings/verifications screens
+
+Redirect behavior:
+- Unauthenticated users hitting protected routes should be redirected to /signup or a future /login page.
+- Owner should not access renter-only dashboard routes.
+- Renter should not access owner-only dashboard routes.
+- Admin routes should reject non-admin users.
+- If a user role is unknown or missing, redirect to auth / onboarding.
+
+============================================================
+14. PAGE INDEPENDENCE PLAN
+============================================================
+
+Principle:
+- Every page should fetch its own data using the route, session, and its own API call.
+- Do not pass critical data from one page to another through temporary UI state.
+
+Recommended independence by page:
+- /:
+  - fetch featured listings and stats directly from public APIs
+- /storage:
+  - derive filters from query params and fetch matching listings
+- /storage/listing-details:
+  - load by listing ID from URL and fetch listing data independently
+- /signup:
+  - local form state only, then auth API
+- /create-listing:
+  - load draft from backend if editing, otherwise start empty
+- /owner/dashboard:
+  - fetch owner data from session user id
+- /renter/dashboard:
+  - fetch renter data from session user id
+- /admin/dashboard:
+  - fetch admin aggregates from admin API
+- /messaging:
+  - fetch conversation list from session user id and selected conversation id from route or local selection
+- /contracts:
+  - fetch contracts from session user id and role
+- /invoices:
+  - fetch invoices from session user id and filters in query params
+- /document:
+  - fetch current user documents from session user id
+
+Bad pattern to avoid:
+- Listing detail depending on a listing object passed from a card click.
+- Dashboard depending on prior page state.
+- Chat depending on hidden local state from a previous screen.
+
+Good pattern:
+- The route identifies the record, and the page fetches the data itself.
+
+============================================================
+15. IMPLEMENTATION ORDER
+============================================================
+
+Recommended order:
+1. Prisma schema and PostgreSQL tables
+2. Auth, sessions, and role handling
+3. API service layer and route handlers
+4. Public listings and homepage data
+5. Owner profile and owner dashboard
+6. Renter profile and renter dashboard
+7. Booking flow
+8. Contract generation and e-signature
+9. Stripe payments, invoices, and webhooks
+10. Socket.IO messaging
+11. Verification uploads and admin review screens
+12. Deployment hardening for IONOS VPS
+
+============================================================
+16. RISKS / MISSING INFORMATION
+============================================================
+
+Missing routes:
+- No login page route is present.
+- No dedicated profile page routes are present.
+- No explicit booking flow route is present.
+- No explicit payment checkout route is present.
+- No admin approval screen route is present.
+- No dedicated listing edit route is present.
+- No contract detail route is present.
+
+Ambiguous or unclear values:
+- “Julian” appears in multiple places as a sample user.
+- Some dates are clearly sample data and do not imply real schedule state.
+- “Total Saved 120 sq ft” on renter dashboard is ambiguous and needs product definition.
+- “Security deposit $0” on listing detail is likely placeholder only.
+- “Cave insurance” and “CaveShield” branding may represent fees or marketing labels but need backend definitions.
+- “GETYOURCAVE AG” invoice sender information may not match the final company entity data unless confirmed.
+
+Buttons without final backend action yet:
+- Share
+- Save
+- Contact Owner
+- Book Now
+- Review Contracts
+- Manage
+- View All
+- Download Receipt
+- Submit Listing
+- Submit for Review
+- Sign Now
+- Pay Now
+- Download PDF
+
+Likely additional backend work needed:
+- Reviews table and moderation if reviews are real
+- Favorites / saved listings if the UI later adds them
+- Notifications / unread counts
+- Search indexing or filtering support for browse
+- Geocoding for location fields
+- Commission and fee rule engine
+- Audit logging for admin actions
+
+Final note:
+- This document treats every hardcoded number, label, and image as sample UI data.
+- The next implementation step should connect each page to its own API response while preserving the exact current visual design.
+

@@ -90,8 +90,8 @@ export default function ListingDetailPageDittoStyledFixed() {
             <section className="border-t border-stone-200 pt-xl">
               <h3 className="font-h3 text-h3 text-primary mb-md">About this space</h3>
               <div className="space-y-md text-body-lg text-on-surface-variant leading-relaxed max-w-3xl">
-                <p>Located in the heart of Chelsea's gallery district, The Emerald Vault offers a sanctuary for high-value items, from fine art collections to vintage furniture and sensitive tech equipment.</p>
-                <p>This 120 sq ft unit features pristine, museum-grade white walls and industrial-strength concrete flooring. The "cave" is situated on the second floor of a private, gated facility with specialized freight elevator access. Designed for those who prioritize architectural serenity and absolute peace of mind.</p>
+                <p>Located in the heart of Chelsea&apos;s gallery district, The Emerald Vault offers a sanctuary for high-value items, from fine art collections to vintage furniture and sensitive tech equipment.</p>
+                <p>This 120 sq ft unit features pristine, museum-grade white walls and industrial-strength concrete flooring. The &quot;cave&quot; is situated on the second floor of a private, gated facility with specialized freight elevator access. Designed for those who prioritize architectural serenity and absolute peace of mind.</p>
                 <button className="font-bold text-primary underline underline-offset-4 flex items-center gap-1 mt-4">
                   Show more
                   <span className="material-symbols-outlined text-sm">chevron_right</span>
@@ -132,7 +132,7 @@ export default function ListingDetailPageDittoStyledFixed() {
                       <p className="text-xs text-on-surface-variant">October 2023</p>
                     </div>
                   </div>
-                  <p className="text-body-md text-on-surface-variant italic-emphasis">Julian's space is impeccable. I stored my entire ceramics collection here for six months and everything remained in perfect condition. Truly a 'cave' for the soul.</p>
+                  <p className="text-body-md text-on-surface-variant italic-emphasis">Julian&apos;s space is impeccable. I stored my entire ceramics collection here for six months and everything remained in perfect condition. Truly a &apos;cave&apos; for the soul.</p>
                 </div>
                 <div className="space-y-md">
                   <div className="flex items-center gap-3">
@@ -170,11 +170,11 @@ export default function ListingDetailPageDittoStyledFixed() {
                 </div>
                 <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
                   <p className="font-label-caps text-[10px] text-on-surface-variant">UNIT SIZE</p>
-                  <p className="text-sm font-medium">10' x 12' Studio</p>
+                  <p className="text-sm font-medium">10&apos; x 12&apos; Studio</p>
                 </div>
               </div>
               <button className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg mb-lg scale-100 hover:opacity-95 active:scale-95 transition-all">Book Now</button>
-              <p className="text-center text-body-sm text-on-surface-variant italic-emphasis mb-lg">You won't be charged yet</p>
+              <p className="text-center text-body-sm text-on-surface-variant italic-emphasis mb-lg">You won&apos;t be charged yet</p>
               <div className="space-y-3">
                 <div className="flex justify-between text-body-md">
                   <span className="underline">Monthly rate x 1</span>
@@ -208,4 +208,3 @@ export default function ListingDetailPageDittoStyledFixed() {
             </div>
   );
 }
-

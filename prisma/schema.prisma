@@ -1,0 +1,777 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/**
+ * GETYOURCAVE Prisma Schema
+ * Stack: Next.js + PostgreSQL + Prisma + Socket.IO + Stripe
+ */
+
+/**
+ * =========================
+ * ENUMS
+ * =========================
+ */
+
+enum UserRole {
+  ADMIN
+  OWNER
+  RENTER
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+  DELETED
+}
+
+enum VerificationStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum ListingAvailability {
+  AVAILABLE
+  OCCUPIED
+  UNAVAILABLE
+}
+
+enum StorageType {
+  GARAGE
+  BASEMENT
+  ROOM
+  WAREHOUSE
+  LOFT
+  LOCKER
+  OTHER
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ContractType {
+  LONG_TERM_RENTAL
+  SEASONAL_RENTAL
+  PLATFORM_INTRODUCTION
+}
+
+enum ContractStatus {
+  DRAFT
+  GENERATED
+  SENT
+  SENT_FOR_SIGNATURE
+  PARTIALLY_SIGNED
+  SIGNED
+  CANCELLED
+}
+
+enum SignatureParty {
+  OWNER
+  RENTER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum DocumentType {
+  ID_CARD
+  PASSPORT
+  PROOF_OF_OWNERSHIP
+  INSURANCE_CERTIFICATE
+  CONTRACT
+  SIGNED_CONTRACT
+  PROFILE_PHOTO
+  OTHER
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+enum AdminEntityType {
+  USER
+  LISTING
+  BOOKING
+  PAYMENT
+  INVOICE
+  CONTRACT
+  VERIFICATION_DOCUMENT
+  REVIEW
+  SYSTEM
+}
+
+enum FavoriteType {
+  LISTING
+}
+
+/**
+ * =========================
+ * USERS / PROFILES
+ * =========================
+ */
+
+model User {
+  id                String        @id @default(uuid())
+  fullName          String
+  email             String        @unique
+  passwordHash      String?
+  phone             String?
+  avatarUrl         String?
+  role              UserRole
+  status            AccountStatus @default(PENDING_VERIFICATION)
+
+  emailVerified     Boolean       @default(false)
+  emailVerifiedAt   DateTime?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  ownerProfile      OwnerProfile?
+  renterProfile     RenterProfile?
+
+  sentMessages      Message[]     @relation("SentMessages")
+  uploadedDocuments VerificationDocument[] @relation("UploadedDocuments")
+  reviews           Review[]      @relation("UserReviews")
+  favorites         FavoriteListing[]
+  notifications     Notification[]
+
+  adminLogs         AdminLog[]    @relation("AdminActor")
+  affectedAdminLogs AdminLog[]    @relation("AdminTargetUser")
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+model OwnerProfile {
+  id                  String             @id @default(uuid())
+  userId              String             @unique
+
+  bio                 String?
+  address             String?
+  city                String?
+  postalCode          String?
+  country             String             @default("France")
+
+  iban                String?
+  stripeAccountId     String?
+
+  responseRate        Int?
+  verificationStatus  VerificationStatus @default(NOT_SUBMITTED)
+
+  walletBalance       Decimal            @default(0) @db.Decimal(10, 2)
+  pendingPayout       Decimal            @default(0) @db.Decimal(10, 2)
+  totalEarnings       Decimal            @default(0) @db.Decimal(10, 2)
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings            Listing[]
+  ownerBookings       Booking[]          @relation("OwnerBookings")
+  ownerContracts      Contract[]         @relation("OwnerContracts")
+  ownerInvoices       Invoice[]          @relation("OwnerInvoices")
+
+  @@index([verificationStatus])
+}
+
+model RenterProfile {
+  id                  String             @id @default(uuid())
+  userId              String             @unique
+
+  address             String?
+  city                String?
+  postalCode          String?
+  country             String             @default("France")
+
+  verificationStatus  VerificationStatus @default(NOT_SUBMITTED)
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  renterBookings      Booking[]          @relation("RenterBookings")
+  renterContracts     Contract[]         @relation("RenterContracts")
+  renterInvoices      Invoice[]          @relation("RenterInvoices")
+
+  @@index([verificationStatus])
+}
+
+/**
+ * =========================
+ * LISTINGS
+ * =========================
+ */
+
+model Listing {
+  id                  String              @id @default(uuid())
+  ownerId             String
+
+  title               String
+  slug                String?             @unique
+  description         String
+
+  storageType         StorageType         @default(OTHER)
+  status              ListingStatus       @default(DRAFT)
+  availability        ListingAvailability @default(AVAILABLE)
+
+  address             String
+  city                String
+  postalCode          String?
+  country             String              @default("France")
+  latitude            Float?
+  longitude           Float?
+
+  sizeM2              Float?
+  sizeSqFt            Float?
+  width               Float?
+  length              Float?
+  height              Float?
+
+  pricePerMonth       Decimal             @db.Decimal(10, 2)
+  securityDeposit     Decimal             @default(0) @db.Decimal(10, 2)
+  insuranceFee        Decimal             @default(0) @db.Decimal(10, 2)
+
+  ratingAverage       Float               @default(0)
+  ratingCount         Int                 @default(0)
+
+  isFeatured          Boolean             @default(false)
+  isPublished         Boolean             @default(false)
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  owner               OwnerProfile        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images              ListingImage[]
+  amenities           ListingAmenity[]
+  bookings            Booking[]
+  reviews             Review[]
+  conversations       Conversation[]
+  favoriteListings    FavoriteListing[]
+
+  @@index([ownerId])
+  @@index([city])
+  @@index([status])
+  @@index([availability])
+  @@index([storageType])
+  @@index([isPublished])
+  @@index([isFeatured])
+}
+
+model ListingImage {
+  id            String   @id @default(uuid())
+  listingId     String
+
+  url           String
+  fileName      String?
+  altText       String?
+  sortOrder     Int      @default(0)
+  isPrimary     Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+
+  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([isPrimary])
+}
+
+model Amenity {
+  id        String           @id @default(uuid())
+  name      String           @unique
+  icon      String?
+  createdAt DateTime         @default(now())
+
+  listings  ListingAmenity[]
+}
+
+model ListingAmenity {
+  id         String   @id @default(uuid())
+  listingId  String
+  amenityId  String
+
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, amenityId])
+  @@index([listingId])
+  @@index([amenityId])
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  listingId   String
+  userId      String
+
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserReviews", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([userId])
+  @@index([rating])
+}
+
+model FavoriteListing {
+  id          String       @id @default(uuid())
+  userId      String
+  listingId   String
+  type        FavoriteType @default(LISTING)
+
+  createdAt   DateTime     @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing     Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([userId])
+  @@index([listingId])
+}
+
+/**
+ * =========================
+ * BOOKINGS / RENTALS
+ * =========================
+ */
+
+model Booking {
+  id                    String        @id @default(uuid())
+  bookingNumber          String        @unique
+
+  listingId              String
+  ownerId                String
+  renterId               String
+
+  startDate              DateTime
+  endDate                DateTime?
+  durationMonths          Int?
+
+  monthlyPrice           Decimal       @db.Decimal(10, 2)
+  securityDeposit         Decimal       @default(0) @db.Decimal(10, 2)
+  insuranceFee            Decimal       @default(0) @db.Decimal(10, 2)
+  platformCommission      Decimal       @default(0) @db.Decimal(10, 2)
+  ownerAmount             Decimal       @default(0) @db.Decimal(10, 2)
+  totalMonthlyAmount      Decimal       @default(0) @db.Decimal(10, 2)
+
+  renterNote              String?
+  ownerNote               String?
+
+  status                 BookingStatus @default(PENDING)
+
+  approvedAt              DateTime?
+  rejectedAt              DateTime?
+  cancelledAt             DateTime?
+  completedAt             DateTime?
+
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  listing                 Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  owner                   OwnerProfile  @relation("OwnerBookings", fields: [ownerId], references: [id], onDelete: Cascade)
+  renter                  RenterProfile @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Cascade)
+
+  contracts               Contract[]
+  payments                Payment[]
+  invoices                Invoice[]
+  conversations           Conversation[]
+
+  @@index([listingId])
+  @@index([ownerId])
+  @@index([renterId])
+  @@index([status])
+  @@index([startDate])
+}
+
+/**
+ * =========================
+ * CONTRACTS
+ * =========================
+ */
+
+model ContractTemplate {
+  id                String       @id @default(uuid())
+
+  name              String
+  type              ContractType @unique
+  description       String?
+  templateFileUrl   String?
+  templateBody      String?
+  variables         Json?
+
+  isActive          Boolean      @default(true)
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  contracts         Contract[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model Contract {
+  id                String         @id @default(uuid())
+  contractNumber    String         @unique
+
+  bookingId          String
+  templateId         String
+
+  ownerId            String
+  renterId           String
+
+  type               ContractType
+  status             ContractStatus @default(DRAFT)
+
+  generatedPdfUrl    String?
+  signedPdfUrl       String?
+
+  contractData       Json?
+  timeline           Json?
+
+  sentAt             DateTime?
+  ownerSignedAt      DateTime?
+  renterSignedAt     DateTime?
+  fullySignedAt      DateTime?
+  cancelledAt        DateTime?
+
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  booking            Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  template           ContractTemplate @relation(fields: [templateId], references: [id])
+  owner              OwnerProfile   @relation("OwnerContracts", fields: [ownerId], references: [id], onDelete: Cascade)
+  renter             RenterProfile  @relation("RenterContracts", fields: [renterId], references: [id], onDelete: Cascade)
+  signatures         ContractSignature[]
+
+  @@index([bookingId])
+  @@index([ownerId])
+  @@index([renterId])
+  @@index([status])
+  @@index([type])
+}
+
+model ContractSignature {
+  id             String          @id @default(uuid())
+  contractId     String
+
+  signerUserId   String
+  party           SignatureParty
+  signatureText   String?
+  signatureImageUrl String?
+  ipAddress       String?
+  userAgent       String?
+
+  signedAt        DateTime        @default(now())
+
+  contract        Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([signerUserId])
+  @@index([party])
+}
+
+/**
+ * =========================
+ * PAYMENTS / INVOICES
+ * =========================
+ */
+
+model Payment {
+  id                       String        @id @default(uuid())
+  bookingId                 String
+
+  stripePaymentIntentId     String?       @unique
+  stripeCheckoutSessionId   String?       @unique
+  stripeCustomerId          String?
+  stripeChargeId            String?
+
+  amount                    Decimal       @db.Decimal(10, 2)
+  currency                  String        @default("eur")
+
+  platformCommission        Decimal       @default(0) @db.Decimal(10, 2)
+  ownerAmount               Decimal       @default(0) @db.Decimal(10, 2)
+
+  status                    PaymentStatus @default(PENDING)
+
+  paidAt                    DateTime?
+  failedAt                  DateTime?
+  refundedAt                DateTime?
+
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+
+  booking                   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  invoice                   Invoice?
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+
+  invoiceNumber   String        @unique
+  bookingId       String
+  paymentId       String?       @unique
+
+  ownerId         String?
+  renterId        String?
+
+  subtotal        Decimal       @default(0) @db.Decimal(10, 2)
+  taxAmount       Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  currency        String        @default("eur")
+
+  status          InvoiceStatus @default(DRAFT)
+  pdfUrl          String?
+
+  issuedAt        DateTime?
+  dueAt           DateTime?
+  paidAt          DateTime?
+  cancelledAt     DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payment         Payment?      @relation(fields: [paymentId], references: [id])
+  owner           OwnerProfile? @relation("OwnerInvoices", fields: [ownerId], references: [id], onDelete: SetNull)
+  renter          RenterProfile? @relation("RenterInvoices", fields: [renterId], references: [id], onDelete: SetNull)
+
+  items           InvoiceItem[]
+
+  @@index([bookingId])
+  @@index([ownerId])
+  @@index([renterId])
+  @@index([status])
+  @@index([issuedAt])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+
+  createdAt   DateTime @default(now())
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+/**
+ * =========================
+ * MESSAGING / SOCKET.IO
+ * =========================
+ */
+
+model Conversation {
+  id              String    @id @default(uuid())
+
+  listingId        String?
+  bookingId        String?
+
+  ownerUserId      String
+  renterUserId     String
+
+  lastMessageText  String?
+  lastMessageAt    DateTime?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  listing          Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  booking          Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  messages         Message[]
+
+  @@index([listingId])
+  @@index([bookingId])
+  @@index([ownerUserId])
+  @@index([renterUserId])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id              String       @id @default(uuid())
+
+  conversationId  String
+  senderId        String
+
+  type            MessageType  @default(TEXT)
+  body            String?
+  fileUrl         String?
+  fileName        String?
+  fileMimeType    String?
+
+  readAt          DateTime?
+  createdAt       DateTime     @default(now())
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([readAt])
+  @@index([createdAt])
+}
+
+/**
+ * =========================
+ * VERIFICATION / UPLOADS
+ * =========================
+ */
+
+model VerificationDocument {
+  id              String             @id @default(uuid())
+
+  userId          String
+
+  type            DocumentType
+  fileUrl         String
+  fileName        String?
+  mimeType        String?
+  sizeBytes       Int?
+
+  status          VerificationStatus @default(PENDING)
+  rejectionReason String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user            User               @relation("UploadedDocuments", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+/**
+ * =========================
+ * PUBLIC CONTENT / MARKETING
+ * =========================
+ */
+
+model FAQ {
+  id          String   @id @default(uuid())
+  question    String
+  answer      String
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model PlatformMetric {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  label       String
+  value       String
+  note        String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+/**
+ * =========================
+ * NOTIFICATIONS / ADMIN LOGS
+ * =========================
+ */
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+
+  title       String
+  body        String?
+  linkUrl     String?
+  readAt      DateTime?
+
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+  @@index([createdAt])
+}
+
+model AdminLog {
+  id              String          @id @default(uuid())
+
+  adminId          String
+  targetUserId     String?
+  entityType       AdminEntityType
+  entityId         String?
+  action           String
+  details          Json?
+
+  createdAt        DateTime        @default(now())
+
+  admin            User            @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+  targetUser       User?           @relation("AdminTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([adminId])
+  @@index([targetUserId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}
