@@ -1,149 +1,242 @@
-
-"use client";
-
-export default function SignupPage() {
+export default function SignUpPage() {
   return (
-      <div className="bg-background font-body-md text-on-surface antialiased flex flex-col min-h-screen">
-        {/* Navbar from Admin Dashboard */}
-                <main className="flex-grow flex flex-col lg:flex-row pt-24 min-h-[calc(100vh-200px)]">
-          {/* LEFT PANE: Split Content */}
-          <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-primary-container">
-            {/* Background Image */}
-            <img alt="Secure high-end storage interior" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6JKCZg96XH_OcBwei1DFM6uy6aCmq2LZndtmXdjhEDG6Xy149HMG7vcWRZoQGuWSJaIWB3eXazNrplb1AJIS3RQ782xqjDZB54nfjvxf_jarCk-_YAYPHVI5KFgY_UwxuSjJUwa6SebsUANnQ-ysmUcRRzGAjcK5Ap1bOqxka-wByMgyZ204Mp7xP_vuDIPrCmJ-Jzcs2TM5nsvJUY_TVCzwaqNN0znNvT9AxRr4OIDpEjXnI-P86AosPyJwWDmVHCDBAKhxT6NQ" />
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-primary-container/60 backdrop-blur-[2px]"></div>
-            {/* Content */}
-            <div className="relative z-10 w-full h-full flex flex-col justify-center px-xxl text-white">
-              <h2 className="text-[56px] font-bold leading-tight mb-md max-w-lg">
-                Start your journey with secure storage
-              </h2>
-              <p className="text-white/80 text-body-lg mb-xl max-w-md">
-                Join the most exclusive network of architectural storage spaces, curated for the discerning asset owner.
-              </p>
-              <div className="space-y-lg">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
-                    <span className="material-symbols-outlined text-secondary-container">
-                      verified_user
+    <main className="min-h-screen bg-surface text-on-surface antialiased flex items-center justify-center pt-32 pb-12 px-6">
+      <div className="w-full max-w-[1150px] bg-[#F7F7F5] rounded-[24px] shadow-[0_8px_40px_rgba(15,61,62,0.06)] overflow-hidden border border-[#EBEBE8]">
+        <section className="w-full bg-[#F2F0E9] border-b border-[#EBEBE8] px-8 pt-6 pb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-3">
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-1.5 opacity-100">
+                <span className="material-symbols-outlined text-primary text-[18px]">
+                  info
+                </span>
+                <span className="text-label-caps text-primary">Account</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 opacity-40">
+                <span className="material-symbols-outlined text-primary text-[18px]">
+                  person
+                </span>
+                <span className="text-label-caps text-primary">Profile</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 opacity-40">
+                <span className="material-symbols-outlined text-primary text-[18px]">
+                  description
+                </span>
+                <span className="text-label-caps text-primary">Verify</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 opacity-40">
+                <span className="material-symbols-outlined text-primary text-[18px]">
+                  check_circle
+                </span>
+                <span className="text-label-caps text-primary">Finish</span>
+              </div>
+            </div>
+
+            <span className="text-label-caps text-on-tertiary-fixed-variant">
+              Step 1 of 4
+            </span>
+          </div>
+
+          <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+            <div className="h-full bg-secondary transition-all duration-500 w-1/4" />
+          </div>
+        </section>
+
+        <div className="flex flex-col md:flex-row min-h-[600px]">
+          <aside className="w-full md:w-[40%] bg-secondary-container/30 relative p-8 md:p-12 flex flex-col justify-between overflow-hidden">
+            <div className="absolute inset-0 opacity-10 grayscale pointer-events-none">
+              <img
+                alt="A clean, professionally organized high-end storage facility with architectural lighting and polished concrete floors."
+                className="w-full h-full object-cover"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuABaZjB_-aytvUuKveqUINV1YI1WXjyMSJ3dYyiCqOq_D4utxkOrqErgjJmQKWQXrc4IIDv-6PR_mAEE-uZgPAQyHaFlzBj3Aoclm38lS9n9RboAo3gEU6cdOwMw9uUM966NJbfem2kElH7gebXA9hq5WM940SYJ-ewFe1YDSSTzMkbT_cfYWDtTTUy6sfzAyur0zhmOY8nrhc_qtFpHM6WndltIV-bL4_zl5aB9vlEk81-EQLJ2vRh10uqB2QnZ1AZgcZ4E_wnL7U"
+              />
+            </div>
+
+            <div className="relative z-10">
+              <h1 className="font-h2 text-h2 text-primary mb-12">
+                Earn from your unused space
+              </h1>
+
+              <div className="space-y-10">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
+                    <span className="material-symbols-outlined text-primary">
+                      verified
                     </span>
                   </div>
-                  <span className="text-body-md font-semibold">
-                    Verified Owners
-                  </span>
+                  <div>
+                    <p className="font-bold text-primary text-body-md">
+                      Verified Owners
+                    </p>
+                    <p className="text-stone-500 text-body-sm">
+                      Trust-first community protocols.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
-                    <span className="material-symbols-outlined text-secondary-container">
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
+                    <span className="material-symbols-outlined text-primary">
                       payments
                     </span>
                   </div>
-                  <span className="text-body-md font-semibold">
-                    Secure Payments
-                  </span>
+                  <div>
+                    <p className="font-bold text-primary text-body-md">
+                      Secure Payments
+                    </p>
+                    <p className="text-stone-500 text-body-sm">
+                      Automated monthly distributions.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
-                    <span className="material-symbols-outlined text-secondary-container">
-                      contract
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
+                    <span className="material-symbols-outlined text-primary">
+                      description
                     </span>
                   </div>
-                  <span className="text-body-md font-semibold">
-                    Easy Contracts
-                  </span>
+                  <div>
+                    <p className="font-bold text-primary text-body-md">
+                      Easy Contracts
+                    </p>
+                    <p className="text-stone-500 text-body-sm">
+                      Legally binding, simple terms.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {/* RIGHT PANE: Signup Form */}
-          <div className="flex-grow lg:w-1/2 flex items-center justify-center p-lg md:p-xxl bg-background">
-            <div className="w-full max-w-[480px]">
-              <div className="bg-white p-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,61,62,0.05)] border border-stone-100">
-                <div className="text-center mb-xl">
-                  <h3 className="text-h2 text-primary-container mb-xs">
-                    Join GETYOURCAVE
-                  </h3>
-                  <p className="text-on-surface-variant text-body-sm">
-                    Create your account to start listing or browsing storage.
-                  </p>
-                </div>
-                <form className="space-y-lg">
-                  <div className="space-y-xs">
-                    <label className="text-label-caps text-stone-500 ml-sm">
-                      Email Address
-                    </label>
-                    <div className="relative group">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-container transition-colors">
-                        mail
-                      </span>
-                      <input className="w-full pl-12 pr-lg py-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container/10 transition-all font-body-md text-on-surface placeholder:text-stone-300" placeholder="name@example.com" type="email" />
-                    </div>
+
+            <div className="relative z-10 pt-8">
+              <p className="text-xs text-secondary italic opacity-75">
+                Join 5,000+ hosts securing assets globally.
+              </p>
+            </div>
+          </aside>
+
+          <section className="w-full md:w-[60%] p-8 md:p-12 flex flex-col justify-between">
+            <div className="max-w-[480px] mx-auto w-full">
+              <form className="space-y-6">
+                <section>
+                  <div className="mb-10">
+                    <h3 className="font-h1 text-h1 text-primary mb-2">
+                      Join the Collective
+                    </h3>
+                    <p className="font-body-md text-body-md text-stone-500">
+                      Secure your assets in the world&apos;s most architectural
+                      caves.
+                    </p>
                   </div>
-                  <div className="space-y-xs">
-                    <label className="text-label-caps text-stone-500 ml-sm">
-                      Password
-                    </label>
-                    <div className="relative group">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-container transition-colors">
-                        lock
-                      </span>
-                      <input className="w-full pl-12 pr-14 py-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container/10 transition-all font-body-md text-on-surface placeholder:text-stone-300" placeholder="••••••••••••" type="password" />
-                      <button className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-primary-container cursor-pointer transition-colors" type="button">
-                        visibility
-                      </button>
+
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label
+                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
+                        htmlFor="email"
+                      >
+                        EMAIL ADDRESS
+                      </label>
+                      <input
+                        className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                        id="email"
+                        placeholder="name@luxury.com"
+                        type="email"
+                      />
                     </div>
-                  </div>
-                  <div className="space-y-xs">
-                    <label className="text-label-caps text-stone-500 ml-sm">
-                      Confirm Password
-                    </label>
-                    <div className="relative group">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-container transition-colors">
-                        lock
-                      </span>
-                      <input className="w-full pl-12 pr-lg py-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container/10 transition-all font-body-md text-on-surface placeholder:text-stone-300" placeholder="••••••••••••" type="password" />
+
+                    <div className="space-y-2">
+                      <label
+                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
+                        htmlFor="password"
+                      >
+                        PASSWORD
+                      </label>
+                      <input
+                        className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                        id="password"
+                        placeholder="••••••••"
+                        type="password"
+                      />
                     </div>
-                  </div>
-                  <div className="pt-4 space-y-md">
-                    <button className="w-full bg-[#0F3D3E] text-white py-4 rounded-full font-bold text-body-md shadow-lg shadow-[#0F3D3E]/10 transition-transform active:scale-[0.98] duration-200" type="submit">
-                      
-                                Create Account
-                            
+
+                    <div className="space-y-2">
+                      <label
+                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
+                        htmlFor="confirm-password"
+                      >
+                        CONFIRM PASSWORD
+                      </label>
+                      <input
+                        className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                        id="confirm-password"
+                        placeholder="••••••••"
+                        type="password"
+                      />
+                    </div>
+
+                    <div className="relative flex items-center py-4">
+                      <div className="flex-grow border-t border-[#EBEBE8]" />
+                      <span className="flex-shrink mx-4 text-stone-400 font-label-caps text-[10px]">
+                        OR CONTINUE WITH
+                      </span>
+                      <div className="flex-grow border-t border-[#EBEBE8]" />
+                    </div>
+
+                    <button
+                      className="w-full bg-transparent border border-stone-300 text-primary py-4 rounded-full font-bold text-body-md flex items-center justify-center gap-3 hover:bg-stone-50 active:scale-[0.98] transition-all"
+                      type="button"
+                    >
+                      <img
+                        alt="Google Logo"
+                        className="w-5 h-5"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdEhsntc5vjig4w7WeMCyVcxWJRhdfs8cA1tzBPR-yD02LbeRo4LNKwd5__u5oOd-dOufYAluR4AiON_W3fBKoWUYtByIF26S06tbeVzKLBvFRietmTamoueAsw57ysu57iUiZxNoRSn7UYCtGhWpubYdVs7xED1jDdXfPrPvt74enUUPjkDRDZfyXXinK1QzEKyZcipaYxb4nhRx1Nli7s-TO_ngZbQfxMluvyUoXaSVDZoHMU0ah7AzVYUxmIpkQsLdx8D07Z7Q"
+                      />
+                      Continue with Google
                     </button>
-                    <div className="relative flex items-center justify-center py-2">
-                      <div className="w-full border-t border-stone-100"></div>
-                      <span className="absolute bg-white px-md text-label-caps text-stone-300">
-                        OR
-                      </span>
-                    </div>
-                    <button className="w-full flex items-center justify-center gap-3 border border-stone-200 py-4 rounded-full font-semibold text-primary-container bg-white hover:bg-stone-50 transition-all active:scale-[0.98] duration-200" type="button">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"></path>
-                      </svg>
-                      
-                                Continue with Google
-                            
-                    </button>
                   </div>
-                </form>
-                <div className="mt-xl text-center">
-                  <p className="text-body-sm text-on-surface-variant">
-                    
-                            Already have an account? 
-                            
-                    <a className="text-primary-container font-bold hover:underline underline-offset-4 decoration-2" href="#">
-                      Log in
-                    </a>
-                  </p>
+                </section>
+
+                <div className="pt-8 flex items-center justify-between gap-4">
+                  <button
+                    className="px-8 py-3 rounded-full text-primary font-bold text-sm hover:bg-stone-100 transition-colors flex items-center gap-2"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-sm">
+                      arrow_back
+                    </span>
+                    Back
+                  </button>
+
+                  <button
+                    className="bg-[#0F3D3E] text-on-primary px-10 py-4 rounded-full font-bold text-body-md hover:opacity-90 active:scale-[0.98] transition-all shadow-md flex items-center gap-2"
+                    type="button"
+                  >
+                    Next Step
+                    <span className="material-symbols-outlined text-sm">
+                      arrow_forward
+                    </span>
+                  </button>
                 </div>
+              </form>
+
+              <div className="mt-10 text-center">
+                <p className="text-body-sm text-stone-500">
+                  Already have an account?{' '}
+                  <a
+                    className="text-[#0F3D3E] font-bold hover:underline decoration-[#A7C4A0] underline-offset-4"
+                    href="#"
+                  >
+                    Log in
+                  </a>
+                </p>
               </div>
             </div>
-          </div>
-        </main>
-        {/* Footer from Admin Dashboard */}
-              </div>
+          </section>
+        </div>
+      </div>
+    </main>
   );
 }
-
