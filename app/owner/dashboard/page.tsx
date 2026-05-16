@@ -1,4 +1,21 @@
-export default function OwnerDashboardPage() {
+import Link from "next/link";
+
+import { getCurrentUser } from "@/lib/auth";
+import { getOwnerListings } from "@/lib/listings";
+
+export default async function OwnerDashboardPage() {
+  const currentUser = await getCurrentUser();
+  const ownerListings =
+    currentUser?.role === "OWNER" && currentUser.ownerProfile
+      ? await getOwnerListings(currentUser.ownerProfile.id)
+      : [];
+
+  const activeListings = ownerListings.filter(
+    (listing) => listing.status === "APPROVED" && listing.isPublished,
+  );
+
+  const ownerName = currentUser?.fullName ?? "Owner";
+
   return (
     <main className="min-h-screen bg-[#F7F7F5] text-on-surface max-w-7xl mx-auto px-6 py-12 space-y-12 pt-32">
       <header className="space-y-2">
@@ -6,7 +23,7 @@ export default function OwnerDashboardPage() {
           OWNER DASHBOARD
         </p>
         <h1 className="text-h1 font-h1 text-primary">
-          Welcome back Julian (Owner)
+          Welcome back {ownerName} (Owner)
         </h1>
       </header>
 
@@ -28,7 +45,9 @@ export default function OwnerDashboardPage() {
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             ACTIVE LISTINGS
           </span>
-          <span className="text-display font-display text-primary">3</span>
+          <span className="text-display font-display text-primary">
+            {activeListings.length}
+          </span>
           <span className="text-body-sm font-body-sm text-on-surface-variant mt-2">
             All units currently occupied
           </span>
@@ -38,7 +57,9 @@ export default function OwnerDashboardPage() {
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             TENANT ACTIVITY
           </span>
-          <span className="text-display font-display text-primary">2</span>
+          <span className="text-display font-display text-primary">
+            {ownerListings.length ? Math.min(2, ownerListings.length) : 0}
+          </span>
           <div className="flex items-center gap-1 text-primary-container mt-2">
             <span className="material-symbols-outlined text-sm">mail</span>
             <span className="text-body-sm font-body-sm">
@@ -211,98 +232,72 @@ export default function OwnerDashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-h2 font-h2 text-primary">Your Listings</h2>
-            <button
+            <Link
               className="bg-primary text-on-primary rounded-full px-6 py-2 text-body-sm font-medium hover:opacity-90 transition-opacity w-fit"
-              type="button"
+              href="/create-listing"
             >
               Add New Cave
-            </button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <article className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 hover:shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all">
-              <div className="aspect-video w-full overflow-hidden relative">
-                <img
-                  alt="West Chelsea Studio"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhnrtJ57vRKyPKnJ6oLkdjsp6Tu_-Fac1QsViHGr7BL6TzplQO6joQiIK7i_sLWQSwaZd6_KgaVuGSRKCA2skyJamejpIc0EDOc-xg4MnGTmLLWyE6NyxzzqD-8qs2GWXwxtCMcHgzlpaiQqMyvrzreOdFHzZONt0V9jFDrjbaGDwYkskZxVm5b0NwhnYVSwMuH6I-mw1q9wlBzTk692BeCH5m0XHr2boBicvEchpnen5GA-VpZczZoeiGnjVfO9YBDilppi3Z2M8"
-                />
-                <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
-                  OCCUPIED
-                </span>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-h3 font-h3 text-primary">
-                    West Chelsea Studio
-                  </h3>
-                  <p className="text-body-sm font-body-sm text-on-surface-variant">
-                    Climate Controlled • 200 sq ft
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-end border-t border-outline-variant/10 pt-4 gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-label-caps font-label-caps text-on-surface-variant">
-                      MONTHLY REVENUE
+            {ownerListings.length ? (
+              ownerListings.map((listing) => (
+                <article
+                  className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 hover:shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all"
+                  key={listing.id}
+                >
+                  <div className="aspect-video w-full overflow-hidden relative">
+                    <img
+                      alt={listing.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      src={
+                        listing.imageUrl ??
+                        "https://lh3.googleusercontent.com/aida-public/AB6AXuBhnrtJ57vRKyPKnJ6oLkdjsp6Tu_-Fac1QsViHGr7BL6TzplQO6joQiIK7i_sLWQSwaZd6_KgaVuGSRKCA2skyJamejpIc0EDOc-xg4MnGTmLLWyE6NyxzzqD-8qs2GWXwxtCMcHgzlpaiQqMyvrzreOdFHzZONt0V9jFDrjbaGDwYkskZxVm5b0NwhnYVSwMuH6I-mw1q9wlBzTk692BeCH5m0XHr2boBicvEchpnen5GA-VpZczZoeiGnjVfO9YBDilppi3Z2M8"
+                      }
+                    />
+                    <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
+                      {listing.status}
                     </span>
-                    <span className="text-h3 font-h3 text-primary">$1,850</span>
                   </div>
-                  <button
-                    className="text-primary-container font-semibold flex items-center gap-1 group/btn"
-                    type="button"
-                  >
-                    <span className="text-body-sm font-body-sm">Manage</span>
-                    <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">
-                      arrow_forward
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </article>
 
-            <article className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 hover:shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all">
-              <div className="aspect-video w-full overflow-hidden relative">
-                <img
-                  alt="Tribeca Vault"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPSbjfT9vcpv7TudTmagWwoCQiD3wU2U5bXiWaswxlVjs2-mIPMtTsnFHjown1Mi6bcMH22RYFClgUvEyrA01ezGeG8RJPl-Si_wUSIfB3QhCENaU195KcOGNkVQexe-tBqfVQ6gdxjQfN2I7zUDE2-NYZ5ShyOCQAy2n53glD52UHZorJNUAT00nQjti7PcLZquWqK8naw4TzCl3WdFszcrtMwYW0netXzY-bQVVJ8Dd53TEmQxAZQJ60gLPX7vCj1t3-xWqMDFw"
-                />
-                <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
-                  OCCUPIED
-                </span>
-              </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-h3 font-h3 text-primary">
+                        {listing.title}
+                      </h3>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {listing.storageType} • {listing.sizeSqFt ?? 0} sq ft
+                      </p>
+                    </div>
 
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-h3 font-h3 text-primary">
-                    Tribeca Vault
-                  </h3>
-                  <p className="text-body-sm font-body-sm text-on-surface-variant">
-                    High Security • 150 sq ft
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-end border-t border-outline-variant/10 pt-4 gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-label-caps font-label-caps text-on-surface-variant">
-                      MONTHLY REVENUE
-                    </span>
-                    <span className="text-h3 font-h3 text-primary">$2,430</span>
+                    <div className="flex justify-between items-end border-t border-outline-variant/10 pt-4 gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-label-caps font-label-caps text-on-surface-variant">
+                          MONTHLY REVENUE
+                        </span>
+                        <span className="text-h3 font-h3 text-primary">
+                          ${listing.pricePerMonth}
+                        </span>
+                      </div>
+                      <Link
+                        className="text-primary-container font-semibold flex items-center gap-1 group/btn"
+                        href={`/create-listing?listingId=${listing.id}`}
+                      >
+                        <span className="text-body-sm font-body-sm">Manage</span>
+                        <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">
+                          arrow_forward
+                        </span>
+                      </Link>
+                    </div>
                   </div>
-                  <button
-                    className="text-primary-container font-semibold flex items-center gap-1 group/btn"
-                    type="button"
-                  >
-                    <span className="text-body-sm font-body-sm">Manage</span>
-                    <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">
-                      arrow_forward
-                    </span>
-                  </button>
-                </div>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-lg border border-outline-variant/20 bg-white p-6 text-body-sm text-on-surface-variant">
+                No listings yet. Create your first cave to get started.
               </div>
-            </article>
+            )}
           </div>
         </div>
 
@@ -318,7 +313,7 @@ export default function OwnerDashboardPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-body-sm font-body-sm text-on-surface">
-                  <span className="font-bold">Sarah M.</span> booked{' '}
+                  <span className="font-bold">Sarah M.</span> booked{" "}
                   <span className="font-bold">West Chelsea Studio</span>
                 </p>
                 <p className="text-label-caps font-label-caps text-on-surface-variant">
@@ -335,7 +330,7 @@ export default function OwnerDashboardPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-body-sm font-body-sm text-on-surface">
-                  Message from <span className="font-bold">David K.</span>{' '}
+                  Message from <span className="font-bold">David K.</span>{" "}
                   regarding Tribeca accessibility
                 </p>
                 <p className="text-label-caps font-label-caps text-on-surface-variant">
@@ -390,3 +385,4 @@ export default function OwnerDashboardPage() {
     </main>
   );
 }
+
