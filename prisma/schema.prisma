@@ -105,6 +105,7 @@ enum InvoiceStatus {
   ISSUED
   PAID
   OVERDUE
+  REFUNDED
   CANCELLED
 }
 
@@ -411,6 +412,7 @@ model Booking {
   owner                   OwnerProfile  @relation("OwnerBookings", fields: [ownerId], references: [id], onDelete: Cascade)
   renter                  RenterProfile @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Cascade)
 
+  generatedContract       GeneratedContract?
   contracts               Contract[]
   payments                Payment[]
   invoices                Invoice[]
@@ -444,10 +446,38 @@ model ContractTemplate {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
+  generatedContracts GeneratedContract[]
   contracts         Contract[]
 
   @@index([type])
   @@index([isActive])
+}
+
+model GeneratedContract {
+  id                String         @id @default(uuid())
+  contractNumber    String         @unique
+
+  bookingId         String         @unique
+  templateId        String
+
+  contractType      ContractType
+  status            ContractStatus @default(GENERATED)
+
+  generatedFilePath String
+  generatedFileName String
+
+  contractData      Json?
+
+  generatedAt       DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  booking           Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  template          ContractTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+
+  @@index([templateId])
+  @@index([contractType])
+  @@index([status])
+  @@index([generatedAt])
 }
 
 model Contract {
@@ -560,12 +590,15 @@ model Invoice {
   renterId        String?
 
   subtotal        Decimal       @default(0) @db.Decimal(10, 2)
+  platformFee     Decimal       @default(0) @db.Decimal(10, 2)
   taxAmount       Decimal       @default(0) @db.Decimal(10, 2)
   totalAmount     Decimal       @db.Decimal(10, 2)
   currency        String        @default("eur")
 
   status          InvoiceStatus @default(DRAFT)
   pdfUrl          String?
+  generatedFile   String?
+  timeline        Json?
 
   issuedAt        DateTime?
   dueAt           DateTime?

@@ -1,11 +1,14 @@
 import {
   BookingStatus,
+  InvoiceStatus,
   ListingStatus,
   Prisma,
   type Booking,
   type UserRole,
 } from "@prisma/client";
 
+import { generateContractForBooking } from "@/lib/contracts/generateContract";
+import { generateInvoiceForBooking } from "@/lib/invoices/generateInvoice";
 import { prisma } from "@/lib/prisma";
 import type {
   BookingCreateInput,
@@ -99,6 +102,30 @@ const bookingInclude = {
           avatarUrl: true,
         },
       },
+    },
+  },
+  generatedContract: {
+    select: {
+      contractNumber: true,
+      status: true,
+      generatedAt: true,
+      generatedFilePath: true,
+      generatedFileName: true,
+      contractType: true,
+    },
+  },
+  payments: {
+    orderBy: [{ createdAt: "desc" as const }],
+    take: 1,
+    select: {
+      status: true,
+    },
+  },
+  invoices: {
+    orderBy: [{ createdAt: "desc" as const }],
+    take: 1,
+    select: {
+      status: true,
     },
   },
 } satisfies Prisma.BookingInclude;
@@ -201,6 +228,15 @@ function serializeBooking(
         avatarUrl: string | null;
       };
     };
+    generatedContract: {
+      status: BookingStatus | null;
+    } | null;
+    payments: Array<{
+      status: string;
+    }>;
+    invoices: Array<{
+      status: string;
+    }>;
   },
 ): BookingResponse {
   const monthlyPrice = toDecimal(booking.monthlyPrice);
@@ -260,9 +296,9 @@ function serializeBooking(
       avatarUrl: booking.renter.user.avatarUrl,
       city: booking.renter.city,
     },
-    contractStatus: null,
-    paymentStatus: null,
-    invoiceStatus: null,
+    contractStatus: booking.generatedContract?.status ?? null,
+    paymentStatus: booking.payments[0]?.status ?? null,
+    invoiceStatus: booking.invoices[0]?.status ?? null,
   };
 }
 
@@ -611,5 +647,33 @@ export async function updateBookingForViewer(params: {
     include: bookingInclude,
   });
 
-  return serializeBooking(updated as Parameters<typeof serializeBooking>[0]);
+  let refreshedUpdated = updated;
+
+  if (params.data.status === BookingStatus.APPROVED) {
+    await generateContractForBooking({
+      bookingId: updated.id,
+    }).catch((error) => {
+      console.error("Failed to auto-generate contract after approval:", error);
+    });
+
+    await generateInvoiceForBooking({
+      bookingId: updated.id,
+      status: InvoiceStatus.ISSUED,
+    }).catch((error) => {
+      console.error("Failed to auto-generate invoice after approval:", error);
+    });
+
+    const reloaded = await prisma.booking.findUnique({
+      where: { id: updated.id },
+      include: bookingInclude,
+    });
+
+    if (reloaded) {
+      refreshedUpdated = reloaded;
+    }
+  }
+
+  return serializeBooking(
+    refreshedUpdated as Parameters<typeof serializeBooking>[0],
+  );
 }

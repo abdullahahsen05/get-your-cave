@@ -152,6 +152,75 @@ const listings = [
   },
 ];
 
+const contractTemplates = [
+  {
+    name: "Seasonal Rental",
+    type: "SEASONAL_RENTAL",
+    description: "Reusable seasonal cave rental contract template.",
+    templateFileUrl: "docs/templates/GYC_Contrat_Location_Saisonniere.template.docx",
+    variables: {
+      placeholders: [
+        "booking_id",
+        "contract_number",
+        "today_date",
+        "owner_name",
+        "renter_name",
+        "listing_address",
+        "start_date",
+        "end_date",
+        "duration_weeks",
+        "monthly_price",
+        "deposit_amount",
+        "platform_commission_rate",
+        "platform_commission_frequency",
+        "platform_commission_fixed",
+        "platform_duration_months",
+      ],
+    },
+  },
+  {
+    name: "Long Term Rental",
+    type: "LONG_TERM_RENTAL",
+    description: "Reusable long-term cave rental contract template.",
+    templateFileUrl: "docs/templates/GYC_Contrat_Location_Longue_Duree.template.docx",
+    variables: {
+      placeholders: [
+        "booking_id",
+        "contract_number",
+        "today_date",
+        "owner_name",
+        "renter_name",
+        "listing_address",
+        "start_date",
+        "duration_months",
+        "monthly_price",
+        "deposit_amount",
+        "platform_duration_months",
+      ],
+    },
+  },
+  {
+    name: "Platform Introduction",
+    type: "PLATFORM_INTRODUCTION",
+    description: "Reusable platform introduction contract template.",
+    templateFileUrl: "docs/templates/GYC_Contrat_Mise_En_Relation.template.docx",
+    variables: {
+      placeholders: [
+        "contract_number",
+        "today_date",
+        "owner_name",
+        "renter_name",
+        "platform_siret",
+        "platform_address",
+        "platform_representative",
+        "platform_commission_rate",
+        "platform_commission_frequency",
+        "platform_commission_fixed",
+      ],
+    },
+  },
+];
+
 async function main() {
   const hashedPassword = await bcrypt.hash(ownerPassword, 12);
 
@@ -210,6 +279,27 @@ async function main() {
           verificationStatus: "APPROVED",
         },
       });
+
+  for (const template of contractTemplates) {
+    await prisma.contractTemplate.upsert({
+      where: { type: template.type },
+      update: {
+        name: template.name,
+        description: template.description,
+        templateFileUrl: template.templateFileUrl,
+        variables: template.variables,
+        isActive: true,
+      },
+      create: {
+        name: template.name,
+        type: template.type,
+        description: template.description,
+        templateFileUrl: template.templateFileUrl,
+        variables: template.variables,
+        isActive: true,
+      },
+    });
+  }
 
   for (const amenity of amenitySeeds) {
     const existingAmenity = await prisma.amenity.findUnique({

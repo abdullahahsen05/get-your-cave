@@ -1,7 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getRenterBookings } from "@/lib/bookings";
+import { getInvoicesForViewer } from "@/lib/invoices/generateInvoice";
 
-function formatCurrency(value: string | number) {
+function formatCurrency(value: string | number, currency = "USD") {
   const amount = Number(value);
   if (!Number.isFinite(amount)) {
     return "$0";
@@ -9,12 +10,16 @@ function formatCurrency(value: string | number) {
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
-function formatFullDate(value: string) {
+function formatFullDate(value: string | null | undefined) {
+  if (!value) {
+    return "—";
+  }
+
   return new Date(value).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -28,6 +33,29 @@ export default async function RenterDashboardPage() {
     currentUser?.role === "RENTER" && currentUser.renterProfile
       ? await getRenterBookings(currentUser.renterProfile.id)
       : [];
+  const renterInvoices =
+    currentUser?.role === "RENTER" && currentUser.renterProfile
+      ? await getInvoicesForViewer(
+          {
+            role: currentUser.role,
+            ownerProfileId: currentUser.ownerProfile?.id ?? null,
+            renterProfileId: currentUser.renterProfile.id,
+          },
+          { pageSize: 10 },
+        )
+      : {
+          invoices: [],
+          pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 },
+          summary: {
+            paidCount: 0,
+            openCount: 0,
+            overdueCount: 0,
+            paidAmount: "0.00",
+            openAmount: "0.00",
+            overdueAmount: "0.00",
+          },
+          totals: { subtotal: "0.00", platformFee: "0.00", totalAmount: "0.00" },
+        };
 
   const activeBookings = renterBookings.filter((booking) =>
     ["APPROVED", "ACTIVE"].includes(booking.status),
@@ -35,10 +63,10 @@ export default async function RenterDashboardPage() {
   const pendingBookings = renterBookings.filter(
     (booking) => booking.status === "PENDING",
   );
-  const completedBookings = renterBookings.filter(
-    (booking) => booking.status === "COMPLETED",
-  );
   const nextBooking = activeBookings[0] ?? pendingBookings[0] ?? null;
+  const lastPaidInvoice = renterInvoices.invoices.find(
+    (invoice) => invoice.status === "PAID",
+  );
 
   const activeUnitCount = activeBookings.length;
   const totalSavedSqFt = activeBookings.reduce((total, booking) => {
@@ -67,24 +95,13 @@ export default async function RenterDashboardPage() {
   ];
 
   const invoiceRows =
-    renterBookings.length > 0
-      ? renterBookings.slice(0, 3).map((booking) => ({
-          id: booking.bookingNumber,
-          listing: booking.listing.title,
-          amount: formatCurrency(booking.totalMonthlyAmount),
-          status:
-            booking.status === "PENDING"
-              ? "Pending"
-              : booking.status === "APPROVED"
-                ? "Approved"
-                : booking.status === "ACTIVE"
-                  ? "Active"
-                  : booking.status === "REJECTED"
-                    ? "Rejected"
-                    : booking.status === "CANCELLED"
-                      ? "Cancelled"
-                      : "Completed",
-          date: formatFullDate(booking.createdAt),
+    renterInvoices.invoices.length > 0
+      ? renterInvoices.invoices.slice(0, 3).map((invoice) => ({
+          id: invoice.invoiceNumber,
+          listing: invoice.bookingTitle,
+          amount: formatCurrency(invoice.totalAmount, "EUR"),
+          status: invoice.statusLabel,
+          date: formatFullDate(invoice.issuedAt ?? invoice.createdAt),
         }))
       : [
           { id: "#INV-8824", listing: "The Heights Private Cave", amount: "$240.00", status: "Paid", date: "Oct 15, 2024" },
@@ -278,12 +295,7 @@ export default async function RenterDashboardPage() {
               Total Paid YTD
             </p>
             <p className="font-h2 text-h2 text-primary">
-              {formatCurrency(
-                renterBookings.reduce(
-                  (total, booking) => total + Number(booking.totalMonthlyAmount),
-                  0,
-                ) || 3245,
-              )}
+              {formatCurrency(renterInvoices.summary.paidAmount, "EUR")}
             </p>
           </div>
 
@@ -292,12 +304,7 @@ export default async function RenterDashboardPage() {
               Outstanding
             </p>
             <p className="font-h2 text-h2 text-primary">
-              {formatCurrency(
-                pendingBookings.reduce(
-                  (total, booking) => total + Number(booking.totalMonthlyAmount),
-                  0,
-                ) || 0,
-              )}
+              {formatCurrency(renterInvoices.summary.openAmount, "EUR")}
             </p>
           </div>
 
@@ -306,9 +313,9 @@ export default async function RenterDashboardPage() {
               Last Payment
             </p>
             <p className="font-h2 text-h2 text-primary">
-              {completedBookings[0]
-                ? formatFullDate(completedBookings[0].updatedAt)
-                : "Oct 15, 2024"}
+              {formatFullDate(
+                lastPaidInvoice?.paidAt ?? lastPaidInvoice?.issuedAt ?? lastPaidInvoice?.createdAt,
+              )}
             </p>
           </div>
         </div>

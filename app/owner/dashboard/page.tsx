@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnerBookings } from "@/lib/bookings";
+import { formatCurrency } from "@/lib/invoices/formatCurrency";
+import { getInvoicesForViewer } from "@/lib/invoices/generateInvoice";
+import {
+  getInvoiceStatusClass,
+  getInvoiceStatusLabel,
+} from "@/lib/invoices/invoiceTypes";
 import { getOwnerListings } from "@/lib/listings";
 
 export default async function OwnerDashboardPage() {
@@ -13,6 +19,29 @@ export default async function OwnerDashboardPage() {
           getOwnerBookings(currentUser.ownerProfile.id),
         ])
       : [[], []];
+  const ownerInvoices =
+    currentUser?.role === "OWNER" && currentUser.ownerProfile
+      ? await getInvoicesForViewer(
+          {
+            role: currentUser.role,
+            ownerProfileId: currentUser.ownerProfile.id,
+            renterProfileId: currentUser.renterProfile?.id ?? null,
+          },
+          { pageSize: 10 },
+        )
+      : {
+          invoices: [],
+          pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 },
+          summary: {
+            paidCount: 0,
+            openCount: 0,
+            overdueCount: 0,
+            paidAmount: "0.00",
+            openAmount: "0.00",
+            overdueAmount: "0.00",
+          },
+          totals: { subtotal: "0.00", platformFee: "0.00", totalAmount: "0.00" },
+        };
 
   const activeListings = ownerListings.filter(
     (listing) => listing.status === "APPROVED" && listing.isPublished,
@@ -20,8 +49,17 @@ export default async function OwnerDashboardPage() {
   const pendingBookings = ownerBookings.filter(
     (booking) => booking.status === "PENDING",
   );
+  const unsignedContracts = ownerBookings.filter((booking) =>
+    [
+      "GENERATED",
+      "SENT",
+      "SENT_FOR_SIGNATURE",
+      "PARTIALLY_SIGNED",
+    ].includes(booking.contractStatus ?? ""),
+  );
 
   const ownerName = currentUser?.fullName ?? "Owner";
+  const latestInvoices = ownerInvoices.invoices.slice(0, 3);
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] text-on-surface max-w-7xl mx-auto px-6 py-12 space-y-12 pt-32">
@@ -39,7 +77,9 @@ export default async function OwnerDashboardPage() {
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             TOTAL EARNINGS
           </span>
-          <span className="text-display font-display text-primary">$4,280</span>
+          <span className="text-display font-display text-primary">
+            {formatCurrency(ownerInvoices.summary.paidAmount, "EUR")}
+          </span>
           <div className="flex items-center gap-1 text-secondary mt-2">
             <span className="material-symbols-outlined text-sm">trending_up</span>
             <span className="text-body-sm font-body-sm">
@@ -140,7 +180,9 @@ export default async function OwnerDashboardPage() {
               Pending Payouts
             </span>
             <div className="mt-2">
-              <span className="text-h2 font-h2 text-primary">$1,120.00</span>
+              <span className="text-h2 font-h2 text-primary">
+                {formatCurrency(ownerInvoices.summary.openAmount, "EUR")}
+              </span>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
                 Scheduled for release on Jun 25
               </p>
@@ -149,19 +191,19 @@ export default async function OwnerDashboardPage() {
 
           <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/30 flex flex-col justify-between relative">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-              <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-                Unsigned Contracts
-              </span>
+            <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
+              Unsigned Contracts
+            </span>
               <span className="bg-error text-on-error text-[10px] px-2 py-0.5 rounded-full font-bold w-fit">
                 ACTION REQUIRED
               </span>
             </div>
             <div className="mt-2">
               <span className="text-h2 font-h2 text-primary">
-                {pendingBookings.length}
+                {unsignedContracts.length}
               </span>
               <p className="text-body-sm font-body-sm text-error">
-                Review required for active bookings
+                Review required for generated contracts
               </p>
             </div>
           </div>
@@ -203,37 +245,58 @@ export default async function OwnerDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10 font-body-sm text-on-surface">
-                <tr>
-                  <td className="px-6 py-4">#INV-2024-081</td>
-                  <td className="px-6 py-4">West Chelsea Studio</td>
-                  <td className="px-6 py-4 font-bold">$1,850.00</td>
-                  <td className="px-6 py-4 text-secondary">Paid</td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4">#INV-2024-080</td>
-                  <td className="px-6 py-4">Tribeca Vault</td>
-                  <td className="px-6 py-4 font-bold">$2,430.00</td>
-                  <td className="px-6 py-4 text-secondary">Paid</td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4">#INV-2024-079</td>
-                  <td className="px-6 py-4">Midtown Locker</td>
-                  <td className="px-6 py-4 font-bold">$920.00</td>
-                  <td className="px-6 py-4 text-on-surface-variant">
-                    Processing
-                  </td>
-                </tr>
+                {latestInvoices.length ? (
+                  latestInvoices.map((invoice) => (
+                    <tr key={invoice.id}>
+                      <td className="px-6 py-4">{invoice.invoiceNumber}</td>
+                      <td className="px-6 py-4">{invoice.bookingTitle}</td>
+                      <td className="px-6 py-4 font-bold">
+                        {formatCurrency(invoice.totalAmount, "EUR")}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${getInvoiceStatusClass(invoice.status)}`}
+                        >
+                          {getInvoiceStatusLabel(invoice.status)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <>
+                    <tr>
+                      <td className="px-6 py-4">#INV-2024-081</td>
+                      <td className="px-6 py-4">West Chelsea Studio</td>
+                      <td className="px-6 py-4 font-bold">$1,850.00</td>
+                      <td className="px-6 py-4 text-secondary">Paid</td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4">#INV-2024-080</td>
+                      <td className="px-6 py-4">Tribeca Vault</td>
+                      <td className="px-6 py-4 font-bold">$2,430.00</td>
+                      <td className="px-6 py-4 text-secondary">Paid</td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4">#INV-2024-079</td>
+                      <td className="px-6 py-4">Midtown Locker</td>
+                      <td className="px-6 py-4 font-bold">$920.00</td>
+                      <td className="px-6 py-4 text-on-surface-variant">
+                        Processing
+                      </td>
+                    </tr>
+                  </>
+                )}
               </tbody>
             </table>
           </div>
 
           <div className="p-4 border-t border-outline-variant/10 text-center">
-            <button
+            <Link
               className="text-primary-container text-body-sm font-bold hover:underline"
-              type="button"
+              href="/invoices"
             >
               View All Invoices
-            </button>
+            </Link>
           </div>
         </div>
       </section>
