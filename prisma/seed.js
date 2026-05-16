@@ -308,6 +308,146 @@ async function main() {
       })),
     });
   }
+
+  const secondOwnerEmail = "sofia@getyourcave.com";
+  const secondOwnerPassword = "Password123!";
+  const secondOwnerHash = await bcrypt.hash(secondOwnerPassword, 12);
+
+  const secondOwnerExisting = await prisma.user.findUnique({
+    where: { email: secondOwnerEmail },
+  });
+
+  const secondOwnerUser = secondOwnerExisting
+    ? await prisma.user.update({
+        where: { email: secondOwnerEmail },
+        data: {
+          fullName: "Sofia Laurent",
+          passwordHash: secondOwnerHash,
+          role: "OWNER",
+          status: "ACTIVE",
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+        },
+      })
+    : await prisma.user.create({
+        data: {
+          fullName: "Sofia Laurent",
+          email: secondOwnerEmail,
+          passwordHash: secondOwnerHash,
+          role: "OWNER",
+          status: "ACTIVE",
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+        },
+      });
+
+  const secondOwnerProfileExisting = await prisma.ownerProfile.findUnique({
+    where: { userId: secondOwnerUser.id },
+  });
+
+  const secondOwnerProfile = secondOwnerProfileExisting
+    ? await prisma.ownerProfile.update({
+        where: { userId: secondOwnerUser.id },
+        data: {
+          bio: "Curator of premium climate-aware city storage spaces.",
+          city: "San Francisco",
+          postalCode: "94107",
+          verificationStatus: "APPROVED",
+        },
+      })
+    : await prisma.ownerProfile.create({
+        data: {
+          userId: secondOwnerUser.id,
+          bio: "Curator of premium climate-aware city storage spaces.",
+          city: "San Francisco",
+          postalCode: "94107",
+          verificationStatus: "APPROVED",
+        },
+      });
+
+  const secondOwnerListingSlug = "soho-climate-loft";
+  const secondOwnerListingExisting = await prisma.listing.findUnique({
+    where: { slug: secondOwnerListingSlug },
+  });
+
+  const secondOwnerListing = secondOwnerListingExisting
+    ? await prisma.listing.update({
+        where: { slug: secondOwnerListingSlug },
+        data: {
+          ownerId: secondOwnerProfile.id,
+          title: "SoHo Climate Loft",
+          description:
+            "A polished climate-controlled loft space in SoHo with secure entry and gentle natural light.",
+          storageType: StorageType.LOFT,
+          status: ListingStatus.APPROVED,
+          availability: ListingAvailability.AVAILABLE,
+          address: "77 Mercer St, New York, NY",
+          city: "SoHo, New York City",
+          postalCode: "10012",
+          pricePerMonth: new Prisma.Decimal("690.00"),
+          sizeSqFt: 180,
+          ratingAverage: 4.95,
+          ratingCount: 27,
+          isFeatured: false,
+          isPublished: true,
+        },
+      })
+    : await prisma.listing.create({
+        data: {
+          ownerId: secondOwnerProfile.id,
+          slug: secondOwnerListingSlug,
+          title: "SoHo Climate Loft",
+          description:
+            "A polished climate-controlled loft space in SoHo with secure entry and gentle natural light.",
+          storageType: StorageType.LOFT,
+          status: ListingStatus.APPROVED,
+          availability: ListingAvailability.AVAILABLE,
+          address: "77 Mercer St, New York, NY",
+          city: "SoHo, New York City",
+          postalCode: "10012",
+          pricePerMonth: new Prisma.Decimal("690.00"),
+          sizeSqFt: 180,
+          ratingAverage: 4.95,
+          ratingCount: 27,
+          isFeatured: false,
+          isPublished: true,
+        },
+      });
+
+  await prisma.listingImage.deleteMany({
+    where: { listingId: secondOwnerListing.id },
+  });
+
+  await prisma.listingAmenity.deleteMany({
+    where: { listingId: secondOwnerListing.id },
+  });
+
+  const secondOwnerAmenityRecords = await prisma.amenity.findMany({
+    where: {
+      name: {
+        in: ["Climate Control", "Private Entry", "Security Camera"],
+      },
+    },
+  });
+
+  await prisma.listingImage.createMany({
+    data: [
+      {
+        listingId: secondOwnerListing.id,
+        url: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhnrtJ57vRKyPKnJ6oLkdjsp6Tu_-Fac1QsViHGr7BL6TzplQO6joQiIK7i_sLWQSwaZd6_KgaVuGSRKCA2skyJamejpIc0EDOc-xg4MnGTmLLWyE6NyxzzqD-8qs2GWXwxtCMcHgzlpaiQqMyvrzreOdFHzZONt0V9jFDrjbaGDwYkskZxVm5b0NwhnYVSwMuH6I-mw1q9wlBzTk692BeCH5m0XHr2boBicvEchpnen5GA-VpZczZoeiGnjVfO9YBDilppi3Z2M8",
+        altText: "SoHo Climate Loft",
+        sortOrder: 0,
+        isPrimary: true,
+      },
+    ],
+  });
+
+  await prisma.listingAmenity.createMany({
+    data: secondOwnerAmenityRecords.map((amenity) => ({
+      listingId: secondOwnerListing.id,
+      amenityId: amenity.id,
+    })),
+  });
 }
 
 main()

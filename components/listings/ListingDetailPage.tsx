@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type ListingDetail = {
@@ -39,6 +40,13 @@ type Props = {
   listingId?: string;
 };
 
+type SessionUser = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: "ADMIN" | "OWNER" | "RENTER";
+};
+
 const fallbackImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDvOaq7w-wrMJTbpSflULdtVljsC7lPIQ-P_cOGDlmvmn0F-KWt9QJDgMY8isuu3BzCGvHS3nINmRP-Wvd8C1S_jiKBCjYKxBSsg_nT985iIqaWJtZBX8MfXpKuEH83_BwQ5_WDWF8TcFhxkNjkDvdsfVEswUa3UYhsBccvvVjdnTCrvWGroYVu7XP_80UhZeqyn-4PwcKaXRcdgsA5hRCXS5zHXdeEsTCxikgslZt5O34mV1ubp1lCQClnEWiFqErOPzBgTuxqDlA",
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDSFxERFxhCmvO_5DTcAE5yQr23z_XbX0R3Q3goZVT1D22dI5oktXZ3KYJOKlZwqDDIGJEk9jBt6WQtru4X4NUJcdHanvzmh1eGfvwg9fYB7TETbzlKlB-8F5YyV1M0ARPjm4CV5qAYXd46udsHMAVd4xvhHTDEjOiPJgCE-QYoAA_olEzXmDLmDx8VytGJ9QTSpfF5XdSyas_b3SDxxlgFRgbhw7xCF-PTUmllJdHApXhurbTQjmjT84e2DZ0PN0IJ2gAbuqNLgeg",
@@ -56,9 +64,18 @@ function formatStorageType(value: string) {
 }
 
 export default function ListingDetailPage({ listingId }: Props) {
+  const router = useRouter();
   const [activeListingId, setActiveListingId] = useState<string | null>(listingId ?? null);
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [bookingStartDate, setBookingStartDate] = useState("");
+  const [bookingDuration, setBookingDuration] = useState("1");
+  const [bookingNote, setBookingNote] = useState("");
+  const [bookingMessage, setBookingMessage] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +136,41 @@ export default function ListingDetailPage({ listingId }: Props) {
     };
   }, [activeListingId]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSession() {
+      setSessionLoading(true);
+
+      try {
+        const response = await fetch("/api/auth/session", {
+          headers: { Accept: "application/json" },
+        });
+        const data = (await response.json()) as {
+          user?: SessionUser | null;
+        };
+
+        if (!cancelled) {
+          setSessionUser(data.user ?? null);
+        }
+      } catch {
+        if (!cancelled) {
+          setSessionUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setSessionLoading(false);
+        }
+      }
+    }
+
+    loadSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const galleryImages = useMemo(() => {
     if (!listing) {
       return fallbackImages;
@@ -165,6 +217,65 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   const primaryImage = galleryImages[0] ?? fallbackImages[0];
   const secondaryImages = galleryImages.slice(1, 5);
+
+  const canBook = sessionUser?.role === "RENTER";
+  const loginHref = `/login?next=${encodeURIComponent(`/storage/${listing.id}`)}`;
+  const signupHref = `/signup?next=${encodeURIComponent(`/storage/${listing.id}`)}`;
+
+  async function handleBookingSubmit() {
+    if (!canBook) {
+      if (!sessionUser) {
+        router.push(loginHref);
+      }
+      return;
+    }
+
+    const currentListing = listing;
+    if (!currentListing) {
+      return;
+    }
+
+    setBookingMessage(null);
+    setBookingError(null);
+    setIsBooking(true);
+
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          listingId: currentListing.id,
+          startDate: bookingStartDate,
+          durationMonths: Number(bookingDuration) || 1,
+          renterNote: bookingNote.trim() || undefined,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        booking?: { bookingNumber?: string; status?: string };
+        error?: string;
+      };
+
+      if (!response.ok || !data.booking?.bookingNumber) {
+        setBookingError(data.error ?? "Unable to create booking right now.");
+        return;
+      }
+
+      setBookingMessage(
+        `Booking request ${data.booking.bookingNumber} submitted as ${data.booking.status ?? "PENDING"}.`,
+      );
+      setBookingStartDate("");
+      setBookingDuration("1");
+      setBookingNote("");
+    } catch {
+      setBookingError("Unable to create booking right now.");
+    } finally {
+      setIsBooking(false);
+    }
+  }
 
   return (
     <div className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen">
@@ -334,16 +445,123 @@ export default function ListingDetailPage({ listingId }: Props) {
                   <p className="text-sm font-medium">{listing.sizeSqFt ?? "—"} sq ft</p>
                 </div>
               </div>
-              <button className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg mb-lg scale-100 hover:opacity-95 active:scale-95 transition-all" type="button">
-                Book Now
-              </button>
+
+              {sessionLoading ? (
+                <button
+                  className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg mb-lg scale-100 opacity-70 transition-all"
+                  type="button"
+                  disabled
+                >
+                  Loading...
+                </button>
+              ) : canBook ? (
+                <div className="space-y-4 mb-lg">
+                  <div className="grid grid-cols-1 gap-3">
+                    <label className="block">
+                      <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
+                        Move-in Date
+                      </span>
+                      <input
+                        className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0"
+                        type="date"
+                        value={bookingStartDate}
+                        onChange={(event) => setBookingStartDate(event.target.value)}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
+                        Duration
+                      </span>
+                      <select
+                        className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0"
+                        value={bookingDuration}
+                        onChange={(event) => setBookingDuration(event.target.value)}
+                      >
+                        <option value="1">1 month</option>
+                        <option value="2">2 months</option>
+                        <option value="3">3 months</option>
+                        <option value="6">6 months</option>
+                        <option value="12">12 months</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
+                        Note
+                      </span>
+                      <textarea
+                        className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0 resize-none"
+                        rows={3}
+                        placeholder="Add a short message for the owner"
+                        value={bookingNote}
+                        onChange={(event) => setBookingNote(event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 hover:opacity-95 active:scale-95 transition-all disabled:opacity-70"
+                    type="button"
+                    disabled={isBooking || !bookingStartDate}
+                    onClick={() => {
+                      void handleBookingSubmit();
+                    }}
+                  >
+                    {isBooking ? "Requesting..." : "Book Now"}
+                  </button>
+                </div>
+              ) : sessionUser ? (
+                <div className="mb-lg">
+                  <button
+                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 opacity-70 transition-all cursor-not-allowed"
+                    type="button"
+                    disabled
+                  >
+                    Renters Only
+                  </button>
+                </div>
+              ) : (
+                <div className="mb-lg space-y-3">
+                  <button
+                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 hover:opacity-95 active:scale-95 transition-all"
+                    type="button"
+                    onClick={() => router.push(loginHref)}
+                  >
+                    Log in to Book
+                  </button>
+                  <button
+                    className="w-full border border-outline-variant text-primary py-3 rounded-full font-bold text-body-md hover:bg-surface-container transition-all"
+                    type="button"
+                    onClick={() => router.push(signupHref)}
+                  >
+                    Sign up to Book
+                  </button>
+                </div>
+              )}
+
               <p className="text-center text-body-sm text-on-surface-variant italic-emphasis mb-lg">
                 You won&apos;t be charged yet
               </p>
+              {bookingMessage ? (
+                <div className="mb-4 rounded-lg border border-secondary/30 bg-secondary-container/20 px-4 py-3 text-sm text-primary">
+                  {bookingMessage}
+                </div>
+              ) : null}
+              {bookingError ? (
+                <div className="mb-4 rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+                  {bookingError}
+                </div>
+              ) : null}
               <div className="space-y-3">
                 <div className="flex justify-between text-body-md">
                   <span className="underline">Monthly rate x 1</span>
                   <span>${listing.pricePerMonth}</span>
+                </div>
+                <div className="flex justify-between text-body-md">
+                  <span className="underline">Platform commission</span>
+                  <span>
+                    ${(
+                      Number(listing.pricePerMonth) * 0.12
+                    ).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-body-md">
                   <span className="underline">Security deposit</span>

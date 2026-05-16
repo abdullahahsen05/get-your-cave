@@ -1,17 +1,24 @@
 import Link from "next/link";
 
 import { getCurrentUser } from "@/lib/auth";
+import { getOwnerBookings } from "@/lib/bookings";
 import { getOwnerListings } from "@/lib/listings";
 
 export default async function OwnerDashboardPage() {
   const currentUser = await getCurrentUser();
-  const ownerListings =
+  const [ownerListings, ownerBookings] =
     currentUser?.role === "OWNER" && currentUser.ownerProfile
-      ? await getOwnerListings(currentUser.ownerProfile.id)
-      : [];
+      ? await Promise.all([
+          getOwnerListings(currentUser.ownerProfile.id),
+          getOwnerBookings(currentUser.ownerProfile.id),
+        ])
+      : [[], []];
 
   const activeListings = ownerListings.filter(
     (listing) => listing.status === "APPROVED" && listing.isPublished,
+  );
+  const pendingBookings = ownerBookings.filter(
+    (booking) => booking.status === "PENDING",
   );
 
   const ownerName = currentUser?.fullName ?? "Owner";
@@ -58,12 +65,12 @@ export default async function OwnerDashboardPage() {
             TENANT ACTIVITY
           </span>
           <span className="text-display font-display text-primary">
-            {ownerListings.length ? Math.min(2, ownerListings.length) : 0}
+            {pendingBookings.length}
           </span>
           <div className="flex items-center gap-1 text-primary-container mt-2">
             <span className="material-symbols-outlined text-sm">mail</span>
             <span className="text-body-sm font-body-sm">
-              New messages pending
+              New booking requests pending
             </span>
           </div>
         </div>
@@ -150,7 +157,9 @@ export default async function OwnerDashboardPage() {
               </span>
             </div>
             <div className="mt-2">
-              <span className="text-h2 font-h2 text-primary">2</span>
+              <span className="text-h2 font-h2 text-primary">
+                {pendingBookings.length}
+              </span>
               <p className="text-body-sm font-body-sm text-error">
                 Review required for active bookings
               </p>
@@ -162,13 +171,14 @@ export default async function OwnerDashboardPage() {
           <span className="material-symbols-outlined text-error">error</span>
           <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
             <p className="text-body-sm font-medium text-on-error-container">
-              You have 2 unsigned contracts waiting for signature
+              You have {pendingBookings.length} booking request
+              {pendingBookings.length === 1 ? "" : "s"} waiting for approval
             </p>
             <button
               className="text-body-sm font-bold text-error underline underline-offset-4 text-left md:text-right"
               type="button"
             >
-              Review Contracts
+              Review Requests
             </button>
           </div>
         </div>
@@ -305,73 +315,100 @@ export default async function OwnerDashboardPage() {
           <h2 className="text-h2 font-h2 text-primary">Recent Activity</h2>
 
           <div className="bg-surface-container-low rounded-lg p-6 space-y-6 border border-outline-variant/30">
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-on-secondary-fixed text-md">
-                  event_available
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-body-sm font-body-sm text-on-surface">
-                  <span className="font-bold">Sarah M.</span> booked{" "}
-                  <span className="font-bold">West Chelsea Studio</span>
-                </p>
-                <p className="text-label-caps font-label-caps text-on-surface-variant">
-                  2 HOURS AGO
-                </p>
-              </div>
-            </div>
+            {ownerBookings.length ? (
+              ownerBookings.slice(0, 4).map((booking, index) => (
+                <div className="flex gap-4 items-start" key={booking.id}>
+                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-secondary-fixed text-md">
+                      {index === 0 ? "event_available" : index === 1 ? "mail" : index === 2 ? "payments" : "reviews"}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-body-sm font-body-sm text-on-surface">
+                      <span className="font-bold">{booking.renter.fullName}</span>{" "}
+                      requested <span className="font-bold">{booking.listing.title}</span>
+                    </p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant">
+                      {booking.status} •{" "}
+                      {new Date(booking.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-secondary-fixed text-md">
+                      event_available
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-body-sm font-body-sm text-on-surface">
+                      <span className="font-bold">Sarah M.</span> booked{" "}
+                      <span className="font-bold">West Chelsea Studio</span>
+                    </p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant">
+                      2 HOURS AGO
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-on-tertiary-fixed text-md">
-                  mail
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-body-sm font-body-sm text-on-surface">
-                  Message from <span className="font-bold">David K.</span>{" "}
-                  regarding Tribeca accessibility
-                </p>
-                <p className="text-label-caps font-label-caps text-on-surface-variant">
-                  5 HOURS AGO
-                </p>
-              </div>
-            </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-tertiary-fixed text-md">
+                      mail
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-body-sm font-body-sm text-on-surface">
+                      Message from <span className="font-bold">David K.</span>{" "}
+                      regarding Tribeca accessibility
+                    </p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant">
+                      5 HOURS AGO
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-on-primary-fixed text-md">
-                  payments
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-body-sm font-body-sm text-on-surface">
-                  Payout of <span className="font-bold">$1,250</span> initiated
-                  to bank account
-                </p>
-                <p className="text-label-caps font-label-caps text-on-surface-variant">
-                  YESTERDAY
-                </p>
-              </div>
-            </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-primary-fixed text-md">
+                      payments
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-body-sm font-body-sm text-on-surface">
+                      Payout of <span className="font-bold">$1,250</span> initiated
+                      to bank account
+                    </p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant">
+                      YESTERDAY
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-on-secondary-fixed text-md">
-                  reviews
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-body-sm font-body-sm text-on-surface">
-                  <span className="font-bold">Leo T.</span> left a 5-star review
-                  for Midtown Locker
-                </p>
-                <p className="text-label-caps font-label-caps text-on-surface-variant">
-                  2 DAYS AGO
-                </p>
-              </div>
-            </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-secondary-fixed text-md">
+                      reviews
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-body-sm font-body-sm text-on-surface">
+                      <span className="font-bold">Leo T.</span> left a 5-star review
+                      for Midtown Locker
+                    </p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant">
+                      2 DAYS AGO
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
 
             <button
               className="w-full text-center py-2 border border-outline-variant/30 rounded-full text-body-sm font-medium text-primary hover:bg-surface-container transition-colors"
@@ -385,4 +422,3 @@ export default async function OwnerDashboardPage() {
     </main>
   );
 }
-
