@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# uploaded verification documents
+/public/uploads/verification-documents/*
+!/public/uploads/verification-documents/.gitkeep
+
 # production
 /build
 

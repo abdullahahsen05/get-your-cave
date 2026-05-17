@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+const fs = require("fs");
+const path = require("path");
+
 const {
+  AccountStatus,
+  DocumentType,
   PrismaClient,
   Prisma,
+  VerificationStatus,
   ListingStatus,
   StorageType,
   ListingAvailability,
@@ -26,8 +32,35 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg(pool),
 });
 
+const seedUploadDir = path.join(
+  process.cwd(),
+  "public",
+  "uploads",
+  "verification-documents",
+);
+
 const ownerEmail = "julian@getyourcave.com";
 const ownerPassword = "Password123!";
+const adminEmail = "admin@getyourcave.com";
+const adminPassword = "Password123!";
+const seedOwnerEmail = "seed-owner@getyourcave.com";
+const seedOwnerPassword = "Password123!";
+const seedRenterEmail = "seed-renter@getyourcave.com";
+const seedRenterPassword = "Password123!";
+
+const seedOwnerVerificationFileName = "seed-owner-id.png";
+const seedOwnerVerificationPath = path.join(
+  seedUploadDir,
+  seedOwnerVerificationFileName,
+);
+
+function ensureSeedFile(filePath, base64Content) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, Buffer.from(base64Content, "base64"));
+  }
+}
 
 const amenitySeeds = [
   { name: "Security Camera", icon: "videocam" },
@@ -728,6 +761,190 @@ async function main() {
         ],
       });
     }
+  }
+
+  const adminHash = await bcrypt.hash(adminPassword, 12);
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      fullName: "Seed Admin",
+      passwordHash: adminHash,
+      role: "ADMIN",
+      status: "ACTIVE",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+    create: {
+      fullName: "Seed Admin",
+      email: adminEmail,
+      passwordHash: adminHash,
+      role: "ADMIN",
+      status: "ACTIVE",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  });
+
+  const seedOwnerHash = await bcrypt.hash(seedOwnerPassword, 12);
+  const seedOwnerUser = await prisma.user.upsert({
+    where: { email: seedOwnerEmail },
+    update: {
+      fullName: "Seed Pending Owner",
+      passwordHash: seedOwnerHash,
+      role: "OWNER",
+      status: "PENDING_VERIFICATION",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+    create: {
+      fullName: "Seed Pending Owner",
+      email: seedOwnerEmail,
+      passwordHash: seedOwnerHash,
+      role: "OWNER",
+      status: "PENDING_VERIFICATION",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  });
+
+  const seedOwnerProfile = await prisma.ownerProfile.upsert({
+    where: { userId: seedOwnerUser.id },
+    update: {
+      city: "New York",
+      postalCode: "10010",
+      verificationStatus: "PENDING",
+    },
+    create: {
+      userId: seedOwnerUser.id,
+      city: "New York",
+      postalCode: "10010",
+      verificationStatus: "PENDING",
+    },
+  });
+
+  ensureSeedFile(
+    seedOwnerVerificationPath,
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO9+7X8AAAAASUVORK5CYII=",
+  );
+
+  const seedOwnerVerificationSize = fs.statSync(seedOwnerVerificationPath).size;
+  const seedOwnerVerificationUrl = `/uploads/verification-documents/${seedOwnerVerificationFileName}`;
+
+  const seedOwnerVerificationExisting = await prisma.verificationDocument.findFirst({
+    where: {
+      userId: seedOwnerUser.id,
+      type: DocumentType.ID_CARD,
+    },
+  });
+
+  if (seedOwnerVerificationExisting) {
+    await prisma.verificationDocument.update({
+      where: { id: seedOwnerVerificationExisting.id },
+      data: {
+        fileUrl: seedOwnerVerificationUrl,
+        fileName: seedOwnerVerificationFileName,
+        mimeType: "image/png",
+        sizeBytes: seedOwnerVerificationSize,
+        status: VerificationStatus.PENDING,
+        rejectionReason: null,
+        reviewedById: null,
+        reviewedAt: null,
+      },
+    });
+  } else {
+    await prisma.verificationDocument.create({
+      data: {
+        userId: seedOwnerUser.id,
+        type: DocumentType.ID_CARD,
+        fileUrl: seedOwnerVerificationUrl,
+        fileName: seedOwnerVerificationFileName,
+        mimeType: "image/png",
+        sizeBytes: seedOwnerVerificationSize,
+        status: VerificationStatus.PENDING,
+      },
+    });
+  }
+
+  const seedListingSlug = "seed-admin-pending-listing";
+  const seedListingData = {
+    title: "Seed Pending Listing",
+    description:
+      "A seed listing reserved for admin moderation testing. It remains unpublished until reviewed.",
+    city: "New York City",
+    address: "99 Seed Street, New York, NY",
+    postalCode: "10001",
+    storageType: StorageType.OTHER,
+    availability: ListingAvailability.AVAILABLE,
+    pricePerMonth: new Prisma.Decimal("149.00"),
+    securityDeposit: new Prisma.Decimal("0.00"),
+    insuranceFee: new Prisma.Decimal("0.00"),
+    status: ListingStatus.PENDING_APPROVAL,
+    isPublished: false,
+  };
+
+  const seedListingExisting = await prisma.listing.findUnique({
+    where: { slug: seedListingSlug },
+  });
+
+  if (seedListingExisting) {
+    await prisma.listing.update({
+      where: { slug: seedListingSlug },
+      data: {
+        ...seedListingData,
+        ownerId: seedOwnerProfile.id,
+      },
+    });
+  } else {
+    await prisma.listing.create({
+      data: {
+        slug: seedListingSlug,
+        ownerId: seedOwnerProfile.id,
+        ...seedListingData,
+      },
+    });
+  }
+
+  const seedRenterHash = await bcrypt.hash(seedRenterPassword, 12);
+  await prisma.user.upsert({
+    where: { email: seedRenterEmail },
+    update: {
+      fullName: "Seed Renter",
+      passwordHash: seedRenterHash,
+      role: "RENTER",
+      status: "ACTIVE",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+    create: {
+      fullName: "Seed Renter",
+      email: seedRenterEmail,
+      passwordHash: seedRenterHash,
+      role: "RENTER",
+      status: "ACTIVE",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  });
+
+  const seedRenterUser = await prisma.user.findUnique({
+    where: { email: seedRenterEmail },
+  });
+
+  if (seedRenterUser) {
+    await prisma.renterProfile.upsert({
+      where: { userId: seedRenterUser.id },
+      update: {
+        city: "New York",
+        postalCode: "10001",
+        verificationStatus: "NOT_SUBMITTED",
+      },
+      create: {
+        userId: seedRenterUser.id,
+        city: "New York",
+        postalCode: "10001",
+        verificationStatus: "NOT_SUBMITTED",
+      },
+    });
   }
 }
 

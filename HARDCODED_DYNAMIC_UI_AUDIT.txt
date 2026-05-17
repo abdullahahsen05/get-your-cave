@@ -1,0 +1,480 @@
+HARDCODED DYNAMIC UI AUDIT
+
+Scope note:
+- Included only business/application data that is visibly rendered and should eventually be sourced from PostgreSQL/API/backend logic.
+- Excluded marketing copy, FAQ text, auth-form copy, decorative sections, onboarding/explanation blocks, and pure UI controls that do not represent backend data.
+
+1. SUMMARY
+
+Total hardcoded dynamic sections found: 11
+Estimated backend integration completion: 89%
+Pages scanned: 16
+
+Most critical remaining hardcoded areas:
+- Public homepage "Available Caves" listing cards and map price pins.
+- Owner dashboard revenue chart, payout card date, and fallback invoice table rows.
+- Renter dashboard fallback active-rental cards, invoice rows, and past-rental cards.
+- Listing detail gallery and amenity fallback data.
+- Admin dashboard fallback analytics text and placeholder chart buckets.
+
+2. PAGE-BY-PAGE BREAKDOWN
+
+Page: app/page.tsx
+Route: /
+Role: public
+
+Hardcoded Section:
+- Name: Available Caves listing cards and map price pins
+- Type: card / list / badge-counter style map markers
+- File / lines:
+  - app/page.tsx:155-188
+  - map price pins: app/page.tsx:158-160
+- Hardcoded source:
+  - Inline listing card content for "The Heights Garage" and "Mission Loft Storage"
+  - Hardcoded prices, city labels, square-foot labels, and image URLs
+  - Hardcoded map pin price bubbles: $120, $85, $210
+- Suggested backend source:
+  - GET /api/listings?featured=true or GET /api/listings?sort=popular
+  - Optional homepage analytics endpoint for map highlights
+- Suggested Prisma models:
+  - Listing
+  - ListingImage
+  - Amenity
+  - OwnerProfile
+  - User
+- Priority: HIGH
+
+Hardcoded Section:
+- Name: Homepage featured summary numbers inside the hero
+- Type: metric widgets
+- File / lines:
+  - app/page.tsx:224-235
+- Hardcoded source:
+  - 12,000+ active storage spaces
+  - 50+ cities nationwide
+  - 99.9% safety rating
+- Suggested backend source:
+  - GET /api/analytics/public-homepage or GET /api/listings/summary
+- Suggested Prisma models:
+  - Listing
+  - Booking
+  - VerificationDocument
+- Priority: LOW
+- Note:
+  - Excluded from the main count in summary because this is marketing/hero content rather than a product data widget.
+
+Page: app/owner/dashboard/page.tsx
+Route: /owner/dashboard
+Role: OWNER
+
+Hardcoded Section:
+- Name: Revenue Overview chart
+- Type: chart
+- File / lines:
+  - app/owner/dashboard/page.tsx:138-170
+- Hardcoded source:
+  - SVG path data: `d="M0 180 Q 150 150, 300 160 T 600 100 T 1000 40"`
+  - Static month labels: JAN, FEB, MAR, APR, MAY, JUN
+- Suggested backend source:
+  - GET /api/owner/dashboard or GET /api/owner/revenue
+- Suggested Prisma models:
+  - Payment
+  - Invoice
+  - Booking
+- Expected aggregation:
+  - Sum paid payments by month
+  - Normalize the series to the chart width
+- Priority: HIGH
+
+Hardcoded Section:
+- Name: Pending Payouts card release date
+- Type: metric widget
+- File / lines:
+  - app/owner/dashboard/page.tsx:177-189
+- Hardcoded source:
+  - Static text: `Scheduled for release on Jun 25`
+- Suggested backend source:
+  - GET /api/owner/dashboard or payout schedule endpoint
+- Suggested Prisma models:
+  - Payment
+  - Invoice
+  - Booking
+- Priority: MEDIUM
+
+Hardcoded Section:
+- Name: Invoice table empty-state fallback rows
+- Type: table
+- File / lines:
+  - app/owner/dashboard/page.tsx:228-287
+- Hardcoded source:
+  - `#INV-2024-081` / West Chelsea Studio / $1,850.00 / Paid
+  - `#INV-2024-080` / Tribeca Vault / $2,430.00 / Paid
+  - `#INV-2024-079` / Midtown Locker / $920.00 / Processing
+- Suggested backend source:
+  - GET /api/invoices?role=OWNER
+  - Or reuse the existing invoice viewer helpers already in the codebase
+- Suggested Prisma models:
+  - Invoice
+  - Booking
+  - Payment
+  - User
+- Priority: HIGH
+
+Page: app/renter/dashboard/page.tsx
+Route: /renter/dashboard
+Role: RENTER
+
+Hardcoded Section:
+- Name: Active Rentals fallback cards
+- Type: card
+- File / lines:
+  - app/renter/dashboard/page.tsx:79-95
+- Hardcoded source:
+  - `rentalFallback` array
+  - Fake items: `The Heights Private Cave`, `Downtown Micro-Cell`
+  - Hardcoded addresses, prices, and image URLs
+- Suggested backend source:
+  - GET /api/rentals/current or GET /api/bookings?status=ACTIVE
+- Suggested Prisma models:
+  - Booking
+  - Listing
+  - Invoice
+  - Payment
+- Priority: HIGH
+
+Hardcoded Section:
+- Name: Payment & Invoices fallback rows
+- Type: table
+- File / lines:
+  - app/renter/dashboard/page.tsx:97-109
+- Hardcoded source:
+  - `invoiceRows` fallback array
+  - Fake rows: `#INV-8824`, `#INV-8712`
+- Suggested backend source:
+  - GET /api/invoices?role=RENTER
+- Suggested Prisma models:
+  - Invoice
+  - Booking
+  - Payment
+- Priority: HIGH
+
+Hardcoded Section:
+- Name: Past Rentals static completed cards
+- Type: card / list
+- File / lines:
+  - app/renter/dashboard/page.tsx:372-448
+- Hardcoded source:
+  - `Oak Creek Depot`
+  - `Riverside Box`
+  - Hardcoded completion dates and monthly prices
+- Suggested backend source:
+  - GET /api/bookings/history or GET /api/rentals/history
+- Suggested Prisma models:
+  - Booking
+  - Listing
+  - Invoice
+  - Payment
+- Priority: HIGH
+
+Page: components/listings/ListingDetailPage.tsx
+Route: /storage/[id] and /storage/listing-details
+Role: public/shared
+
+Hardcoded Section:
+- Name: Gallery fallback images
+- Type: card / image gallery fallback
+- File / lines:
+  - components/listings/ListingDetailPage.tsx:50-56
+  - used at: 176-184 and 220-221
+- Hardcoded source:
+  - `fallbackImages` array with 5 static image URLs
+- Suggested backend source:
+  - GET /api/listings/[id] already powers the page; backend should ensure image rows are always attached or return a reusable CDN/public fallback
+- Suggested Prisma models:
+  - Listing
+  - ListingImage
+- Priority: MEDIUM
+
+Hardcoded Section:
+- Name: Amenity fallback chips/cards
+- Type: list / card-like feature row
+- File / lines:
+  - components/listings/ListingDetailPage.tsx:409-423
+- Hardcoded source:
+  - Fallback amenity array: `Secure Access`, `Climate Control`, `24/7 Access`
+- Suggested backend source:
+  - GET /api/listings/[id] with ListingAmenity / Amenity relations
+- Suggested Prisma models:
+  - Listing
+  - Amenity
+  - ListingAmenity
+- Priority: MEDIUM
+
+Page: components/admin/AdminDashboardWorkspace.tsx
+Route: /admin/dashboard
+Role: ADMIN
+
+Hardcoded Section:
+- Name: Revenue chart fallback buckets and axis labels
+- Type: chart
+- File / lines:
+  - components/admin/AdminDashboardWorkspace.tsx:31-36
+  - components/admin/AdminDashboardWorkspace.tsx:317-322
+  - chart range buttons: 271-283
+- Hardcoded source:
+  - Fallback buckets `Bucket 1`, `Bucket 2`, etc. when no revenue series exists
+  - Static axis labels `Week 01`, `Week 02`, `Week 03`, `Week 04`
+  - Hardcoded chart range labels `7 Days` and `30 Days`
+- Suggested backend source:
+  - GET /api/admin/revenue
+- Suggested Prisma models:
+  - Payment
+  - Invoice
+- Expected aggregation:
+  - Group paid payments by day for 7d/30d
+  - Group by month for 90d/12m
+- Priority: MEDIUM
+
+Hardcoded Section:
+- Name: Market insights fallback copy and city rows
+- Type: metric widget / list
+- File / lines:
+  - components/admin/AdminDashboardWorkspace.tsx:330-355
+- Hardcoded source:
+  - Fallback summary sentence about climate-controlled vault demand
+  - Fallback city rows: `New York City` and `Los Angeles`
+- Suggested backend source:
+  - GET /api/admin/dashboard
+- Suggested Prisma models:
+  - Listing
+  - Booking
+  - Payment
+- Priority: MEDIUM
+
+Page: app/storage/page.tsx
+Route: /storage
+Role: public/shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+- File / lines:
+  - app/storage/page.tsx: entire page
+- Notes:
+  - The search results page is already driven by `/api/listings`
+  - Remaining hardcoded items are filter labels and a default fallback image, which are UI defaults rather than business-data widgets
+
+Page: app/storage/[id]/page.tsx
+Route: /storage/[id]
+Role: public/shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+- File / lines:
+  - app/storage/[id]/page.tsx:1-11
+- Notes:
+  - Wrapper only; all data is fetched in the listing detail component
+
+Page: app/storage/listing-details/page.tsx
+Route: /storage/listing-details
+Role: public/shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+- File / lines:
+  - app/storage/listing-details/page.tsx:1-5
+- Notes:
+  - Wrapper only
+
+Page: app/create-listing/page.tsx
+Route: /create-listing
+Role: OWNER
+
+Hardcoded Section:
+- Name: No business-data widget counted
+- Type: n/a
+- Notes:
+  - The page contains form option arrays and sample preview assets, but those are onboarding/form controls rather than backend data widgets
+  - Excluded by scope
+
+Page: app/document/page.tsx
+Route: /document
+Role: shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+- Notes:
+  - The page is now session-backed and the document table is powered by the API
+  - Any remaining text is explanatory UI, not hardcoded business data
+
+Page: app/admin/dashboard/page.tsx
+Route: /admin/dashboard
+Role: ADMIN
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found in the route wrapper
+- Type: n/a
+- Notes:
+  - The real dashboard widgets live in components/admin/AdminDashboardWorkspace.tsx
+
+Page: app/contracts/page.tsx
+Route: /contracts
+Role: shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+
+Page: app/dashboard/contracts/page.tsx
+Route: /dashboard/contracts
+Role: shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+
+Page: app/invoices/page.tsx
+Route: /invoices
+Role: shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found in the route wrapper
+- Type: n/a
+- Notes:
+  - The invoice table lives in components/invoices/InvoicesWorkspace.tsx
+
+Page: app/invoices/[id]/page.tsx
+Route: /invoices/:id
+Role: shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+
+Page: app/messaging/page.tsx
+Route: /messaging
+Role: shared
+
+Hardcoded Section:
+- Name: No hardcoded business-data section found
+- Type: n/a
+
+Page: app/login/page.tsx
+Route: /login
+Role: public
+
+Hardcoded Section:
+- Name: Excluded auth form controls
+- Type: n/a
+- Notes:
+  - No business-data widget counted
+
+Page: app/signup/page.tsx
+Route: /signup
+Role: public
+
+Hardcoded Section:
+- Name: Excluded auth form controls
+- Type: n/a
+- Notes:
+  - No business-data widget counted
+
+3. HARDCODED ARRAYS / OBJECTS INVENTORY
+
+- app/page.tsx
+  - Inline hardcoded homepage listing cards
+  - Represents featured listing previews on the public landing page
+  - Future backend source: Listing, ListingImage, Amenity, OwnerProfile
+
+- app/owner/dashboard/page.tsx
+  - Inline fallback invoice rows for the owner dashboard table
+  - Represents recent invoices when no live invoice rows are available
+  - Future backend source: Invoice, Booking, Payment
+  - Static chart data:
+    - SVG path `d="M0 180 Q 150 150, 300 160 T 600 100 T 1000 40"`
+    - Month labels `JAN` through `JUN`
+
+- app/renter/dashboard/page.tsx
+  - `rentalFallback`
+  - Represents fallback active rental cards
+  - Future backend source: Booking, Listing, Invoice
+  - `invoiceRows`
+  - Represents fallback invoice rows
+  - Future backend source: Invoice, Payment, Booking
+  - Inline hardcoded past-rental cards
+  - Represents completed rental history cards
+  - Future backend source: Booking, Listing, Invoice
+
+- components/listings/ListingDetailPage.tsx
+  - `fallbackImages`
+  - Represents gallery fallback media for a listing with no images
+  - Future backend source: ListingImage
+  - Inline fallback amenity array
+  - Represents default amenity chips when the backend returns none
+  - Future backend source: Amenity, ListingAmenity
+
+- components/invoices/InvoicesWorkspace.tsx
+  - Invoice table fallback path / no-data state guard
+  - Represents the main invoice list widget and its no-data behavior
+  - Future backend source: Invoice, Booking, Payment, User
+
+- components/admin/AdminDashboardWorkspace.tsx
+  - Fallback chart buckets from `normalizeChartPoints`
+  - Represents placeholder revenue chart bars when no revenue series exists
+  - Future backend source: Payment aggregates
+  - Fallback market-insight rows
+  - Represents placeholder analytics when `marketInsights` is empty
+  - Future backend source: Listing, Booking, Payment
+
+4. CHARTS & ANALYTICS
+
+- app/owner/dashboard/page.tsx
+  - File / lines: 138-170
+  - Hardcoded dataset source:
+    - SVG path and static month labels
+  - Expected backend API:
+    - GET /api/owner/dashboard or GET /api/owner/revenue
+  - Expected aggregation logic:
+    - Sum paid payments by month
+    - Optionally include unpaid/open amounts as a second series
+    - Return a chart series that can replace the static SVG path
+
+- components/admin/AdminDashboardWorkspace.tsx
+  - File / lines:
+    - 31-36
+    - 271-283
+    - 288-322
+    - 330-355
+  - Hardcoded dataset source:
+    - Placeholder bucket labels, axis labels, and fallback market insight rows
+  - Expected backend API:
+    - GET /api/admin/revenue
+    - GET /api/admin/dashboard
+  - Expected aggregation logic:
+    - For 7d and 30d: group paid payments by day
+    - For 90d and 12m: group paid payments by month
+    - Use the returned series directly instead of placeholder buckets
+
+5. REMAINING BACKEND WORK ORDER
+
+Recommended implementation order for the remaining hardcoded dynamic UI:
+
+1. Replace the public homepage "Available Caves" cards with a real featured-listings feed.
+2. Remove the owner dashboard fallback invoice rows and convert the payout/revenue card copy into live values.
+3. Replace the renter dashboard fallback active-rental cards, invoice rows, and past-rental cards with booking/invoice history APIs.
+4. Replace listing detail fallback images and amenity chips with authoritative listing media/amenity data.
+5. Remove admin dashboard chart placeholders and fallback market-insight text once revenue and analytics coverage is complete.
+
+6. FINAL COUNTS
+
+- Total pages scanned: 16
+- Total hardcoded dynamic sections found: 11
+- Estimated backend integration progress: 89%
+- Highest priority unfinished dynamic areas:
+  - Homepage featured listings
+  - Owner dashboard revenue and invoice widgets
+  - Renter dashboard rental history widgets
+  - Listing detail gallery / amenity fallback data
