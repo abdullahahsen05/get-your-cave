@@ -76,6 +76,8 @@ export default function ListingDetailPage({ listingId }: Props) {
   const [bookingMessage, setBookingMessage] = useState<string | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
+  const [isStartingConversation, setIsStartingConversation] = useState(false);
+  const [conversationError, setConversationError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -219,6 +221,7 @@ export default function ListingDetailPage({ listingId }: Props) {
   const secondaryImages = galleryImages.slice(1, 5);
 
   const canBook = sessionUser?.role === "RENTER";
+  const canStartConversation = sessionUser?.role === "RENTER";
   const loginHref = `/login?next=${encodeURIComponent(`/storage/${listing.id}`)}`;
   const signupHref = `/signup?next=${encodeURIComponent(`/storage/${listing.id}`)}`;
 
@@ -274,6 +277,56 @@ export default function ListingDetailPage({ listingId }: Props) {
       setBookingError("Unable to create booking right now.");
     } finally {
       setIsBooking(false);
+    }
+  }
+
+  async function handleContactOwner() {
+    if (!sessionUser) {
+      router.push(loginHref);
+      return;
+    }
+
+    if (sessionUser.role !== "RENTER") {
+      return;
+    }
+
+    const currentListing = listing;
+    if (!currentListing) {
+      return;
+    }
+
+    setBookingError(null);
+    setBookingMessage(null);
+    setConversationError(null);
+    setIsStartingConversation(true);
+
+    try {
+      const response = await fetch("/api/messages/conversations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          listingId: currentListing.id,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        conversation?: { id: string };
+        error?: string;
+      };
+
+      if (!response.ok || !data.conversation?.id) {
+        setConversationError(data.error ?? "Unable to start a conversation right now.");
+        return;
+      }
+
+      router.push(`/messaging?conversation=${data.conversation.id}`);
+    } catch {
+      setConversationError("Unable to start a conversation right now.");
+    } finally {
+      setIsStartingConversation(false);
     }
   }
 
@@ -413,9 +466,47 @@ export default function ListingDetailPage({ listingId }: Props) {
                     Identity verified
                   </span>
                 </div>
-                <button className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all hover:opacity-90 active:scale-95" type="button">
-                  Contact Owner
-                </button>
+                {sessionLoading ? (
+                  <button
+                    className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all opacity-70"
+                    type="button"
+                    disabled
+                  >
+                    Loading...
+                  </button>
+                ) : sessionUser ? (
+                  canStartConversation ? (
+                    <button
+                      className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all hover:opacity-90 active:scale-95 disabled:opacity-70"
+                      type="button"
+                      disabled={isStartingConversation}
+                      onClick={() => {
+                        void handleContactOwner();
+                      }}
+                    >
+                      {isStartingConversation ? "Starting chat..." : "Contact Owner"}
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all opacity-70 cursor-not-allowed"
+                      type="button"
+                      disabled
+                    >
+                      Contact Owner
+                    </button>
+                  )
+                ) : (
+                  <button
+                    className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all hover:opacity-90 active:scale-95"
+                    type="button"
+                    onClick={() => router.push(loginHref)}
+                  >
+                    Log in to Contact Owner
+                  </button>
+                )}
+                {conversationError ? (
+                  <p className="text-sm text-error">{conversationError}</p>
+                ) : null}
               </div>
             </section>
           </div>

@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-const { PrismaClient, Prisma, ListingStatus, StorageType, ListingAvailability } = require("@prisma/client");
+const {
+  PrismaClient,
+  Prisma,
+  ListingStatus,
+  StorageType,
+  ListingAvailability,
+  BookingStatus,
+} = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const bcrypt = require("bcryptjs");
 const pg = require("pg");
@@ -538,6 +545,190 @@ async function main() {
       amenityId: amenity.id,
     })),
   });
+
+  const conversationCount = await prisma.conversation.count();
+
+  if (conversationCount === 0) {
+    const renterEmail = "maya@getyourcave.com";
+    const renterPassword = "Password123!";
+    const renterHash = await bcrypt.hash(renterPassword, 12);
+
+    const renterExisting = await prisma.user.findUnique({
+      where: { email: renterEmail },
+    });
+
+    const renterUser = renterExisting
+      ? await prisma.user.update({
+          where: { email: renterEmail },
+          data: {
+            fullName: "Maya Chen",
+            passwordHash: renterHash,
+            role: "RENTER",
+            status: "ACTIVE",
+            emailVerified: true,
+            emailVerifiedAt: new Date(),
+          },
+        })
+      : await prisma.user.create({
+          data: {
+            fullName: "Maya Chen",
+            email: renterEmail,
+            passwordHash: renterHash,
+            role: "RENTER",
+            status: "ACTIVE",
+            emailVerified: true,
+            emailVerifiedAt: new Date(),
+          },
+        });
+
+    const renterProfileExisting = await prisma.renterProfile.findUnique({
+      where: { userId: renterUser.id },
+    });
+
+    const renterProfile = renterProfileExisting
+      ? await prisma.renterProfile.update({
+          where: { userId: renterUser.id },
+          data: {
+            city: "New York",
+            postalCode: "10001",
+            verificationStatus: "APPROVED",
+          },
+        })
+      : await prisma.renterProfile.create({
+          data: {
+            userId: renterUser.id,
+            city: "New York",
+            postalCode: "10001",
+            verificationStatus: "APPROVED",
+          },
+        });
+
+    const westChelseaListing = await prisma.listing.findUnique({
+      where: { slug: "west-chelsea-studio" },
+      include: {
+        owner: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (westChelseaListing) {
+      const bookingNumber = "BK-WS-1001";
+      const bookingExisting = await prisma.booking.findUnique({
+        where: { bookingNumber },
+      });
+
+      const booking = bookingExisting
+        ? await prisma.booking.update({
+            where: { bookingNumber },
+            data: {
+              listingId: westChelseaListing.id,
+              ownerId: westChelseaListing.owner.id,
+              renterId: renterProfile.id,
+              startDate: new Date("2024-10-15T09:00:00.000Z"),
+              durationMonths: 3,
+              monthlyPrice: new Prisma.Decimal("1850.00"),
+              securityDeposit: new Prisma.Decimal("500.00"),
+              insuranceFee: new Prisma.Decimal("25.00"),
+              platformCommission: new Prisma.Decimal("185.00"),
+              ownerAmount: new Prisma.Decimal("1665.00"),
+              totalMonthlyAmount: new Prisma.Decimal("1875.00"),
+              renterNote:
+                "I need climate control for a small art archive and two large paintings.",
+              status: BookingStatus.APPROVED,
+              approvedAt: new Date("2024-10-15T10:00:00.000Z"),
+            },
+          })
+        : await prisma.booking.create({
+            data: {
+              bookingNumber,
+              listingId: westChelseaListing.id,
+              ownerId: westChelseaListing.owner.id,
+              renterId: renterProfile.id,
+              startDate: new Date("2024-10-15T09:00:00.000Z"),
+              durationMonths: 3,
+              monthlyPrice: new Prisma.Decimal("1850.00"),
+              securityDeposit: new Prisma.Decimal("500.00"),
+              insuranceFee: new Prisma.Decimal("25.00"),
+              platformCommission: new Prisma.Decimal("185.00"),
+              ownerAmount: new Prisma.Decimal("1665.00"),
+              totalMonthlyAmount: new Prisma.Decimal("1875.00"),
+              renterNote:
+                "I need climate control for a small art archive and two large paintings.",
+              status: BookingStatus.APPROVED,
+              approvedAt: new Date("2024-10-15T10:00:00.000Z"),
+            },
+          });
+
+      const conversationExisting = await prisma.conversation.findFirst({
+        where: {
+          ownerUserId: westChelseaListing.owner.userId,
+          renterUserId: renterUser.id,
+          listingId: westChelseaListing.id,
+          bookingId: booking.id,
+        },
+      });
+
+      const conversation = conversationExisting
+        ? await prisma.conversation.update({
+            where: { id: conversationExisting.id },
+            data: {
+              lastMessageText:
+                "The temperature control is set to a constant 21°C (70°F) with 50% relative humidity. We have backup generators to ensure no fluctuations during power events.",
+              lastMessageAt: new Date("2024-10-15T12:45:00.000Z"),
+            },
+          })
+        : await prisma.conversation.create({
+            data: {
+              ownerUserId: westChelseaListing.owner.userId,
+              renterUserId: renterUser.id,
+              listingId: westChelseaListing.id,
+              bookingId: booking.id,
+              lastMessageText:
+                "The temperature control is set to a constant 21°C (70°F) with 50% relative humidity. We have backup generators to ensure no fluctuations during power events.",
+              lastMessageAt: new Date("2024-10-15T12:45:00.000Z"),
+            },
+          });
+
+      await prisma.message.deleteMany({
+        where: { conversationId: conversation.id },
+      });
+
+      await prisma.message.createMany({
+        data: [
+          {
+            conversationId: conversation.id,
+            senderId: renterUser.id,
+            type: "TEXT",
+            body:
+              "Hello! I saw your inquiry about the climate-controlled unit in West Chelsea. It's currently available and perfectly suited for fine art or vintage furniture.",
+            readAt: new Date("2024-10-15T12:31:00.000Z"),
+            createdAt: new Date("2024-10-15T12:30:00.000Z"),
+          },
+          {
+            conversationId: conversation.id,
+            senderId: westChelseaListing.owner.userId,
+            type: "TEXT",
+            body:
+              "That sounds perfect. I have three large oil paintings that need consistent humidity levels. What is the exact temperature range?",
+            readAt: new Date("2024-10-15T12:43:00.000Z"),
+            createdAt: new Date("2024-10-15T12:42:00.000Z"),
+          },
+          {
+            conversationId: conversation.id,
+            senderId: renterUser.id,
+            type: "TEXT",
+            body:
+              "The temperature control is set to a constant 21°C (70°F) with 50% relative humidity. We have backup generators to ensure no fluctuations during power events.",
+            readAt: new Date("2024-10-15T12:46:00.000Z"),
+            createdAt: new Date("2024-10-15T12:45:00.000Z"),
+          },
+        ],
+      });
+    }
+  }
 }
 
 main()
