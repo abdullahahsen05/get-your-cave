@@ -11,7 +11,7 @@ type Props = {
 export default async function InvoiceDetailRoutePage({ params }: Props) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    redirect("/login?redirect=/invoices");
+    redirect("/login?next=/invoices");
   }
 
   const { id } = await params;
@@ -28,6 +28,12 @@ export default async function InvoiceDetailRoutePage({ params }: Props) {
   return (
     <InvoiceDetailPage
       canGenerate={currentUser.role === "OWNER" || currentUser.role === "ADMIN"}
+      canPay={
+        currentUser.role === "RENTER" &&
+        invoice.status !== "PAID" &&
+        invoice.status !== "CANCELLED" &&
+        invoice.status !== "REFUNDED"
+      }
       invoice={invoice}
     />
   );

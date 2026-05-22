@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
+import { BLOCKED_LANGUAGE_ERROR } from "@/lib/content-filter";
 import {
   createConversationMessage,
   loadConversationDetailForViewer,
@@ -108,9 +109,12 @@ export async function POST(
   });
 
   if ("error" in message) {
+    const status =
+      message.error === BLOCKED_LANGUAGE_ERROR ? 400 : 403;
+
     return NextResponse.json(
       { error: message.error },
-      { status: 403 },
+      { status },
     );
   }
 

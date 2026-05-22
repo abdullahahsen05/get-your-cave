@@ -9,7 +9,7 @@ import {
 import type { SafeUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
-  verificationDocumentTypeLabels,
+  getVerificationDocumentTypeLabel,
   type VerificationDocumentType,
   type VerificationStatusValue,
 } from "@/lib/verification-types";
@@ -210,7 +210,7 @@ export async function submitVerificationForUser(user: SafeUser) {
 
   if (verification.missingDocumentTypes.length) {
     const missing = verification.missingDocumentTypes
-      .map((type) => verificationDocumentTypeLabels[type])
+      .map((type) => getVerificationDocumentTypeLabel(type))
       .join(", ");
 
     return {

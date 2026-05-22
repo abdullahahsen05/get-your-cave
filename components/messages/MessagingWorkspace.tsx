@@ -647,8 +647,8 @@ export default function MessagingWorkspace({
   return (
     <div className="bg-[#F7F7F5] text-on-surface min-h-screen overflow-x-hidden">
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-gutter mt-24 lg:mt-[140px]">
-        <div className="flex flex-col md:flex-row min-h-[680px] md:h-[750px] bg-white rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8] overflow-hidden">
-          <aside className="w-full md:w-1/3 border-r-0 md:border-r border-b md:border-b-0 border-[#EBEBE8] flex flex-col bg-surface">
+        <div className="flex flex-col md:flex-row min-h-[560px] md:min-h-[680px] md:h-[750px] bg-white rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8] overflow-hidden">
+          <aside className="w-full md:w-1/3 border-r-0 md:border-r border-b md:border-b-0 border-[#EBEBE8] flex flex-col bg-surface max-h-[42vh] md:max-h-none">
             <div className="h-20 px-4 sm:px-lg flex items-center border-b border-[#EBEBE8] shrink-0">
               <h2 className="font-h2 text-h2 text-primary">Messages</h2>
             </div>
@@ -729,7 +729,7 @@ export default function MessagingWorkspace({
             </div>
           </aside>
 
-          <section className="flex-1 flex flex-col bg-white min-w-0">
+          <section className="flex-1 flex flex-col bg-white min-w-0 min-h-[420px] md:min-h-0">
             <header className="px-4 sm:px-lg py-4 md:py-0 md:h-20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EBEBE8] shrink-0">
               <div className="flex items-center gap-md min-w-0">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100">
@@ -832,14 +832,14 @@ export default function MessagingWorkspace({
             </div>
 
             <div className="border-t border-[#EBEBE8] bg-white p-4 sm:p-xl">
-              <div className="flex items-center gap-md bg-[#F2F0E9]/50 rounded-full px-md py-sm border border-[#EBEBE8] focus-within:border-primary transition-colors">
+              <div className="flex flex-wrap items-center gap-3 bg-[#F2F0E9]/50 rounded-3xl px-4 py-3 border border-[#EBEBE8] focus-within:border-primary transition-colors">
                 <button className="p-sm text-stone-400 hover:text-primary transition-colors" type="button">
                   <span className="material-symbols-outlined" data-icon="attach_file">
                     attach_file
                   </span>
                 </button>
                 <input
-                  className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder-stone-400 text-on-surface py-2"
+                  className="min-w-0 flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder-stone-400 text-on-surface py-2"
                   placeholder="Type your message..."
                   type="text"
                   value={draftMessage}
@@ -852,7 +852,7 @@ export default function MessagingWorkspace({
                   }}
                 />
                 <button
-                  className="p-md bg-primary text-white rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+                  className="p-md bg-primary text-white rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shrink-0"
                   type="button"
                   onClick={handleSendMessage}
                 >

@@ -2,15 +2,17 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { SafeUser } from "@/lib/auth";
+import { normalizeLocale, type Locale } from "@/lib/i18n";
 import {
   type VerificationDocumentView,
   type VerificationSummary,
 } from "@/lib/verification";
 import {
-  verificationDocumentTypeLabels,
-  verificationStatusLabels,
+  getVerificationDocumentTypeLabel,
+  getVerificationStatusLabel,
   type VerificationDocumentType,
   type VerificationStatusValue,
 } from "@/lib/verification-types";
@@ -64,15 +66,17 @@ function getStatusBadgeIcon(status: VerificationStatusValue) {
   }
 }
 
-function getStatusLabel(status: VerificationStatusValue) {
-  return verificationStatusLabels[status];
+function getStatusLabel(status: VerificationStatusValue, locale: Locale) {
+  return getVerificationStatusLabel(status, locale);
 }
 
-function formatDocumentType(type: VerificationDocumentType) {
-  return verificationDocumentTypeLabels[type];
+function formatDocumentType(type: VerificationDocumentType, locale: Locale) {
+  return getVerificationDocumentTypeLabel(type, locale);
 }
 
 export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const pendingUploadTypeRef = useRef<VerificationDocumentType | null>(null);
 
@@ -110,7 +114,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       };
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Unable to load verification documents.");
+        throw new Error(data.error ?? t("verification.loadError"));
       }
 
       setDocuments(data.documents ?? []);
@@ -122,7 +126,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Unable to load verification documents.",
+          : t("verification.loadError"),
       );
     } finally {
       setLoading(false);
@@ -184,7 +188,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         throw new Error(data.error ?? "Unable to upload document.");
       }
 
-      setActionMessage(`${formatDocumentType(uploadType)} uploaded successfully.`);
+      setActionMessage(`${formatDocumentType(uploadType, locale)} uploaded successfully.`);
       await loadVerificationDocuments();
     } catch (error) {
       setErrorMessage(
@@ -216,14 +220,14 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       const data = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Unable to delete document.");
+        throw new Error(data.error ?? t("verification.deleteError"));
       }
 
-      setActionMessage("Document deleted successfully.");
+      setActionMessage(t("verification.documentDeleted"));
       await loadVerificationDocuments();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to delete document.",
+        error instanceof Error ? error.message : t("verification.deleteError"),
       );
     }
   }
@@ -246,7 +250,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       };
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Unable to submit documents for review.");
+        throw new Error(data.error ?? t("verification.submitError"));
       }
 
       if (data.documents) {
@@ -256,13 +260,13 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         setVerification(data.verification);
       }
 
-      setActionMessage("Documents submitted for review.");
+      setActionMessage(t("verification.submitted"));
       await loadVerificationDocuments();
     } catch (error) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Unable to submit documents for review.",
+          : t("verification.submitError"),
       );
     } finally {
       setIsSubmitting(false);
@@ -270,24 +274,23 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-background text-on-background pt-32 pb-32 mx-auto max-w-[1200px] px-6">
+    <main className="min-h-screen bg-background text-on-background pt-28 sm:pt-32 pb-24 sm:pb-32 mx-auto max-w-[1200px] px-4 sm:px-6">
       <header className="mb-12 text-center md:text-left">
         <h1 className="font-h1 text-h1 text-primary mb-1">
-          Complete Your Verification
+          {t("verification.title")}
         </h1>
         <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-          Verify your identity to unlock all features, including high-value item
-          coverage and priority access to premium storage caves.
+          {t("verification.subtitle")}
         </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-12">
-          <section className="bg-surface-container-lowest border border-surface-variant p-6 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <section className="bg-surface-container-lowest border border-surface-variant p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-h3 text-h3 text-primary">Account Status</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                Finalize your profile for complete security.
+                {t("verification.accountStatusDescription")}
               </p>
             </div>
             <span
@@ -296,7 +299,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
               <span className="material-symbols-outlined text-[14px]">
                 {getStatusBadgeIcon(verification.accountStatus)}
               </span>
-              {getStatusLabel(verification.accountStatus)}
+              {getStatusLabel(verification.accountStatus, locale)}
             </span>
           </section>
 
@@ -306,19 +309,17 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
             </span>
             <div>
               <p className="font-body-md text-body-md text-secondary-fixed-variant font-bold">
-                End-to-End Encryption
+                {t("verification.securityTitle")}
               </p>
               <p className="font-body-sm text-body-sm text-on-secondary-fixed-variant">
-                All documents are encrypted and stored in an isolated, secure
-                vault. Only authorized compliance officers can review your
-                details.
+                {t("verification.securityDescription")}
               </p>
             </div>
           </section>
 
           <section>
             <h2 className="font-h2 text-h2 text-primary mb-6">
-              Documentation
+              {t("verification.documentsTitle")}
             </h2>
 
             {errorMessage ? (
@@ -330,7 +331,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button
-                className="group border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-12 rounded-lg text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="group border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-8 sm:p-12 rounded-lg text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                 type="button"
                 disabled={!canUploadDocuments || isUploading}
                 onClick={() => openUploadDialog("ID_CARD")}
@@ -340,19 +341,19 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                 </span>
                 <span>
                   <span className="font-h3 text-h3 text-primary block">
-                    Upload ID Card
+                    {t("verification.uploadId")}
                   </span>
                   <span className="font-body-sm text-body-sm text-on-surface-variant mt-1 block">
-                    Passport, Driver&apos;s License or National ID
+                    {t("verification.uploadIdDescription")}
                   </span>
                 </span>
                 <span className="text-label-caps font-label-caps text-on-surface-variant/60">
-                  MAX FILE SIZE 10MB
+                  {t("verification.maxFileSize")}
                 </span>
               </button>
 
               <button
-                className="group border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-12 rounded-lg text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="group border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-8 sm:p-12 rounded-lg text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                 type="button"
                 disabled={!canUploadProofOfOwnership || isUploading}
                 onClick={() => openUploadDialog("PROOF_OF_OWNERSHIP")}
@@ -362,19 +363,19 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                 </span>
                 <span>
                   <span className="font-h3 text-h3 text-primary block">
-                    Upload Proof of Ownership
+                    {t("verification.uploadOwnership")}
                   </span>
                   <span className="font-body-sm text-body-sm text-on-surface-variant mt-1 block">
-                    Utility bill, lease, or insurance certificate
+                    {t("verification.uploadOwnershipDescription")}
                   </span>
                   {!canUploadProofOfOwnership ? (
                     <span className="font-body-sm text-body-sm text-on-surface-variant mt-2 block">
-                      Not required for renters
+                      {t("verification.notRequiredForRenters")}
                     </span>
                   ) : null}
                 </span>
                 <span className="text-label-caps font-label-caps text-on-surface-variant/60">
-                  MAX FILE SIZE 10MB
+                  {t("verification.maxFileSize")}
                 </span>
               </button>
             </div>
@@ -382,24 +383,24 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
           <section className="overflow-hidden">
             <h2 className="font-h2 text-h2 text-primary mb-6">
-              Recent Documents
+              {t("verification.recentDocuments")}
             </h2>
 
             <div className="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-x-auto">
               <table className="w-full min-w-[720px] text-left">
                 <thead className="bg-surface-container font-label-caps text-label-caps text-on-surface-variant">
                   <tr>
-                    <th className="px-6 py-4">Type</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Date</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
+                    <th className="px-6 py-4">{t("verification.type")}</th>
+                    <th className="px-6 py-4">{t("verification.status")}</th>
+                    <th className="px-6 py-4">{t("verification.date")}</th>
+                    <th className="px-6 py-4 text-right">{t("verification.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-variant font-body-sm text-body-sm">
                   {loading ? (
                     <tr>
                       <td className="px-6 py-6 text-primary font-bold" colSpan={4}>
-                        Loading documents...
+                        {t("verification.loadingDocuments")}
                       </td>
                     </tr>
                   ) : documents.length ? (
@@ -413,10 +414,10 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                         <tr key={document.id}>
                           <td className="px-6 py-6">
                             <div className="text-primary font-bold">
-                              {document.fileName ?? "Uploaded document"}
+                              {document.fileName ?? t("verification.uploadedDocument")}
                             </div>
                             <div className="text-on-surface-variant text-sm">
-                              {formatDocumentType(document.type)}
+                              {formatDocumentType(document.type, locale)}
                             </div>
                             {document.status === "REJECTED" &&
                             document.rejectionReason ? (
@@ -429,7 +430,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                             <span
                               className={`px-4 py-1 rounded-full text-[12px] font-bold ${getStatusBadgeClasses(document.status)}`}
                             >
-                              {getStatusLabel(document.status)}
+                              {getStatusLabel(document.status, locale)}
                             </span>
                           </td>
                           <td className="px-6 py-6 text-on-surface-variant">
@@ -442,7 +443,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                               rel="noreferrer"
                               target="_blank"
                             >
-                              View
+                              {t("common.viewDetails")}
                             </a>
                             {document.status === "REJECTED" ? (
                               <button
@@ -451,7 +452,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                                 type="button"
                                 onClick={() => openUploadDialog(document.type)}
                               >
-                                Re-upload
+                                {t("verification.reupload")}
                               </button>
                             ) : null}
                             <button
@@ -462,7 +463,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                                 void handleDeleteDocument(document.id);
                               }}
                             >
-                              Delete
+                              {t("common.delete")}
                             </button>
                           </td>
                         </tr>
@@ -471,7 +472,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                   ) : (
                     <tr>
                       <td className="px-6 py-6 text-primary font-bold" colSpan={4}>
-                        No documents uploaded yet
+                        {t("verification.noDocuments")}
                       </td>
                     </tr>
                   )}
@@ -482,22 +483,21 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         </div>
 
         <aside className="space-y-12">
-          <section className="bg-primary-container text-on-primary p-12 rounded-lg shadow-xl lg:sticky lg:top-[120px]">
-            <h3 className="font-h3 text-h3 mb-4">Ready to Proceed?</h3>
+          <section className="bg-primary-container text-on-primary p-6 sm:p-8 lg:p-12 rounded-lg shadow-xl lg:sticky lg:top-[120px]">
+            <h3 className="font-h3 text-h3 mb-4">{t("verification.readyTitle")}</h3>
             <p className="font-body-md text-body-md mb-12 opacity-80">
-              Once you&apos;ve uploaded all required documents, our team will review
-              your application within 24-48 business hours.
+              {t("verification.readyDescription")}
             </p>
 
             <button
-              className="w-full bg-white text-primary font-bold py-4 px-12 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-4 disabled:opacity-70"
+              className="w-full bg-white text-primary font-bold py-4 px-6 sm:px-12 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-4 disabled:opacity-70"
               disabled={isSubmitting || loading}
               type="button"
               onClick={() => {
                 void handleSubmitForReview();
               }}
             >
-              {isSubmitting ? "Submitting..." : "Submit for Review"}
+              {isSubmitting ? t("verification.submitting") : t("verification.submitForReview")}
               <span className="material-symbols-outlined">send</span>
             </button>
 
@@ -507,7 +507,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                   contact_support
                 </span>
                 <span className="font-body-sm text-body-sm">
-                  Verification help center
+                  {t("verification.helpCenter")}
                 </span>
               </div>
               <div className="flex items-center gap-4">
@@ -515,29 +515,29 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                   lock_reset
                 </span>
                 <span className="font-body-sm text-body-sm">
-                  Change privacy settings
+                  {t("verification.privacySettings")}
                 </span>
               </div>
               {!loading && verification.missingDocumentTypes.length ? (
                 <p className="text-sm text-white/90">
-                  Missing required documents:{" "}
+                  {t("verification.missingDocuments")}{" "}
                   {verification.missingDocumentTypes
-                    .map((type) => formatDocumentType(type))
+                    .map((type) => formatDocumentType(type, locale))
                     .join(", ")}
                 </p>
               ) : null}
             </div>
           </section>
 
-          <section className="rounded-lg overflow-hidden h-64 relative">
+          <section className="rounded-lg overflow-hidden h-56 sm:h-64 relative">
             <img
-              alt="Architectural Luxury Storage"
+              alt={t("home.featuredTitle")}
               className="w-full h-full object-cover"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVuMKlAGqph302zWz7GYOacx2lOwa1QsfZ2Dgy1wsqmhCrtDaGqIBXoXVpETBKXrmOukCzSgGwsqNwnN-gMHmgDFWWx-yD8YVfXfIWSRisi3qZPRn3E3T5Lw8J4pGI5n8qkby2pTkZ8B1Km2KORWrE3eMiQZ-09K5LnNkojMdSJbN4QFFuyMqZPEtXARnavjikoo5_1yJqtOm4mWz7j4RKzjTsoBMAnGeVoIpradJdhP4X3nG51hhq-QZdrttHrUMpYxlhs_AyhYM"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent flex items-end p-6">
               <p className="text-white font-body-sm italic">
-                &quot;Security is the ultimate luxury.&quot;
+                {t("verification.quote")}
               </p>
             </div>
           </section>

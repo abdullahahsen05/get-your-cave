@@ -123,7 +123,7 @@ function addDays(date: Date, days: number) {
 function buildTimeline(
   record: Pick<
     InvoiceRecord,
-    "issuedAt" | "paidAt" | "cancelledAt" | "dueAt" | "createdAt" | "status"
+    "issuedAt" | "paidAt" | "cancelledAt" | "dueAt" | "createdAt" | "updatedAt" | "status"
   >,
 ) {
   return [
@@ -149,7 +149,17 @@ function buildTimeline(
       key: "paid",
       label: "Paid",
       at: record.paidAt?.toISOString() ?? null,
-      active: Boolean(record.paidAt || record.status === InvoiceStatus.PAID),
+      active: Boolean(
+        record.paidAt ||
+        record.status === InvoiceStatus.PAID ||
+        record.status === InvoiceStatus.REFUNDED,
+      ),
+    },
+    {
+      key: "refunded",
+      label: "Refunded",
+      at: record.status === InvoiceStatus.REFUNDED ? record.updatedAt.toISOString() : null,
+      active: Boolean(record.status === InvoiceStatus.REFUNDED),
     },
     {
       key: "cancelled",

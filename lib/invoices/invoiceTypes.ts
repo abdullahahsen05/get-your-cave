@@ -1,13 +1,6 @@
 import { InvoiceStatus } from "@prisma/client";
 
-export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
-  DRAFT: "Pending",
-  ISSUED: "Issued",
-  PAID: "Paid",
-  OVERDUE: "Overdue",
-  REFUNDED: "Refunded",
-  CANCELLED: "Cancelled",
-};
+import { createTranslator, defaultLocale, type Locale } from "@/lib/i18n";
 
 export const INVOICE_STATUS_CLASSES: Record<InvoiceStatus, string> = {
   DRAFT:
@@ -34,8 +27,23 @@ export const INVOICE_STATUS_OPTIONS = [
   { label: "Cancelled", value: "CANCELLED" },
 ] as const;
 
-export function getInvoiceStatusLabel(status: InvoiceStatus) {
-  return INVOICE_STATUS_LABELS[status] ?? status;
+export function getInvoiceStatusLabel(status: InvoiceStatus, locale: Locale = defaultLocale) {
+  const t = createTranslator(locale);
+  return t(`status.invoice.${status}`);
+}
+
+export function getInvoiceStatusOptions(locale: Locale = defaultLocale) {
+  const t = createTranslator(locale);
+
+  return [
+    { label: t("common.allStatuses"), value: "" },
+    { label: t("status.invoice.DRAFT"), value: "DRAFT" },
+    { label: t("status.invoice.ISSUED"), value: "ISSUED" },
+    { label: t("status.invoice.PAID"), value: "PAID" },
+    { label: t("status.invoice.OVERDUE"), value: "OVERDUE" },
+    { label: t("status.invoice.REFUNDED"), value: "REFUNDED" },
+    { label: t("status.invoice.CANCELLED"), value: "CANCELLED" },
+  ] as const;
 }
 
 export function getInvoiceStatusClass(status: InvoiceStatus) {

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -10,6 +11,8 @@ type ListingDetail = {
   storageType: string;
   city: string;
   address: string;
+  latitude: number | null;
+  longitude: number | null;
   pricePerMonth: string;
   sizeSqFt: number | null;
   ratingAverage: number;
@@ -54,6 +57,13 @@ const fallbackImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC0UjhpjVHjswTHB655fOm2QyB8fYwn1cZvpJwk5Agq3Alcq0b-46dDx4Mrt3gAxcRADRuv0dJhWkjz0sW9W4DsLYxFZKjSBQQjdUyYF-EKOvFVk6_KWwty-6uoQLxWhEiizsUmYajfmWzWJ-zELdI4miZ8ufz3hQfInqURHEB05FJRkjWB3MVEz4dwmC36yY8OfLfi0pzkQSIgEUTuHy1eZ2YT_cb7VXg5PG5K0D_2tUKVnhbytiiAq6vvo3BzRIvfURck0LhPjsE",
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBgyUWS7TI7LHwxZoCWpuuxqf-QSm3j5mL8H9QSLpBe-sXb1ZWMh5XcFsKTdcmss5J1dzbSW01dkBxBnS1HxfFXPL_sscFTueR2xtHczwZ-_ps0maGikUXfTNjPG9M4xJofahViTvf4_Cjl3TuoTWvI7byfaRtRdIhqf0LR2NoUNWLLTMMSrYTnj1f5wWuKFmseA3C9eE8LRaf5oQgjy3zl322EQvKyNGS2FAMraQYOjIhv_XmwvhcE9WF9yBiTBPxDvuq_KzvMArw",
 ];
+
+const ListingMap = dynamic(() => import("@/components/maps/ListingMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[360px] items-center justify-center rounded-2xl border border-[#EBEBE8] bg-surface-container animate-pulse" />
+  ),
+});
 
 function formatStorageType(value: string) {
   return value
@@ -185,8 +195,8 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   if (loading) {
     return (
-      <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-32 pb-xxl">
-        <div className="max-w-7xl mx-auto px-8 space-y-8">
+      <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-28 sm:pt-32 pb-xxl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="h-10 w-96 rounded-full bg-surface-container animate-pulse" />
           <div className="h-[420px] rounded-2xl bg-surface-container animate-pulse" />
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-xl">
@@ -204,8 +214,8 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   if (!listing) {
     return (
-      <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-32 pb-xxl">
-        <div className="max-w-7xl mx-auto px-8">
+      <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-28 sm:pt-32 pb-xxl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-outline-variant/30 bg-white p-8">
             <h1 className="font-h1 text-h1 text-primary">Listing not found</h1>
             <p className="text-body-md text-on-surface-variant mt-2">
@@ -219,6 +229,8 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   const primaryImage = galleryImages[0] ?? fallbackImages[0];
   const secondaryImages = galleryImages.slice(1, 5);
+  const hasCoordinates =
+    typeof listing.latitude === "number" && typeof listing.longitude === "number";
 
   const canBook = sessionUser?.role === "RENTER";
   const canStartConversation = sessionUser?.role === "RENTER";
@@ -273,6 +285,7 @@ export default function ListingDetailPage({ listingId }: Props) {
       setBookingStartDate("");
       setBookingDuration("1");
       setBookingNote("");
+      router.refresh();
     } catch {
       setBookingError("Unable to create booking right now.");
     } finally {
@@ -332,11 +345,11 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   return (
     <div className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen">
-      <main className="pt-32 pb-xxl max-w-7xl mx-auto px-8">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-lg gap-md">
+      <main className="pt-28 sm:pt-32 pb-xxl max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-lg gap-md">
           <div>
             <h1 className="font-h1 text-h1 text-primary mb-2">{listing.title}</h1>
-            <div className="flex items-center gap-4 text-body-sm text-on-surface-variant">
+            <div className="flex flex-wrap items-center gap-3 text-body-sm text-on-surface-variant">
               <div className="flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                   star
@@ -352,7 +365,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               </span>
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3">
             <button className="flex items-center gap-2 font-label-caps text-label-caps hover:bg-surface-container transition-colors p-2 rounded-lg" type="button">
               <span className="material-symbols-outlined text-md">ios_share</span>
               SHARE
@@ -382,6 +395,26 @@ export default function ListingDetailPage({ listingId }: Props) {
             </div>
           ))}
         </div>
+
+        {hasCoordinates ? (
+          <section className="mb-xl">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div>
+                <h2 className="font-h3 text-h3 text-primary">Location map</h2>
+                <p className="text-body-sm font-body-sm text-on-surface-variant">
+                  {listing.city}, {listing.address}
+                </p>
+              </div>
+            </div>
+            <ListingMap
+              address={listing.address}
+              city={listing.city}
+              latitude={listing.latitude}
+              longitude={listing.longitude}
+              title={listing.title}
+            />
+          </section>
+        ) : null}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-xl">
           <div className="space-y-xl">
@@ -436,7 +469,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               </div>
             </section>
 
-            <section className="bg-surface-container-low rounded-lg p-xl flex flex-col md:flex-row items-center gap-xl border border-stone-100">
+            <section className="bg-surface-container-low rounded-lg p-6 sm:p-xl flex flex-col md:flex-row items-center gap-xl border border-stone-100">
               <img
                 className="w-24 h-24 rounded-full object-cover"
                 alt={listing.owner.fullName}

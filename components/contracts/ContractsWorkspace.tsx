@@ -1,16 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { SafeGeneratedContract } from "@/lib/contracts/generateContract";
+import { getContractTypeBadge } from "@/lib/contracts/contractTypes";
+import { normalizeLocale } from "@/lib/i18n";
 
 type ContractsWorkspaceProps = {
   initialContracts: SafeGeneratedContract[];
   canGenerate: boolean;
 };
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
+function formatDate(value: string, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -63,8 +66,10 @@ export function ContractsWorkspace({
   initialContracts,
   canGenerate,
 }: ContractsWorkspaceProps) {
-  const [filter, setFilter] = useState("All Statuses");
-  const [sort, setSort] = useState("Newest First");
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
+  const [filter, setFilter] = useState<"all" | "generated" | "sent" | "signed" | "cancelled">("all");
+  const [sort, setSort] = useState<"newest" | "oldest" | "amount">("newest");
   const [selectedContractId, setSelectedContractId] = useState(
     initialContracts[0]?.id ?? "",
   );
@@ -74,19 +79,19 @@ export function ContractsWorkspace({
 
   const filteredContracts = useMemo(() => {
     const visible =
-      filter === "All Statuses"
+      filter === "all"
         ? contracts
         : contracts.filter((contract) => {
-            if (filter === "Generated") {
+            if (filter === "generated") {
               return contract.status === "GENERATED";
             }
-            if (filter === "Sent") {
+            if (filter === "sent") {
               return contract.status === "SENT" || contract.status === "SENT_FOR_SIGNATURE";
             }
-            if (filter === "Signed") {
+            if (filter === "signed") {
               return contract.status === "SIGNED";
             }
-            if (filter === "Cancelled") {
+            if (filter === "cancelled") {
               return contract.status === "CANCELLED";
             }
             return true;
@@ -98,17 +103,17 @@ export function ContractsWorkspace({
       const amountA = Number(a.monthlyPrice);
       const amountB = Number(b.monthlyPrice);
 
-      if (sort === "Oldest First") {
+      if (sort === "oldest") {
         return dateA - dateB;
       }
-      if (sort === "Amount High-Low") {
+      if (sort === "amount") {
         return amountB - amountA;
       }
       return dateB - dateA;
     });
 
     return sorted;
-  }, [contracts, filter, sort]);
+  }, [contracts, filter, sort, t]);
 
   const selectedContract =
     filteredContracts.find((contract) => contract.id === selectedContractId) ??
@@ -161,33 +166,35 @@ export function ContractsWorkspace({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low p-4 rounded-lg border border-outline-variant/30">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="font-label-caps text-label-caps text-on-surface-variant">
-              Filter by Status:
+              {t("contracts.filterStatus")}
             </span>
             <select
               className="bg-surface border-none rounded-full px-6 py-1 font-body-sm text-body-sm text-on-surface ring-1 ring-outline-variant focus:ring-primary transition-shadow"
               value={filter}
-              onChange={(event) => setFilter(event.target.value)}
+              onChange={(event) =>
+                setFilter(event.target.value as "all" | "generated" | "sent" | "signed" | "cancelled")
+              }
             >
-              <option>All Statuses</option>
-              <option>Generated</option>
-              <option>Sent</option>
-              <option>Signed</option>
-              <option>Cancelled</option>
+              <option value="all">{t("contracts.allStatuses")}</option>
+              <option value="generated">{t("contracts.statusGenerated")}</option>
+              <option value="sent">{t("contracts.statusSent")}</option>
+              <option value="signed">{t("contracts.statusSigned")}</option>
+              <option value="cancelled">{t("contracts.statusCancelled")}</option>
             </select>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="font-label-caps text-label-caps text-on-surface-variant">
-              Sort:
+              {t("common.sortBy")}
             </span>
             <select
               className="bg-surface border-none rounded-full px-6 py-1 font-body-sm text-body-sm text-on-surface ring-1 ring-outline-variant focus:ring-primary transition-shadow"
               value={sort}
-              onChange={(event) => setSort(event.target.value)}
+              onChange={(event) => setSort(event.target.value as "newest" | "oldest" | "amount")}
             >
-              <option>Newest First</option>
-              <option>Oldest First</option>
-              <option>Amount High-Low</option>
+              <option value="newest">{t("contracts.newestFirst")}</option>
+              <option value="oldest">{t("contracts.oldestFirst")}</option>
+              <option value="amount">{t("contracts.amountHighLow")}</option>
             </select>
           </div>
         </div>
@@ -197,16 +204,16 @@ export function ContractsWorkspace({
             <thead className="bg-surface-container-low">
               <tr>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
-                  Booking
+                  {t("contracts.booking")}
                 </th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
-                  Type
+                  {t("contracts.type")}
                 </th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
-                  Status
+                  {t("contracts.status")}
                 </th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
-                  Generated
+                  {t("contracts.date")}
                 </th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30 text-right">
                   Actions
@@ -243,18 +250,18 @@ export function ContractsWorkspace({
                       <span
                         className={`${getTypeStyles(contract.contractType)} px-2 py-1 rounded font-label-caps text-[10px]`}
                       >
-                        {contract.contractTypeLabel.toUpperCase()}
+                        {getContractTypeBadge(contract.contractType, locale)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span
                         className={`${getStatusStyles(contract.status)} px-4 py-1 rounded-full font-label-caps text-[11px]`}
                       >
-                        {contract.status}
+                        {t(`status.contract.${contract.status}`)}
                       </span>
                     </td>
                     <td className="px-6 py-4 font-body-sm text-body-sm text-on-surface-variant">
-                      {formatDate(contract.generatedAt)}
+                      {formatDate(contract.generatedAt, locale)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
@@ -262,7 +269,7 @@ export function ContractsWorkspace({
                         type="button"
                         onClick={() => setSelectedContractId(contract.id)}
                       >
-                        View
+                        {t("common.viewDetails")}
                       </button>
                       <button
                         className="text-primary font-label-caps text-label-caps hover:underline disabled:opacity-50"
@@ -270,7 +277,7 @@ export function ContractsWorkspace({
                         type="button"
                         onClick={() => handleGenerate(contract)}
                       >
-                        {busyId === contract.id ? "Generating..." : "Generate"}
+                        {busyId === contract.id ? t("common.loading") : t("contracts.generate")}
                       </button>
                     </td>
                   </tr>
@@ -281,7 +288,7 @@ export function ContractsWorkspace({
                     className="px-6 py-12 text-center text-on-surface-variant"
                     colSpan={5}
                   >
-                    No contracts found yet.
+                    {t("contracts.noContracts")}
                   </td>
                 </tr>
               )}
@@ -295,19 +302,19 @@ export function ContractsWorkspace({
           <div className="p-6 border-b border-outline-variant/30 flex justify-between items-start gap-4">
             <div>
               <h2 className="font-h2 text-h2 text-primary">
-                {selectedContract?.listingTitle ?? "No Contract Selected"}
+                {selectedContract?.listingTitle ?? t("contracts.noSelected")}
               </h2>
               <p className="font-body-sm text-body-sm text-on-surface-variant">
                 {selectedContract
-                  ? `Contract Document #${selectedContract.contractNumber}`
-                  : "Select a generated contract to inspect the preview."}
+                  ? t("contracts.contractDocument", { number: selectedContract.contractNumber })
+                  : t("contracts.selectPreview")}
               </p>
             </div>
             {selectedContract ? (
               <a
                 className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors"
                 href={`/api/contracts/${selectedContract.id}/download`}
-                aria-label="Download contract"
+                aria-label={t("contracts.download")}
                 download={selectedContract.generatedFileName}
               >
                 download
@@ -337,13 +344,13 @@ export function ContractsWorkspace({
 
                 <div className="mt-auto flex justify-between border-t border-outline-variant pt-6">
                   <div className="text-left">
-                    <p className="text-xs text-on-surface-variant">Monthly</p>
+                    <p className="text-xs text-on-surface-variant">{t("contracts.monthly")}</p>
                     <p className="text-sm font-semibold text-primary">
                       {formatCurrency(selectedContract.monthlyPrice)}
                     </p>
                   </div>
                   <div className="text-left">
-                    <p className="text-xs text-on-surface-variant">Deposit</p>
+                    <p className="text-xs text-on-surface-variant">{t("contracts.deposit")}</p>
                     <p className="text-sm font-semibold text-primary">
                       {formatCurrency(selectedContract.depositAmount)}
                     </p>
@@ -353,14 +360,14 @@ export function ContractsWorkspace({
                 <div className="absolute inset-0 flex items-center justify-center group cursor-pointer">
                   <div className="bg-primary/90 text-on-primary px-6 py-4 rounded-full font-label-caps text-label-caps flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="material-symbols-outlined">zoom_in</span>
-                    Fullscreen Preview
+                    {t("contracts.fullscreenPreview")}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="relative z-10 w-4/5 h-[400px] bg-white shadow-xl rounded-sm p-12 flex flex-col items-center justify-center text-center gap-4">
                 <p className="font-body-md text-body-md text-on-surface-variant">
-                  Generated contracts will appear here.
+                  {t("contracts.generatedPreview")}
                 </p>
               </div>
             )}
@@ -381,7 +388,7 @@ export function ContractsWorkspace({
                 }
                 download={selectedContract?.generatedFileName}
               >
-                Download Contract
+                {t("contracts.download")}
               </a>
 
               <button
@@ -394,7 +401,7 @@ export function ContractsWorkspace({
                   }
                 }}
               >
-                {busyId === selectedContract?.id ? "Generating..." : "Generate Contract"}
+                {busyId === selectedContract?.id ? t("common.loading") : t("contracts.generate")}
               </button>
             </div>
 
@@ -402,7 +409,7 @@ export function ContractsWorkspace({
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/70 rounded-lg p-4 border border-outline-variant/20">
                   <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
-                    Booking Link
+                    {t("contracts.bookingLink")}
                   </p>
                   <p className="font-body-sm text-body-sm text-on-surface mt-1">
                     {selectedContract.bookingNumber}
@@ -410,17 +417,17 @@ export function ContractsWorkspace({
                 </div>
                 <div className="bg-white/70 rounded-lg p-4 border border-outline-variant/20">
                   <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
-                    Generated
+                    {t("contracts.generated")}
                   </p>
                   <p className="font-body-sm text-body-sm text-on-surface mt-1">
-                    {formatDate(selectedContract.generatedAt)}
+                    {formatDate(selectedContract.generatedAt, locale)}
                   </p>
                 </div>
               </div>
             ) : null}
 
             <h3 className="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase tracking-widest text-[10px]">
-              Contract Timeline
+              {t("contracts.timeline")}
             </h3>
 
             <div className="relative space-y-4">
@@ -436,10 +443,10 @@ export function ContractsWorkspace({
                     </div>
                     <div>
                       <p className="font-body-md text-body-md text-on-surface leading-none">
-                        Contract Generated
+                        {t("contracts.generated")}
                       </p>
                       <p className="font-body-sm text-on-surface-variant text-xs mt-1">
-                        {formatDate(selectedContract.generatedAt)}
+                        {formatDate(selectedContract.generatedAt, locale)}
                       </p>
                     </div>
                   </div>
@@ -448,10 +455,10 @@ export function ContractsWorkspace({
                     <div className="w-5 h-5 rounded-full bg-surface-container-highest border border-outline-variant z-10" />
                     <div>
                       <p className="font-body-md text-body-md text-on-surface leading-none">
-                        Current Status
+                        {t("contracts.currentStatus")}
                       </p>
                       <p className="font-body-sm text-on-surface-variant text-xs mt-1">
-                        {selectedContract.status}
+                        {t(`status.contract.${selectedContract.status}`)}
                       </p>
                     </div>
                   </div>
@@ -460,7 +467,7 @@ export function ContractsWorkspace({
                     <div className="w-5 h-5 rounded-full bg-surface-container-highest border border-outline-variant z-10" />
                     <div>
                       <p className="font-body-md text-body-md text-on-surface leading-none">
-                        Booking Ready
+                        {t("contracts.bookingReady")}
                       </p>
                       <p className="font-body-sm text-on-surface-variant text-xs mt-1">
                         {selectedContract.bookingStatus}
@@ -470,7 +477,7 @@ export function ContractsWorkspace({
                 </>
               ) : (
                 <div className="pl-8 text-body-sm text-on-surface-variant">
-                  No selected contract yet.
+                  {t("contracts.noSelected")}
                 </div>
               )}
             </div>

@@ -23,7 +23,7 @@ function getSingleValue(value: string | string[] | undefined) {
 export default async function InvoicesPage({ searchParams }: Props) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    redirect("/login?redirect=/invoices");
+    redirect("/login?next=/invoices");
   }
 
   const params = await searchParams;

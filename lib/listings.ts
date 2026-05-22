@@ -20,9 +20,12 @@ export type ListingCard = {
   storageType: StorageType;
   status: ListingStatus;
   availability: ListingAvailability;
+  address: string;
   city: string;
   postalCode: string | null;
   country: string;
+  latitude: number | null;
+  longitude: number | null;
   sizeSqFt: number | null;
   sizeM2: number | null;
   pricePerMonth: string;
@@ -350,9 +353,12 @@ function serializeBaseListing(
     storageType: listing.storageType,
     status: listing.status,
     availability: listing.availability,
+    address: listing.address,
     city: listing.city,
     postalCode: listing.postalCode,
     country: listing.country,
+    latitude: listing.latitude,
+    longitude: listing.longitude,
     sizeSqFt: listing.sizeSqFt,
     sizeM2: listing.sizeM2,
     pricePerMonth: toDecimal(listing.pricePerMonth).toFixed(2),
@@ -477,6 +483,8 @@ function buildCreateData(
   const address = normalizeText(input.address) ?? "";
   const city = normalizeText(input.city) ?? "";
   const postalCode = normalizeNullableText(input.postalCode) ?? null;
+  const latitude = input.latitude ?? null;
+  const longitude = input.longitude ?? null;
   const storageType = input.storageType ?? StorageType.OTHER;
   const pricePerMonth = toDecimal(input.pricePerMonth ?? 0);
   const sizeSqFt = input.sizeSqFt ?? null;
@@ -497,6 +505,8 @@ function buildCreateData(
     address,
     city,
     postalCode,
+    latitude,
+    longitude,
     pricePerMonth,
     sizeSqFt,
     sizeM2,
@@ -576,6 +586,8 @@ function buildUpdateData(
     address: string;
     city: string;
     postalCode: string | null;
+    latitude: number | null;
+    longitude: number | null;
     pricePerMonth: Prisma.Decimal;
     sizeSqFt: number | null;
     sizeM2: number | null;
@@ -592,6 +604,8 @@ function buildUpdateData(
   const address = normalizeText(input.address) ?? existing.address;
   const city = normalizeText(input.city) ?? existing.city;
   const postalCode = normalizeNullableText(input.postalCode) ?? existing.postalCode;
+  const latitude = input.latitude !== undefined ? input.latitude : existing.latitude;
+  const longitude = input.longitude !== undefined ? input.longitude : existing.longitude;
   const storageType = input.storageType ?? existing.storageType;
   const pricePerMonth = input.pricePerMonth !== undefined
     ? toDecimal(input.pricePerMonth)
@@ -610,6 +624,8 @@ function buildUpdateData(
     address,
     city,
     postalCode,
+    latitude,
+    longitude,
     pricePerMonth,
     sizeSqFt,
     sizeM2,

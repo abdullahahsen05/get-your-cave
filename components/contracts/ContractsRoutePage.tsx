@@ -1,8 +1,12 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getContractsForViewer } from "@/lib/contracts/generateContract";
 import { ContractsWorkspace } from "@/components/contracts/ContractsWorkspace";
+import { createTranslator } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n.server";
 
 export default async function ContractsRoutePage() {
+  const locale = await getServerLocale();
+  const t = createTranslator(locale);
   const currentUser = await getCurrentUser();
 
   const contracts = currentUser
@@ -28,9 +32,9 @@ export default async function ContractsRoutePage() {
       `}</style>
 
       <header className="mb-12">
-        <h1 className="font-h1 text-h1 text-primary">Your Contracts</h1>
+        <h1 className="font-h1 text-h1 text-primary">{t("contracts.title")}</h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
-          Manage your secure storage agreements and legal documentation.
+          {t("contracts.subtitle")}
         </p>
       </header>
 
@@ -41,10 +45,9 @@ export default async function ContractsRoutePage() {
         />
       ) : (
         <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-8 text-on-surface-variant">
-          Please sign in to view your contracts.
+          {t("contracts.signInRequired")}
         </div>
       )}
     </main>
   );
 }
-

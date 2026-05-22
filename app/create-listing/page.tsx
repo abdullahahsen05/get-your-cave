@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   useEffect,
   useMemo,
@@ -38,6 +39,16 @@ const amenityOptions = [
   { icon: "local_shipping", label: "Loading Dock" },
 ];
 
+const LocationPreviewMap = dynamic(
+  () => import("@/components/maps/LocationPreviewMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-48 md:h-full min-h-[200px] bg-surface-container rounded-lg animate-pulse border border-outline-variant/30" />
+    ),
+  },
+);
+
 const samplePreviewImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCHIt43UPBLz2tRqo29v3dPp2m-WCMHLfSSPMGPV35p09S3hXFFsHiVUOsgwTd6f7q7a5W6ZiTVPyRuWN9eFDt_hcifHnoYTkdbYQGLGsCElvtU4BwwVceeme3_Ncmy8PibvBevgM7ZToBItC4kMUKeRQIvGzb07E8gd_H3a6Wp6TqbcBAWMmcvn6JVJTVR03G2vFyeudFQIRMDnxV4W96hyIOvSWR8dcjsMnQYFGmkcBUNq824x3fAkyZjpht9tR-_RPVuw6DQpFc",
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCHIt43UPBLz2tRqo29v3dPp2m-WCMHLfSSPMGPV35p09S3hXFFsHiVUOsgwTd6f7q7a5W6ZiTVPyRuWN9eFDt_hcifHnoYTkdbYQGLGsCElvtU4BwwVceeme3_Ncmy8PibvBevgM7ZToBItC4kMUKeRQIvGzb07E8gd_H3a6Wp6TqbcBAWMmcvn6JVJTVR03G2vFyeudFQIRMDnxV4W96hyIOvSWR8dcjsMnQYFGmkcBUNq824x3fAkyZjpht9tR-_RPVuw6DQpFc",
@@ -52,6 +63,8 @@ type FormState = {
   address: string;
   city: string;
   postalCode: string;
+  latitude: string;
+  longitude: string;
   sizeSqFt: string;
   amenityNames: string[];
   imageUrls: string[];
@@ -66,6 +79,8 @@ const initialState: FormState = {
   address: "",
   city: "",
   postalCode: "",
+  latitude: "",
+  longitude: "",
   sizeSqFt: "",
   amenityNames: [],
   imageUrls: [],
@@ -98,6 +113,42 @@ function reorderImages(imageUrls: string[], primaryImageIndex: number) {
   return [primary, ...imageUrls.filter((_, index) => index !== clampedIndex)];
 }
 
+function parseCoordinateInput(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed.length) {
+    return undefined;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function validateCoordinatePair(latitude: string, longitude: string) {
+  const hasLatitude = latitude.trim().length > 0;
+  const hasLongitude = longitude.trim().length > 0;
+
+  if (hasLatitude !== hasLongitude) {
+    return "Please enter both latitude and longitude.";
+  }
+
+  if (!hasLatitude) {
+    return null;
+  }
+
+  const parsedLatitude = Number(latitude);
+  const parsedLongitude = Number(longitude);
+
+  if (!Number.isFinite(parsedLatitude) || parsedLatitude < -90 || parsedLatitude > 90) {
+    return "Latitude must be between -90 and 90.";
+  }
+
+  if (!Number.isFinite(parsedLongitude) || parsedLongitude < -180 || parsedLongitude > 180) {
+    return "Longitude must be between -180 and 180.";
+  }
+
+  return null;
+}
+
 function parseListingToState(listing: {
   title: string;
   description: string;
@@ -106,6 +157,8 @@ function parseListingToState(listing: {
   address: string;
   city: string;
   postalCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
   sizeSqFt: number | null;
   amenityNames: string[];
   images: Array<{ url: string; isPrimary: boolean }>;
@@ -123,6 +176,8 @@ function parseListingToState(listing: {
     address: listing.address,
     city: listing.city,
     postalCode: listing.postalCode ?? "",
+    latitude: listing.latitude !== null ? String(listing.latitude) : "",
+    longitude: listing.longitude !== null ? String(listing.longitude) : "",
     sizeSqFt: listing.sizeSqFt ? String(listing.sizeSqFt) : "",
     amenityNames: listing.amenityNames,
     imageUrls: listing.images.map((image) => image.url),
@@ -183,6 +238,8 @@ export default function ListYourCavePage() {
             address: string;
             city: string;
             postalCode: string | null;
+            latitude: number | null;
+            longitude: number | null;
             sizeSqFt: number | null;
             amenityNames: string[];
             images: Array<{ url: string; isPrimary: boolean }>;
@@ -280,6 +337,11 @@ export default function ListYourCavePage() {
       if (!formState.city.trim()) {
         return "Please add a city.";
       }
+
+      const coordinateError = validateCoordinatePair(formState.latitude, formState.longitude);
+      if (coordinateError) {
+        return coordinateError;
+      }
     }
 
     return null;
@@ -294,6 +356,8 @@ export default function ListYourCavePage() {
       address: formState.address,
       city: formState.city,
       postalCode: formState.postalCode,
+      latitude: parseCoordinateInput(formState.latitude),
+      longitude: parseCoordinateInput(formState.longitude),
       sizeSqFt: formState.sizeSqFt ? Number(formState.sizeSqFt) : undefined,
       amenityNames: formState.amenityNames,
       imageUrls: reorderImages(formState.imageUrls, formState.primaryImageIndex),
@@ -374,7 +438,7 @@ export default function ListYourCavePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-32 pb-32 px-6">
+    <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-28 sm:pt-32 pb-24 sm:pb-32 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
         <section className="mb-12">
           <div className="flex flex-col gap-4 mb-4 px-1">
@@ -387,14 +451,14 @@ export default function ListYourCavePage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {steps.map((item, index) => {
                 const isActive = index === step;
                 const isComplete = index < step;
 
                 return (
                   <button
-                    className="flex flex-col sm:flex-row items-center justify-center gap-1 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 py-2 text-center transition-all hover:border-primary disabled:cursor-default"
+                    className="flex flex-col sm:flex-row items-center justify-center gap-1 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 py-2 text-center transition-all hover:border-primary disabled:cursor-default min-h-[68px] sm:min-h-0"
                     disabled={index > step || isSubmitting}
                     key={item.label}
                     onClick={() => setStep(index)}
@@ -432,7 +496,7 @@ export default function ListYourCavePage() {
           </div>
         </section>
 
-        <section className="bg-surface-container-lowest rounded-lg p-8 md:p-12 shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/30">
+        <section className="bg-surface-container-lowest rounded-lg p-6 sm:p-8 md:p-12 shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/30">
           {isLoadingExisting ? (
             <div className="space-y-4">
               <div className="h-8 w-48 rounded-full bg-surface-container animate-pulse" />
@@ -485,9 +549,13 @@ export default function ListYourCavePage() {
                   address={formState.address}
                   city={formState.city}
                   postalCode={formState.postalCode}
+                  latitude={formState.latitude}
+                  longitude={formState.longitude}
                   sizeSqFt={formState.sizeSqFt}
                   onAddressChange={(value) => updateField("address", value)}
                   onCityChange={(value) => updateField("city", value)}
+                  onLatitudeChange={(value) => updateField("latitude", value)}
+                  onLongitudeChange={(value) => updateField("longitude", value)}
                   onPostalCodeChange={(value) => updateField("postalCode", value)}
                   onSizeChange={(value) => updateField("sizeSqFt", value)}
                 />
@@ -508,7 +576,7 @@ export default function ListYourCavePage() {
           ) : null}
         </section>
 
-        <section className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 px-4">
+        <section className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 px-0 sm:px-4">
           <button
             className="text-on-surface-variant hover:text-primary font-label-caps text-label-caps transition-colors flex items-center gap-2 uppercase disabled:opacity-40 disabled:hover:text-on-surface-variant"
             disabled={isFirstStep || isSubmitting}
@@ -519,7 +587,7 @@ export default function ListYourCavePage() {
             Back
           </button>
 
-          <div className="flex gap-4 items-center w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full md:w-auto">
             <button
               className="flex-1 md:flex-none border border-outline text-primary px-8 py-3 rounded-full font-label-caps text-label-caps hover:bg-surface-container transition-all uppercase"
               disabled={isSubmitting}
@@ -675,7 +743,7 @@ function VisualDocumentationStep({
         }}
       />
 
-      <div className="w-full border-2 border-dashed border-outline-variant rounded-lg bg-surface-container-low flex flex-col items-center justify-center p-8 md:p-12 gap-2 hover:bg-surface-container transition-colors cursor-pointer group">
+      <div className="w-full border-2 border-dashed border-outline-variant rounded-lg bg-surface-container-low flex flex-col items-center justify-center p-6 sm:p-8 md:p-12 gap-2 hover:bg-surface-container transition-colors cursor-pointer group">
         <span className="material-symbols-outlined text-display text-primary/40 group-hover:text-primary transition-colors">
           image
         </span>
@@ -703,7 +771,7 @@ function VisualDocumentationStep({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
         {displayImages.slice(0, 3).map((src, index) => (
           <ImagePreview
             key={`${src}-${index}`}
@@ -809,18 +877,26 @@ function LocationStep({
   address,
   city,
   postalCode,
+  latitude,
+  longitude,
   sizeSqFt,
   onAddressChange,
   onCityChange,
+  onLatitudeChange,
+  onLongitudeChange,
   onPostalCodeChange,
   onSizeChange,
 }: {
   address: string;
   city: string;
   postalCode: string;
+  latitude: string;
+  longitude: string;
   sizeSqFt: string;
   onAddressChange: (value: string) => void;
   onCityChange: (value: string) => void;
+  onLatitudeChange: (value: string) => void;
+  onLongitudeChange: (value: string) => void;
   onPostalCodeChange: (value: string) => void;
   onSizeChange: (value: string) => void;
 }) {
@@ -887,20 +963,39 @@ function LocationStep({
               onChange={(event) => onSizeChange(event.target.value)}
             />
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+                Latitude
+              </label>
+              <input
+                className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
+                placeholder="48.8566"
+                step="any"
+                type="number"
+                value={latitude}
+                onChange={(event) => onLatitudeChange(event.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+                Longitude
+              </label>
+              <input
+                className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
+                placeholder="2.3522"
+                step="any"
+                type="number"
+                value={longitude}
+                onChange={(event) => onLongitudeChange(event.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="w-full h-48 md:h-full min-h-[200px] bg-surface-container rounded-lg relative overflow-hidden border border-outline-variant/30">
-          <img
-            alt="Map view of San Francisco"
-            className="w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlxL6JAJMx8o4wKXndupHOqqOYuboiyd3aWTtXhVBepGK9TfajebD4-93lJ22S6cvlbYMLRHl6w17R_C6rDlXeztDHZdWyqyOXMyHUesPBMBzM3iPU_DSGViMvtrAo9D1bujZUMdNZwAofPj8gEcFjuYuXUl8soZQ2pbD6t9vWM0fFel4nVtM5vdZLzZMx7sFJ_FgukbtJabFbYWVVRu9UT6s_aJ2nzzw-e1I_NIfYJZNkxX5tmLPou5f3FSBeFHXkyg3bwx_cWZQ"
-          />
-          <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-            <span className="material-symbols-outlined text-primary text-h1 drop-shadow-lg">
-              location_on
-            </span>
-          </div>
+        <div className="w-full h-48 md:h-full min-h-[200px] rounded-lg overflow-hidden">
+          <LocationPreviewMap latitude={latitude} longitude={longitude} />
         </div>
       </div>
     </section>

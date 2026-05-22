@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type {
   AdminActivityPage,
   AdminDashboardResponse,
   AdminRevenuePoint,
 } from "@/lib/admin-shared";
+import { normalizeLocale } from "@/lib/i18n";
 
 function formatCurrency(value: string | number, currency = "USD") {
   const amount = Number(value);
@@ -54,13 +56,57 @@ function normalizeChartPoints(points: AdminRevenuePoint[], desired = 12) {
   return result.slice(0, desired);
 }
 
+type PendingListingRow = {
+  id: string;
+  title: string;
+  city: string;
+  pricePerMonth: string;
+  status: string;
+  availability: string | null;
+  isPublished: boolean;
+  createdAt: string;
+  owner: {
+    fullName: string;
+    email: string;
+  };
+};
+
+type PendingVerificationRow = {
+  id: string;
+  type: string;
+  fileName: string | null;
+  fileUrl: string;
+  status: string;
+  rejectionReason: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  user: {
+    fullName: string;
+    email: string;
+    role: string;
+  };
+};
+
 export default function AdminDashboardWorkspace() {
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const [dashboard, setDashboard] = useState<AdminDashboardResponse | null>(null);
   const [activity, setActivity] = useState<AdminActivityPage | null>(null);
   const [range, setRange] = useState<"7d" | "30d" | "90d" | "12m">("30d");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
+  const [moderationReloadKey, setModerationReloadKey] = useState(0);
+  const [pendingListings, setPendingListings] = useState<PendingListingRow[]>([]);
+  const [pendingVerifications, setPendingVerifications] = useState<PendingVerificationRow[]>([]);
+  const [moderationLoading, setModerationLoading] = useState(true);
+  const [moderationError, setModerationError] = useState<string | null>(null);
+  const [busyAction, setBusyAction] = useState<{
+    kind: "listing" | "verification";
+    id: string;
+    action: "approve" | "reject";
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,7 +146,7 @@ export default function AdminDashboardWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [dashboardReloadKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -138,6 +184,64 @@ export default function AdminDashboardWorkspace() {
   }, [range]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadModerationQueues() {
+      setModerationLoading(true);
+      setModerationError(null);
+
+      try {
+        const [listingsResponse, verificationsResponse] = await Promise.all([
+          fetch("/api/admin/listings?status=PENDING_APPROVAL&limit=5", {
+            cache: "no-store",
+          }),
+          fetch("/api/admin/verifications?status=PENDING&limit=5", {
+            cache: "no-store",
+          }),
+        ]);
+
+        if (!listingsResponse.ok) {
+          throw new Error("Unable to load pending listings.");
+        }
+
+        if (!verificationsResponse.ok) {
+          throw new Error("Unable to load pending verification documents.");
+        }
+
+        const listingsData = (await listingsResponse.json()) as {
+          rows?: PendingListingRow[];
+        };
+        const verificationsData = (await verificationsResponse.json()) as {
+          rows?: PendingVerificationRow[];
+        };
+
+        if (!cancelled) {
+          setPendingListings(listingsData.rows ?? []);
+          setPendingVerifications(verificationsData.rows ?? []);
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setModerationError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Unable to load moderation queues.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setModerationLoading(false);
+        }
+      }
+    }
+
+    loadModerationQueues();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [moderationReloadKey]);
+
+  useEffect(() => {
     const controller = new AbortController();
 
     const timeout = window.setTimeout(async () => {
@@ -168,6 +272,70 @@ export default function AdminDashboardWorkspace() {
       window.clearTimeout(timeout);
     };
   }, [page, search]);
+
+  async function handleModerationAction(
+    kind: "listing" | "verification",
+    id: string,
+    action: "approve" | "reject",
+  ) {
+    const isReject = action === "reject";
+    const rejectionReason = isReject
+      ? window.prompt(
+          kind === "listing"
+            ? "Optional rejection reason for this listing:"
+            : "Optional rejection reason for this verification document:",
+        )
+      : null;
+
+    if (isReject && rejectionReason === null) {
+      return;
+    }
+
+    setBusyAction({ kind, id, action });
+    setModerationError(null);
+
+    try {
+      const endpoint =
+        kind === "listing"
+          ? `/api/admin/listings/${id}/${action}`
+          : `/api/admin/verifications/${id}/${action}`;
+
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body:
+          isReject && rejectionReason !== null
+            ? JSON.stringify(
+                kind === "listing"
+                  ? { reason: rejectionReason.trim() || undefined }
+                  : { rejectionReason: rejectionReason.trim() || undefined },
+              )
+            : undefined,
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "Unable to update moderation item.");
+      }
+
+      setDashboardReloadKey((value) => value + 1);
+      setModerationReloadKey((value) => value + 1);
+    } catch (moderationActionError) {
+      setModerationError(
+        moderationActionError instanceof Error
+          ? moderationActionError.message
+          : "Unable to update moderation item.",
+      );
+    } finally {
+      setBusyAction(null);
+    }
+  }
 
   const chartPoints = useMemo(
     () => normalizeChartPoints(dashboard?.revenueSeries ?? [], 12),
@@ -230,10 +398,10 @@ export default function AdminDashboardWorkspace() {
       <main className="mx-auto max-w-[1440px] space-y-8 px-4 pb-20 pt-24 sm:px-6 sm:pt-28 lg:space-y-12 lg:px-12 lg:pt-32">
         <div className="mb-10 flex flex-col gap-2">
           <h1 className="text-[32px] font-bold leading-[1.1] text-[#0F3D3E] sm:text-[40px] lg:text-[48px]">
-            Admin Dashboard
+            {t("dashboard.admin.title")}
           </h1>
           <p className="font-medium text-stone-500">
-            Overview of the network&apos;s current performance and recent growth.
+            {t("dashboard.admin.subtitle")}
           </p>
           {error ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
@@ -265,7 +433,7 @@ export default function AdminDashboardWorkspace() {
           <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:col-span-2 lg:p-12">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-12">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
-                Revenue Performance
+                {t("dashboard.admin.revenueActivity")}
               </h3>
               <div className="flex gap-2">
                 {(["7d", "30d"] as const).map((option) => (
@@ -279,7 +447,7 @@ export default function AdminDashboardWorkspace() {
                         : "border-[#c0c8c8] bg-white text-[#404848]"
                     }`}
                   >
-                    {option === "7d" ? "7 Days" : "30 Days"}
+                    {option === "7d" ? t("dashboard.admin.range7d") : t("dashboard.admin.range30d")}
                   </button>
                 ))}
               </div>
@@ -322,7 +490,7 @@ export default function AdminDashboardWorkspace() {
             </div>
           </div>
 
-          <div className="tonal-card flex flex-col justify-between rounded-[2rem] border border-[#EBEBE8] p-12">
+          <div className="tonal-card flex flex-col justify-between rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
             <div>
               <h3 className="mb-4 text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
                 Market Insights
@@ -367,6 +535,236 @@ export default function AdminDashboardWorkspace() {
           </div>
         </section>
 
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
+                Pending Listings
+              </h3>
+              <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
+                {pendingListings.length} queued
+              </span>
+            </div>
+
+            {moderationError ? (
+              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                {moderationError}
+              </div>
+            ) : null}
+
+            {moderationLoading ? (
+              <p className="text-sm font-medium text-stone-500">Loading moderation queues...</p>
+            ) : pendingListings.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left">
+                  <thead className="border-b border-[#EBEBE8]">
+                    <tr>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        Listing
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        Owner
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        Status
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EBEBE8]">
+                    {pendingListings.map((listing) => (
+                      <tr key={listing.id}>
+                        <td className="py-4 pr-4">
+                          <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
+                            {listing.title}
+                          </p>
+                          <p className="text-xs leading-[1.5] text-[#404848]">
+                            {listing.city} · {formatCurrency(listing.pricePerMonth, "EUR")}
+                          </p>
+                        </td>
+                        <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-[#0f3d3e]">
+                              {listing.owner.fullName}
+                            </span>
+                            <span>{listing.owner.email}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                            {listing.status}
+                          </span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="rounded-full bg-[#0f3d3e] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                              disabled={
+                                busyAction?.kind === "listing" &&
+                                busyAction.id === listing.id &&
+                                busyAction.action === "approve"
+                              }
+                              type="button"
+                              onClick={() => {
+                                void handleModerationAction("listing", listing.id, "approve");
+                              }}
+                            >
+                              {busyAction?.kind === "listing" &&
+                              busyAction.id === listing.id &&
+                              busyAction.action === "approve"
+                                ? "Approving..."
+                                : "Approve"}
+                            </button>
+                            <button
+                              className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-white disabled:opacity-60"
+                              disabled={
+                                busyAction?.kind === "listing" &&
+                                busyAction.id === listing.id &&
+                                busyAction.action === "reject"
+                              }
+                              type="button"
+                              onClick={() => {
+                                void handleModerationAction("listing", listing.id, "reject");
+                              }}
+                            >
+                              {busyAction?.kind === "listing" &&
+                              busyAction.id === listing.id &&
+                              busyAction.action === "reject"
+                                ? "Rejecting..."
+                                : "Reject"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-[#EBEBE8] bg-white p-4 text-sm text-stone-500">
+                No pending listings found.
+              </div>
+            )}
+          </div>
+
+          <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
+                Pending Verifications
+              </h3>
+              <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
+                {pendingVerifications.length} queued
+              </span>
+            </div>
+
+            {moderationLoading ? (
+              <p className="text-sm font-medium text-stone-500">Loading moderation queues...</p>
+            ) : pendingVerifications.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left">
+                  <thead className="border-b border-[#EBEBE8]">
+                    <tr>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        Document
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        User
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        Status
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EBEBE8]">
+                    {pendingVerifications.map((document) => (
+                      <tr key={document.id}>
+                        <td className="py-4 pr-4">
+                          <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
+                            {document.fileName ?? document.type}
+                          </p>
+                          <p className="text-xs leading-[1.5] text-[#404848]">
+                            {document.type}
+                          </p>
+                          <a
+                            className="text-xs font-semibold text-[#4b6547] hover:underline"
+                            href={document.fileUrl}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            View document
+                          </a>
+                        </td>
+                        <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-[#0f3d3e]">
+                              {document.user.fullName}
+                            </span>
+                            <span>{document.user.email}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                            {document.status}
+                          </span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="rounded-full bg-[#0f3d3e] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                              disabled={
+                                busyAction?.kind === "verification" &&
+                                busyAction.id === document.id &&
+                                busyAction.action === "approve"
+                              }
+                              type="button"
+                              onClick={() => {
+                                void handleModerationAction("verification", document.id, "approve");
+                              }}
+                            >
+                              {busyAction?.kind === "verification" &&
+                              busyAction.id === document.id &&
+                              busyAction.action === "approve"
+                                ? "Approving..."
+                                : "Approve"}
+                            </button>
+                            <button
+                              className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-white disabled:opacity-60"
+                              disabled={
+                                busyAction?.kind === "verification" &&
+                                busyAction.id === document.id &&
+                                busyAction.action === "reject"
+                              }
+                              type="button"
+                              onClick={() => {
+                                void handleModerationAction("verification", document.id, "reject");
+                              }}
+                            >
+                              {busyAction?.kind === "verification" &&
+                              busyAction.id === document.id &&
+                              busyAction.action === "reject"
+                                ? "Rejecting..."
+                                : "Reject"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-[#EBEBE8] bg-white p-4 text-sm text-stone-500">
+                No pending verification documents found.
+              </div>
+            )}
+          </div>
+        </section>
+
         <section className="tonal-card overflow-hidden rounded-[2rem] border border-[#EBEBE8]">
           <div className="flex flex-col gap-4 border-b border-[#EBEBE8] px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-12">
             <h2 className="text-[28px] font-bold leading-[1.3] text-[#0f3d3e]">Recent Activity</h2>
@@ -376,7 +774,7 @@ export default function AdminDashboardWorkspace() {
                   search
                 </span>
                 <input
-                  className="w-64 rounded-full border border-[#EBEBE8] bg-white py-2 pl-10 pr-4 text-sm leading-[1.5] focus:border-[#4b6547] focus:ring-0"
+                  className="w-56 sm:w-64 rounded-full border border-[#EBEBE8] bg-white py-2 pl-10 pr-4 text-sm leading-[1.5] focus:border-[#4b6547] focus:ring-0"
                   placeholder="Filter activity..."
                   type="text"
                   value={search}
@@ -453,7 +851,7 @@ export default function AdminDashboardWorkspace() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#EBEBE8] bg-white px-12 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-[#EBEBE8] bg-white px-4 sm:px-6 lg:px-12 py-4">
             <span className="text-sm leading-[1.5] text-[#404848]">
               Showing {activityRows.length} of {formatCompactNumber(totalItems)} activities
             </span>

@@ -1,3 +1,5 @@
+import { createTranslator, defaultLocale, type Locale } from "@/lib/i18n";
+
 export const VERIFICATION_DOCUMENT_TYPES = [
   "ID_CARD",
   "PASSPORT",
@@ -21,24 +23,27 @@ export const VERIFICATION_STATUSES = [
 
 export type VerificationStatusValue = (typeof VERIFICATION_STATUSES)[number];
 
-export const verificationDocumentTypeLabels: Record<
-  VerificationDocumentType,
-  string
-> = {
-  ID_CARD: "ID Card",
-  PASSPORT: "Passport",
-  PROOF_OF_OWNERSHIP: "Proof of Ownership",
-  INSURANCE_CERTIFICATE: "Insurance Certificate",
-  CONTRACT: "Contract",
-  SIGNED_CONTRACT: "Signed Contract",
-  PROFILE_PHOTO: "Profile Photo",
-  OTHER: "Other",
-};
+export function getVerificationDocumentTypeLabel(
+  type: VerificationDocumentType,
+  locale: Locale = defaultLocale,
+) {
+  const t = createTranslator(locale);
+  return t(`verification.documentTypes.${type}`);
+}
 
-export const verificationStatusLabels: Record<VerificationStatusValue, string> = {
-  NOT_SUBMITTED: "NOT SUBMITTED",
-  PENDING: "PENDING",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
-};
+export function getVerificationStatusLabel(
+  status: VerificationStatusValue,
+  locale: Locale = defaultLocale,
+) {
+  const t = createTranslator(locale);
+  return t(`status.verification.${status}`);
+}
 
+export function getVerificationDocumentTypeOptions(locale: Locale = defaultLocale) {
+  const t = createTranslator(locale);
+
+  return VERIFICATION_DOCUMENT_TYPES.map((type) => ({
+    label: t(`verification.documentTypes.${type}`),
+    value: type,
+  }));
+}

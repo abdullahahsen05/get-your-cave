@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GETYOURCAVE
 
-## Getting Started
+GETYOURCAVE is a premium storage marketplace for owners, renters, and admins.
+It lets owners list storage spaces, renters browse and book them, admins review
+listings and verifications, and everyone collaborate through contracts,
+invoices, messaging, and payments.
 
-First, run the development server:
+## What the project does
+
+- Owner, renter, and admin authentication with role-based dashboards
+- Create, save, submit, approve, reject, archive, and browse storage listings
+- Booking requests, booking status updates, and renter/owner dashboard flows
+- Invoice generation, invoice detail views, and Stripe Checkout payment flow
+- Contract generation, preview, and download
+- Real-time messaging with server-side content filtering
+- Document verification upload and moderation
+- OpenStreetMap and Leaflet map previews for listings
+- English/French website translation with a navbar language switcher
+- Responsive layouts for mobile and desktop
+
+## Tech stack
+
+- Next.js App Router
+- React 19
+- TypeScript
+- Prisma
+- PostgreSQL
+- Socket.IO
+- Stripe Checkout
+- Leaflet / React-Leaflet
+- i18next / react-i18next
+
+## Local development
 
 ```bash
+npm install
+npm run db:seed-demo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo accounts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All demo accounts use the password `Password123!`.
 
-## Learn More
+- Admin: `admin@getyourcave.com`
+- Owner: `owner1@getyourcave.com`
+- Owner: `owner2@getyourcave.com`
+- Renter: `renter1@getyourcave.com`
+- Renter: `renter2@getyourcave.com`
 
-To learn more about Next.js, take a look at the following resources:
+## Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- The app uses a custom `server.ts` and Socket.IO server.
+- Public listings only show approved and published spaces.
+- Stripe is wired for test mode and uses webhook confirmation for payment state.
+- Translation defaults to English and can be switched to French in the navbar.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

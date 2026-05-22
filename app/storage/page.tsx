@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -9,6 +10,7 @@ type ListingCard = {
   id: string;
   title: string;
   city: string;
+  address: string;
   storageType: StorageType;
   pricePerMonth: string;
   sizeSqFt: number | null;
@@ -16,6 +18,8 @@ type ListingCard = {
   ratingCount: number;
   imageUrl: string | null;
   amenityNames: string[];
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type ListingsResponse = {
@@ -31,6 +35,13 @@ type ListingsResponse = {
 const fallbackImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDlVrURlNSg8iNTE9GnvU2o749hEm4jvya_479eNJNEJuNxUGk326cH62rq6vsHGIFdviZFAypKjio5NUT03Qde9CSstZbrXPTmlKWG5wAQXy2y_QCA_kqlFlF_vcVS98caXI4B4kRi4DoOhBWRb2qYlkcfa3xAmA8yDRyWth2RqopXRtvlioOa2xgHDPpQG-r1SkjwF0mKLtPF9EJNSTtHYx9-svR9yNa0_kEEsgIncvy-Cg56WpW2T-MPs2_P_MISm2CjJCiFwTo";
 
+const ListingsMap = dynamic(() => import("@/components/maps/ListingsMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] rounded-2xl border border-[#EBEBE8] bg-surface-container animate-pulse" />
+  ),
+});
+
 function formatStorageType(value: StorageType) {
   return value
     .toLowerCase()
@@ -45,6 +56,7 @@ export default function BrowseStoragePage() {
   const [storageType, setStorageType] = useState<StorageType | "">("");
   const [sizePreset, setSizePreset] = useState("");
   const [page, setPage] = useState(1);
+  const [showMap, setShowMap] = useState(true);
   const [data, setData] = useState<ListingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -115,12 +127,16 @@ export default function BrowseStoragePage() {
   const listings = data?.listings ?? [];
   const total = data?.pagination.total ?? 0;
   const totalPages = data?.pagination.totalPages ?? 1;
+  const mapListings = useMemo(
+    () => listings.filter((listing) => listing.latitude !== null && listing.longitude !== null),
+    [listings],
+  );
 
   return (
     <div className="bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed min-h-screen">
-      <section className="mt-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+      <section className="mt-28 sm:mt-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         <div className="bg-white border border-outline-variant/40 rounded-xl px-2 py-2 flex flex-wrap md:flex-nowrap items-center gap-2 shadow-[0_10px_40px_-10px_rgba(0,38,39,0.12)]">
-          <div className="flex items-center flex-1 min-w-[200px] pl-6 h-14">
+          <div className="flex items-center flex-1 min-w-0 md:min-w-[200px] pl-4 sm:pl-6 h-14">
             <span
               className="material-symbols-outlined text-primary-container/60 mr-3"
               data-icon="location_on"
@@ -140,7 +156,7 @@ export default function BrowseStoragePage() {
             />
           </div>
           <div className="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
-          <div className="flex items-center flex-1 min-w-[150px] px-4 h-14">
+          <div className="flex items-center flex-1 min-w-0 md:min-w-[150px] px-4 h-14">
             <span
               className="material-symbols-outlined text-primary-container/60 mr-3"
               data-icon="straighten"
@@ -162,7 +178,7 @@ export default function BrowseStoragePage() {
             </select>
           </div>
           <div className="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
-          <div className="flex items-center flex-1 min-w-[150px] px-4 h-14">
+          <div className="flex items-center flex-1 min-w-0 md:min-w-[150px] px-4 h-14">
             <span
               className="material-symbols-outlined text-primary-container/60 mr-3"
               data-icon="calendar_month"
@@ -176,7 +192,7 @@ export default function BrowseStoragePage() {
             />
           </div>
           <button
-            className="bg-primary text-white h-14 px-8 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-primary-container active:scale-95 shadow-md"
+            className="bg-primary text-white h-14 w-full sm:w-auto px-8 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-primary-container active:scale-95 shadow-md"
             type="button"
             onClick={() => setPage(1)}
           >
@@ -198,11 +214,15 @@ export default function BrowseStoragePage() {
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-4 md:gap-6">
-          <button className="flex items-center gap-2 text-primary font-bold text-body-sm hover:underline" type="button">
+          <button
+            className="flex items-center gap-2 text-primary font-bold text-body-sm hover:underline"
+            type="button"
+            onClick={() => setShowMap((current) => !current)}
+          >
             <span className="material-symbols-outlined text-[20px]" data-icon="map">
               map
             </span>
-            Show Map
+            {showMap ? "Hide Map" : "Show Map"}
           </button>
           <div className="flex items-center gap-2">
             <span className="text-label-caps text-on-surface-variant">
@@ -217,7 +237,28 @@ export default function BrowseStoragePage() {
         </div>
       </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row gap-gutter">
+      {showMap ? (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 className="font-h3 text-h3 text-primary">Map view</h3>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                Approved listings with coordinates are shown below.
+              </p>
+            </div>
+            <button
+              className="text-primary font-bold text-body-sm hover:underline"
+              type="button"
+              onClick={() => setShowMap(false)}
+            >
+              Collapse
+            </button>
+          </div>
+          <ListingsMap listings={mapListings} />
+        </section>
+      ) : null}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-28 md:pb-4 flex flex-col lg:flex-row gap-gutter">
         <aside className="w-full lg:w-[280px] flex-shrink-0 space-y-10">
           <div className="bg-surface-container-low/40 p-6 rounded-lg border border-outline-variant/20 lg:sticky lg:top-24">
             <h3 className="font-label-caps text-label-caps text-primary mb-6 tracking-widest uppercase">
@@ -424,7 +465,7 @@ export default function BrowseStoragePage() {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 md:hidden bg-white/90 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[32px]">
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-4 md:hidden bg-white/90 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[32px]">
         <a
           className="flex flex-col items-center justify-center text-primary bg-primary/5 rounded-full px-5 py-1.5"
           href="#"

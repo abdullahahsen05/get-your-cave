@@ -1,5 +1,6 @@
 import { UserRole, type Prisma } from "@prisma/client";
 
+import { BLOCKED_LANGUAGE_ERROR, validateMessageContent } from "@/lib/content-filter";
 import { prisma } from "@/lib/prisma";
 
 const conversationParticipantSelect = {
@@ -564,6 +565,11 @@ export async function createConversationMessage(input: {
 
   if (!conversation) {
     return { error: "Conversation not found." } as const;
+  }
+
+  const contentCheck = validateMessageContent(input.body);
+  if (!contentCheck.ok) {
+    return { error: contentCheck.reason ?? BLOCKED_LANGUAGE_ERROR } as const;
   }
 
   const message = await prisma.$transaction(async (tx) => {

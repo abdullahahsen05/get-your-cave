@@ -1,141 +1,150 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import { getCurrentUser } from "@/lib/auth";
-import { getOwnerBookings } from "@/lib/bookings";
+import OwnerBookingActions from "@/components/owner/OwnerBookingActions";
+import { getCurrentUser, getDashboardPath } from "@/lib/auth";
+import { getOwnerDashboardSnapshot } from "@/lib/dashboard/owner";
 import { formatCurrency } from "@/lib/invoices/formatCurrency";
-import { getInvoicesForViewer } from "@/lib/invoices/generateInvoice";
 import {
   getInvoiceStatusClass,
   getInvoiceStatusLabel,
 } from "@/lib/invoices/invoiceTypes";
-import { getOwnerListings } from "@/lib/listings";
+import { createTranslator } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n.server";
+
+export const dynamic = "force-dynamic";
+
+function formatGrowthPercent(value: number) {
+  const rounded = Math.abs(value).toFixed(0);
+
+  if (value > 0) {
+    return `+${rounded}% from last month`;
+  }
+
+  if (value < 0) {
+    return `-${rounded}% from last month`;
+  }
+
+  return `0% from last month`;
+}
+
+function getActivityIcon(status: string) {
+  if (status === "ACTIVE") {
+    return "check_circle";
+  }
+
+  if (status === "APPROVED") {
+    return "event_available";
+  }
+
+  if (status === "COMPLETED") {
+    return "payments";
+  }
+
+  if (status === "CANCELLED" || status === "REJECTED") {
+    return "cancel";
+  }
+
+  return "mail";
+}
 
 export default async function OwnerDashboardPage() {
+  const locale = await getServerLocale();
+  const t = createTranslator(locale);
   const currentUser = await getCurrentUser();
-  const [ownerListings, ownerBookings] =
-    currentUser?.role === "OWNER" && currentUser.ownerProfile
-      ? await Promise.all([
-          getOwnerListings(currentUser.ownerProfile.id),
-          getOwnerBookings(currentUser.ownerProfile.id),
-        ])
-      : [[], []];
-  const ownerInvoices =
-    currentUser?.role === "OWNER" && currentUser.ownerProfile
-      ? await getInvoicesForViewer(
-          {
-            role: currentUser.role,
-            ownerProfileId: currentUser.ownerProfile.id,
-            renterProfileId: currentUser.renterProfile?.id ?? null,
-          },
-          { pageSize: 10 },
-        )
-      : {
-          invoices: [],
-          pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 },
-          summary: {
-            paidCount: 0,
-            openCount: 0,
-            overdueCount: 0,
-            paidAmount: "0.00",
-            openAmount: "0.00",
-            overdueAmount: "0.00",
-          },
-          totals: { subtotal: "0.00", platformFee: "0.00", totalAmount: "0.00" },
-        };
 
-  const activeListings = ownerListings.filter(
-    (listing) => listing.status === "APPROVED" && listing.isPublished,
-  );
-  const pendingBookings = ownerBookings.filter(
-    (booking) => booking.status === "PENDING",
-  );
-  const unsignedContracts = ownerBookings.filter((booking) =>
-    [
-      "GENERATED",
-      "SENT",
-      "SENT_FOR_SIGNATURE",
-      "PARTIALLY_SIGNED",
-    ].includes(booking.contractStatus ?? ""),
-  );
+  if (!currentUser) {
+    redirect("/login?next=/owner/dashboard");
+  }
 
-  const ownerName = currentUser?.fullName ?? "Owner";
-  const latestInvoices = ownerInvoices.invoices.slice(0, 3);
+  if (currentUser.role !== "OWNER") {
+    redirect(getDashboardPath(currentUser.role));
+  }
+
+  if (!currentUser.ownerProfile) {
+    redirect("/login?next=/owner/dashboard");
+  }
+
+  const dashboard = await getOwnerDashboardSnapshot(currentUser.ownerProfile.id);
+  const ownerName = currentUser.fullName ?? "Owner";
+  const latestInvoices = dashboard.recentInvoices;
+  const recentActivity = dashboard.ownerBookings.slice(0, 4);
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] text-on-surface max-w-7xl mx-auto px-6 py-12 space-y-12 pt-32">
+    <main className="min-h-screen bg-[#F7F7F5] text-on-surface max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-12 pt-28 sm:pt-32">
       <header className="space-y-2">
         <p className="text-label-caps font-label-caps text-secondary tracking-widest">
-          OWNER DASHBOARD
+          {t("dashboard.owner.title")}
         </p>
         <h1 className="text-h1 font-h1 text-primary">
-          Welcome back {ownerName} (Owner)
+          {t("dashboard.owner.welcome", { name: ownerName })}
         </h1>
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-low p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
+        <div className="bg-surface-container-low p-6 sm:p-8 lg:p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
           <span className="text-label-caps font-label-caps text-on-surface-variant">
-            TOTAL EARNINGS
+            {t("dashboard.owner.earnings")}
           </span>
           <span className="text-display font-display text-primary">
-            {formatCurrency(ownerInvoices.summary.paidAmount, "EUR")}
+            {formatCurrency(dashboard.totalEarnings, "EUR")}
           </span>
           <div className="flex items-center gap-1 text-secondary mt-2">
             <span className="material-symbols-outlined text-sm">trending_up</span>
             <span className="text-body-sm font-body-sm">
-              +12% from last month
+              {formatGrowthPercent(dashboard.earningsGrowthPercent)}
             </span>
           </div>
         </div>
 
-        <div className="bg-surface-container-low p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
+        <div className="bg-surface-container-low p-6 sm:p-8 lg:p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
           <span className="text-label-caps font-label-caps text-on-surface-variant">
-            ACTIVE LISTINGS
+            {t("dashboard.owner.activeListings")}
           </span>
           <span className="text-display font-display text-primary">
-            {activeListings.length}
+            {dashboard.activeListingsCount}
           </span>
           <span className="text-body-sm font-body-sm text-on-surface-variant mt-2">
             All units currently occupied
           </span>
         </div>
 
-        <div className="bg-surface-container-low p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
+        <div className="bg-surface-container-low p-6 sm:p-8 lg:p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
           <span className="text-label-caps font-label-caps text-on-surface-variant">
-            TENANT ACTIVITY
+            {t("dashboard.owner.pendingRequests")}
           </span>
           <span className="text-display font-display text-primary">
-            {pendingBookings.length}
+            {dashboard.tenantActivityCount}
           </span>
           <div className="flex items-center gap-1 text-primary-container mt-2">
             <span className="material-symbols-outlined text-sm">mail</span>
             <span className="text-body-sm font-body-sm">
-              New booking requests pending
+              {t("dashboard.owner.newBooking")}
             </span>
           </div>
         </div>
       </section>
 
       <section className="bg-surface-container-low rounded-lg border border-outline-variant/30 overflow-hidden">
-        <div className="px-12 pt-12 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+        <div className="px-4 sm:px-6 lg:px-12 pt-8 sm:pt-12 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
           <div>
-            <h2 className="text-h3 font-h3 text-primary">Revenue Overview</h2>
+            <h2 className="text-h3 font-h3 text-primary">{t("dashboard.owner.revenueChart")}</h2>
             <p className="text-body-sm font-body-sm text-on-surface-variant">
-              Last 6 months performance
+              {t("dashboard.owner.revenueSubtitle")}
             </p>
           </div>
 
           <div className="flex gap-4">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-primary-container" />
-              <span className="text-label-caps font-label-caps text-on-surface-variant">
-                GROSS REVENUE
-              </span>
+                <span className="w-3 h-3 rounded-full bg-primary-container" />
+                <span className="text-label-caps font-label-caps text-on-surface-variant">
+                {t("dashboard.owner.grossRevenue")}
+                </span>
+              </div>
             </div>
-          </div>
         </div>
 
-        <div className="h-64 mt-8 relative px-12 pb-12">
+        <div className="h-64 mt-8 relative px-4 sm:px-6 lg:px-12 pb-8 sm:pb-12">
           <svg
             className="w-full h-full"
             preserveAspectRatio="none"
@@ -147,12 +156,9 @@ export default async function OwnerDashboardPage() {
                 <stop offset="100%" stopColor="#0F3D3E" stopOpacity="0" />
               </linearGradient>
             </defs>
+            <path d={dashboard.revenueAreaPath} fill="url(#ownerChartGradient)" />
             <path
-              d="M0 180 Q 150 150, 300 160 T 600 100 T 1000 40 L 1000 200 L 0 200 Z"
-              fill="url(#ownerChartGradient)"
-            />
-            <path
-              d="M0 180 Q 150 150, 300 160 T 600 100 T 1000 40"
+              d={dashboard.revenueLinePath}
               fill="none"
               stroke="#0F3D3E"
               strokeLinecap="round"
@@ -161,46 +167,47 @@ export default async function OwnerDashboardPage() {
           </svg>
 
           <div className="flex justify-between text-label-caps font-label-caps text-on-surface-variant mt-4 opacity-60">
-            <span>JAN</span>
-            <span>FEB</span>
-            <span>MAR</span>
-            <span>APR</span>
-            <span>MAY</span>
-            <span>JUN</span>
+            {dashboard.revenueSeries.map((point) => (
+              <span key={`${point.monthStart}-${point.label}`}>{point.label.toUpperCase()}</span>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="space-y-6 mt-12">
-        <h2 className="text-h3 font-h3 text-primary">Earnings &amp; Legal</h2>
+        <h2 className="text-h3 font-h3 text-primary">{t("dashboard.owner.earningsAndLegal")}</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/30 flex flex-col justify-between">
+          <div className="bg-surface-container-low p-6 sm:p-8 rounded-lg border border-outline-variant/30 flex flex-col justify-between">
             <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
               Pending Payouts
             </span>
             <div className="mt-2">
               <span className="text-h2 font-h2 text-primary">
-                {formatCurrency(ownerInvoices.summary.openAmount, "EUR")}
+                {formatCurrency(dashboard.pendingPayoutAmount, "EUR")}
               </span>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
-                Scheduled for release on Jun 25
+                Scheduled for release on{" "}
+                {new Date(dashboard.pendingPayoutReleaseDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
               </p>
             </div>
           </div>
 
-          <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/30 flex flex-col justify-between relative">
+          <div className="bg-surface-container-low p-6 sm:p-8 rounded-lg border border-outline-variant/30 flex flex-col justify-between relative">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-            <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-              Unsigned Contracts
-            </span>
+              <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
+                Unsigned Contracts
+              </span>
               <span className="bg-error text-on-error text-[10px] px-2 py-0.5 rounded-full font-bold w-fit">
                 ACTION REQUIRED
               </span>
             </div>
             <div className="mt-2">
               <span className="text-h2 font-h2 text-primary">
-                {unsignedContracts.length}
+                {dashboard.unsignedContractsCount}
               </span>
               <p className="text-body-sm font-body-sm text-error">
                 Review required for generated contracts
@@ -209,19 +216,19 @@ export default async function OwnerDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-error-container/20 border border-error/20 p-4 rounded-lg flex items-center gap-4">
+        <div className="bg-error-container/20 border border-error/20 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <span className="material-symbols-outlined text-error">error</span>
           <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
             <p className="text-body-sm font-medium text-on-error-container">
-              You have {pendingBookings.length} booking request
-              {pendingBookings.length === 1 ? "" : "s"} waiting for approval
+              You have {dashboard.tenantActivityCount} booking request
+              {dashboard.tenantActivityCount === 1 ? "" : "s"} waiting for approval
             </p>
-            <button
+            <a
               className="text-body-sm font-bold text-error underline underline-offset-4 text-left md:text-right"
-              type="button"
+              href="#recent-bookings"
             >
               Review Requests
-            </button>
+            </a>
           </div>
         </div>
 
@@ -257,34 +264,17 @@ export default async function OwnerDashboardPage() {
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${getInvoiceStatusClass(invoice.status)}`}
                         >
-                          {getInvoiceStatusLabel(invoice.status)}
+                          {getInvoiceStatusLabel(invoice.status, locale)}
                         </span>
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <>
-                    <tr>
-                      <td className="px-6 py-4">#INV-2024-081</td>
-                      <td className="px-6 py-4">West Chelsea Studio</td>
-                      <td className="px-6 py-4 font-bold">$1,850.00</td>
-                      <td className="px-6 py-4 text-secondary">Paid</td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4">#INV-2024-080</td>
-                      <td className="px-6 py-4">Tribeca Vault</td>
-                      <td className="px-6 py-4 font-bold">$2,430.00</td>
-                      <td className="px-6 py-4 text-secondary">Paid</td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4">#INV-2024-079</td>
-                      <td className="px-6 py-4">Midtown Locker</td>
-                      <td className="px-6 py-4 font-bold">$920.00</td>
-                      <td className="px-6 py-4 text-on-surface-variant">
-                        Processing
-                      </td>
-                    </tr>
-                  </>
+                  <tr>
+                    <td className="px-6 py-10 text-center text-on-surface-variant" colSpan={4}>
+                      No invoices found yet.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -314,8 +304,8 @@ export default async function OwnerDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {ownerListings.length ? (
-              ownerListings.map((listing) => (
+            {dashboard.ownerListings.length ? (
+              dashboard.ownerListings.map((listing) => (
                 <article
                   className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 hover:shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all"
                   key={listing.id}
@@ -324,27 +314,22 @@ export default async function OwnerDashboardPage() {
                     <img
                       alt={listing.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      src={
-                        listing.imageUrl ??
-                        "https://lh3.googleusercontent.com/aida-public/AB6AXuBhnrtJ57vRKyPKnJ6oLkdjsp6Tu_-Fac1QsViHGr7BL6TzplQO6joQiIK7i_sLWQSwaZd6_KgaVuGSRKCA2skyJamejpIc0EDOc-xg4MnGTmLLWyE6NyxzzqD-8qs2GWXwxtCMcHgzlpaiQqMyvrzreOdFHzZONt0V9jFDrjbaGDwYkskZxVm5b0NwhnYVSwMuH6I-mw1q9wlBzTk692BeCH5m0XHr2boBicvEchpnen5GA-VpZczZoeiGnjVfO9YBDilppi3Z2M8"
-                      }
+                      src={listing.imageUrl ?? "/placeholder-listing.svg"}
                     />
                     <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
                       {listing.status}
                     </span>
                   </div>
 
-                  <div className="p-6 space-y-4">
+                  <div className="p-5 sm:p-6 space-y-4">
                     <div>
-                      <h3 className="text-h3 font-h3 text-primary">
-                        {listing.title}
-                      </h3>
+                      <h3 className="text-h3 font-h3 text-primary">{listing.title}</h3>
                       <p className="text-body-sm font-body-sm text-on-surface-variant">
                         {listing.storageType} • {listing.sizeSqFt ?? 0} sq ft
                       </p>
                     </div>
 
-                    <div className="flex justify-between items-end border-t border-outline-variant/10 pt-4 gap-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-t border-outline-variant/10 pt-4 gap-4">
                       <div className="flex flex-col">
                         <span className="text-label-caps font-label-caps text-on-surface-variant">
                           MONTHLY REVENUE
@@ -374,22 +359,22 @@ export default async function OwnerDashboardPage() {
           </div>
         </div>
 
-        <aside className="space-y-6">
+        <aside className="space-y-6" id="recent-bookings">
           <h2 className="text-h2 font-h2 text-primary">Recent Activity</h2>
 
           <div className="bg-surface-container-low rounded-lg p-6 space-y-6 border border-outline-variant/30">
-            {ownerBookings.length ? (
-              ownerBookings.slice(0, 4).map((booking, index) => (
+            {recentActivity.length ? (
+              recentActivity.map((booking) => (
                 <div className="flex gap-4 items-start" key={booking.id}>
                   <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
                     <span className="material-symbols-outlined text-on-secondary-fixed text-md">
-                      {index === 0 ? "event_available" : index === 1 ? "mail" : index === 2 ? "payments" : "reviews"}
+                      {getActivityIcon(booking.status)}
                     </span>
                   </div>
                   <div className="space-y-1">
                     <p className="text-body-sm font-body-sm text-on-surface">
-                      <span className="font-bold">{booking.renter.fullName}</span>{" "}
-                      requested <span className="font-bold">{booking.listing.title}</span>
+                      <span className="font-bold">{booking.renter.fullName}</span> requested{" "}
+                      <span className="font-bold">{booking.listing.title}</span>
                     </p>
                     <p className="text-label-caps font-label-caps text-on-surface-variant">
                       {booking.status} •{" "}
@@ -398,87 +383,15 @@ export default async function OwnerDashboardPage() {
                         day: "numeric",
                       })}
                     </p>
+                    <OwnerBookingActions bookingId={booking.id} status={booking.status} />
                   </div>
                 </div>
               ))
             ) : (
-              <>
-                <div className="flex gap-4 items-start">
-                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-on-secondary-fixed text-md">
-                      event_available
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-body-sm font-body-sm text-on-surface">
-                      <span className="font-bold">Sarah M.</span> booked{" "}
-                      <span className="font-bold">West Chelsea Studio</span>
-                    </p>
-                    <p className="text-label-caps font-label-caps text-on-surface-variant">
-                      2 HOURS AGO
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 items-start">
-                  <div className="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-on-tertiary-fixed text-md">
-                      mail
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-body-sm font-body-sm text-on-surface">
-                      Message from <span className="font-bold">David K.</span>{" "}
-                      regarding Tribeca accessibility
-                    </p>
-                    <p className="text-label-caps font-label-caps text-on-surface-variant">
-                      5 HOURS AGO
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 items-start">
-                  <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-on-primary-fixed text-md">
-                      payments
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-body-sm font-body-sm text-on-surface">
-                      Payout of <span className="font-bold">$1,250</span> initiated
-                      to bank account
-                    </p>
-                    <p className="text-label-caps font-label-caps text-on-surface-variant">
-                      YESTERDAY
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 items-start">
-                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-on-secondary-fixed text-md">
-                      reviews
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-body-sm font-body-sm text-on-surface">
-                      <span className="font-bold">Leo T.</span> left a 5-star review
-                      for Midtown Locker
-                    </p>
-                    <p className="text-label-caps font-label-caps text-on-surface-variant">
-                      2 DAYS AGO
-                    </p>
-                  </div>
-                </div>
-              </>
+              <div className="rounded-lg border border-outline-variant/20 bg-white p-4 text-body-sm text-on-surface-variant">
+                No recent activity yet.
+              </div>
             )}
-
-            <button
-              className="w-full text-center py-2 border border-outline-variant/30 rounded-full text-body-sm font-medium text-primary hover:bg-surface-container transition-colors"
-              type="button"
-            >
-              View All Activity
-            </button>
           </div>
         </aside>
       </section>

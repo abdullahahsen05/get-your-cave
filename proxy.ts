@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { prisma } from "@/lib/prisma";
 import { getAuthCookieName, getDashboardPath, verifySessionToken } from "@/lib/auth";
 
 const protectedRoutes = [
@@ -38,6 +39,50 @@ function getLoginRedirect(request: NextRequest) {
   return url;
 }
 
+async function getSessionUser(payload: Awaited<ReturnType<typeof verifySessionToken>>) {
+  if (!payload) {
+    return null;
+  }
+
+  return prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: {
+      id: true,
+      role: true,
+      status: true,
+      ownerProfile: { select: { id: true } },
+      renterProfile: { select: { id: true } },
+    },
+  });
+}
+
+function hasRouteProfileAccess(
+  role: "ADMIN" | "OWNER" | "RENTER",
+  user: {
+    ownerProfile?: { id: string } | null;
+    renterProfile?: { id: string } | null;
+    status: string;
+  } | null,
+) {
+  if (!user) {
+    return false;
+  }
+
+  if (user.status !== "ACTIVE") {
+    return false;
+  }
+
+  if (role === "OWNER") {
+    return Boolean(user.ownerProfile);
+  }
+
+  if (role === "RENTER") {
+    return Boolean(user.renterProfile);
+  }
+
+  return true;
+}
+
 function getRouteRoleRequirement(pathname: string) {
   if (pathname.startsWith("/owner") || pathname === "/create-listing") {
     return "OWNER" as const;
@@ -65,32 +110,27 @@ function getRouteRoleRequirement(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get(getAuthCookieName())?.value;
+  const payload = token ? await verifySessionToken(token) : null;
+  const sessionUser = payload ? await getSessionUser(payload) : null;
 
   if (isAuthPath(pathname)) {
-    const token = request.cookies.get(getAuthCookieName())?.value;
-    if (!token) {
+    if (!payload || !sessionUser) {
       return NextResponse.next();
     }
 
-    const payload = await verifySessionToken(token);
-    if (!payload) {
+    if (!hasRouteProfileAccess(sessionUser.role, sessionUser)) {
       return NextResponse.next();
     }
 
-    return NextResponse.redirect(new URL(getDashboardPath(payload.role), request.url));
+    return NextResponse.redirect(new URL(getDashboardPath(sessionUser.role), request.url));
   }
 
   if (!isProtectedPath(pathname)) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get(getAuthCookieName())?.value;
-  if (!token) {
-    return NextResponse.redirect(getLoginRedirect(request));
-  }
-
-  const payload = await verifySessionToken(token);
-  if (!payload) {
+  if (!payload || !sessionUser) {
     return NextResponse.redirect(getLoginRedirect(request));
   }
 
@@ -99,12 +139,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (requirement && payload.role !== requirement) {
-    return NextResponse.redirect(new URL(getDashboardPath(payload.role), request.url));
+  if (requirement && sessionUser.role !== requirement) {
+    return NextResponse.redirect(new URL(getDashboardPath(sessionUser.role), request.url));
   }
 
-  if (pathname === "/login" || pathname === "/signup") {
-    return NextResponse.redirect(new URL(getDashboardPath(payload.role), request.url));
+  if (!hasRouteProfileAccess(sessionUser.role, sessionUser)) {
+    return NextResponse.redirect(getLoginRedirect(request));
   }
 
   return NextResponse.next();

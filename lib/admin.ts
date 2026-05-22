@@ -24,9 +24,8 @@ import type {
   AdminActivityRow,
   AdminDashboardResponse,
   AdminMarketInsight,
-  AdminRevenuePoint,
 } from "@/lib/admin-shared";
-import { verificationDocumentTypeLabels } from "@/lib/verification-types";
+import { getVerificationDocumentTypeLabel } from "@/lib/verification-types";
 
 const ACTIVITY_TYPE_CLASS: Record<string, string> = {
   User: "bg-[#4b6547]/10 text-[#516b4d]",
@@ -648,7 +647,7 @@ async function synthesizeActivityFeed() {
       createdAt: document.createdAt,
       row: makeActivityRow({
         id: document.id,
-        name: document.fileName ?? verificationDocumentTypeLabels[document.type],
+        name: document.fileName ?? getVerificationDocumentTypeLabel(document.type),
         entityId: document.id,
         entityType: AdminEntityType.VERIFICATION_DOCUMENT,
         status:
