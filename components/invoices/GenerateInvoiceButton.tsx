@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   bookingId: string;
@@ -11,12 +12,14 @@ type Props = {
 
 export default function GenerateInvoiceButton({
   bookingId,
-  label = "Generate Invoice",
+  label,
   className = "",
 }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const resolvedLabel = label ?? t("invoices.generateInvoice");
 
   async function handleGenerate() {
     setLoading(true);
@@ -37,7 +40,7 @@ export default function GenerateInvoiceButton({
         | null;
 
       if (!response.ok) {
-        setError((payload && "error" in payload && payload.error) || "Unable to generate invoice.");
+        setError(t("errors.unableToGenerateInvoice"));
         return;
       }
 
@@ -64,7 +67,7 @@ export default function GenerateInvoiceButton({
         <span className="material-symbols-outlined text-sm">
           {loading ? "progress_activity" : "receipt_long"}
         </span>
-        {loading ? "Generating..." : label}
+        {loading ? t("common.loading") : resolvedLabel}
       </button>
       {error ? (
         <p className="text-body-sm font-body-sm text-error">{error}</p>

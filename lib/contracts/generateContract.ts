@@ -20,6 +20,7 @@ import {
   CONTRACT_TYPE_LABELS,
   inferContractTypeFromBooking,
 } from "@/lib/contracts/contractTypes";
+import { defaultLocale, type Locale } from "@/lib/i18n";
 
 const contractBookingInclude = {
   listing: {
@@ -190,6 +191,7 @@ function ensureDocxFileName(fileName: string) {
 function renderTemplateToBuffer(
   templateBuffer: Buffer,
   placeholders: ContractPlaceholderData,
+  locale: Locale,
 ) {
   const zip = new PizZip(templateBuffer);
   const doc = new Docxtemplater(zip, {
@@ -206,12 +208,14 @@ function renderTemplateToBuffer(
     throw new Error(`Unable to render contract template: ${details}`);
   }
 
-  return Buffer.from(
+  const rendered = Buffer.from(
     doc.getZip().generate({
       type: "nodebuffer",
       compression: "DEFLATE",
     }),
   );
+
+  return rendered;
 }
 
 async function getOrCreateTemplate(contractType: ContractType) {
@@ -322,16 +326,19 @@ async function writeGeneratedContractFile(
   filePath: string,
   templateBuffer: Buffer,
   placeholders: ContractPlaceholderData,
+  locale: Locale,
 ) {
-  const outputBuffer = renderTemplateToBuffer(templateBuffer, placeholders);
+  const outputBuffer = renderTemplateToBuffer(templateBuffer, placeholders, locale);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, outputBuffer);
   return outputBuffer.length;
 }
 
-export async function generateContractForBooking(params: {
+export async function renderContractDocumentForBooking(params: {
   bookingId: string;
   contractTypeOverride?: ContractType;
+  contractNumberOverride?: string;
+  locale?: Locale;
 }) {
   await ensureContractDirectories();
 
@@ -340,8 +347,76 @@ export async function generateContractForBooking(params: {
     return null;
   }
 
+  const locale = params.locale ?? defaultLocale;
   const contractType =
     params.contractTypeOverride ?? inferContractTypeFromBooking(booking.durationMonths);
+  const template = await getOrCreateTemplate(contractType);
+  const templateBuffer = await loadTemplateBuffer(template);
+  const contractNumber = params.contractNumberOverride ?? buildContractNumber(booking.bookingNumber);
+  const placeholders = buildContractPlaceholderData({
+    booking,
+    contractNumber,
+    contractType,
+    locale,
+  });
+
+  const buffer = renderTemplateToBuffer(templateBuffer, placeholders, locale);
+
+  return {
+    buffer,
+    fileSizeBytes: buffer.length,
+    generatedAt: new Date(),
+    contractType,
+    contractNumber,
+    placeholders,
+  };
+}
+
+export async function generateContractForBooking(params: {
+  bookingId: string;
+  contractTypeOverride?: ContractType;
+  locale?: Locale;
+}) {
+  await ensureContractDirectories();
+
+  const booking = await loadContractBooking(params.bookingId);
+  if (!booking) {
+    return null;
+  }
+
+  const existingRecord = await prisma.generatedContract.findUnique({
+    where: {
+      bookingId: booking.id,
+    },
+    include: contractRecordInclude,
+  });
+
+  if (existingRecord) {
+    const resolvedExistingPath = resolveSafeDocsPath(
+      process.cwd(),
+      existingRecord.generatedFilePath,
+    );
+
+    let fileSizeBytes = 0;
+    if (resolvedExistingPath) {
+      try {
+        const stats = await fs.stat(resolvedExistingPath);
+        fileSizeBytes = stats.size;
+      } catch {
+        fileSizeBytes = 0;
+      }
+    }
+
+    return {
+      contract: toSafeContract(existingRecord),
+      fileSizeBytes,
+      generatedAt: existingRecord.generatedAt,
+    };
+  }
+
+  const contractType =
+    params.contractTypeOverride ?? inferContractTypeFromBooking(booking.durationMonths);
+  const locale = params.locale ?? defaultLocale;
   const template = await getOrCreateTemplate(contractType);
   const templateBuffer = await loadTemplateBuffer(template);
   const contractNumber = buildContractNumber(booking.bookingNumber);
@@ -356,12 +431,14 @@ export async function generateContractForBooking(params: {
     booking,
     contractNumber,
     contractType,
+    locale,
   });
 
   const fileSizeBytes = await writeGeneratedContractFile(
     generatedFilePath,
     templateBuffer,
     placeholders,
+    locale,
   );
 
   try {

@@ -8,12 +8,15 @@ type RenterBooking = Awaited<ReturnType<typeof getRenterBookings>>[number];
 export type RenterDashboardSnapshot = {
   renterBookings: RenterBooking[];
   activeBookings: RenterBooking[];
+  pendingBookings: RenterBooking[];
+  rejectedBookings: RenterBooking[];
   pastBookings: RenterBooking[];
   pendingBookingsCount: number;
   totalPaidAmount: string;
   outstandingAmount: string;
   lastPaymentDate: string | null;
   nextPaymentDate: string | null;
+  paymentRequiredInvoice: SafeInvoice | null;
   recentInvoices: SafeInvoice[];
 };
 
@@ -56,14 +59,18 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
     (booking) =>
       booking.status === BookingStatus.APPROVED || booking.status === BookingStatus.ACTIVE,
   );
+  const pendingBookings = renterBookings.filter(
+    (booking) => booking.status === BookingStatus.PENDING,
+  );
+  const rejectedBookings = renterBookings.filter(
+    (booking) => booking.status === BookingStatus.REJECTED,
+  );
   const pastBookings = renterBookings.filter(
     (booking) =>
       booking.status === BookingStatus.COMPLETED ||
       booking.status === BookingStatus.CANCELLED,
   );
-  const pendingBookingsCount = renterBookings.filter(
-    (booking) => booking.status === BookingStatus.PENDING,
-  ).length;
+  const pendingBookingsCount = pendingBookings.length;
 
   const invoiceRows = invoicesResult.invoices.slice(0, 3);
   const paidInvoices = invoicesResult.invoices.filter((invoice) => invoice.status === "PAID");
@@ -72,7 +79,7 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
   );
 
   const latestPaidInvoice = paidInvoices[0] ?? null;
-  const nextOutstandingInvoice = openInvoices
+  const paymentRequiredInvoice = openInvoices
     .slice()
     .sort((a, b) => {
       const dateA = new Date(a.dueAt ?? a.issuedAt ?? a.createdAt).getTime();
@@ -80,8 +87,12 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
       return dateA - dateB;
     })[0] ?? null;
 
-  const nextPaymentDate = nextOutstandingInvoice
-    ? new Date(nextOutstandingInvoice.dueAt ?? nextOutstandingInvoice.issuedAt ?? nextOutstandingInvoice.createdAt)
+  const nextPaymentDate = paymentRequiredInvoice
+    ? new Date(
+        paymentRequiredInvoice.dueAt ??
+          paymentRequiredInvoice.issuedAt ??
+          paymentRequiredInvoice.createdAt,
+      )
     : activeBookings[0]
       ? addMonths(new Date(activeBookings[0].startDate), 1)
       : null;
@@ -89,6 +100,8 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
   return {
     renterBookings,
     activeBookings,
+    pendingBookings,
+    rejectedBookings,
     pastBookings,
     pendingBookingsCount,
     totalPaidAmount: invoicesResult.summary.paidAmount,
@@ -97,6 +110,7 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
       ? latestPaidInvoice.paidAt ?? latestPaidInvoice.issuedAt ?? latestPaidInvoice.createdAt
       : null,
     nextPaymentDate: nextPaymentDate?.toISOString() ?? null,
+    paymentRequiredInvoice,
     recentInvoices: invoiceRows,
   };
 }

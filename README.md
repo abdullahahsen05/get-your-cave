@@ -83,6 +83,12 @@ npm run db:seed-demo
 npm run dev
 ```
 
+If you only want the admin account and a cleared database for moderation testing, run:
+
+```bash
+npm run db:seed-admin
+```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Required environment variables
@@ -108,6 +114,12 @@ All demo accounts use the password `Password123!`.
 - Owner: `owner2@getyourcave.com`
 - Renter: `renter1@getyourcave.com`
 - Renter: `renter2@getyourcave.com`
+
+## Seeding commands
+
+- `npm run db:seed-demo` clears the database and seeds the full demo dataset
+- `npm run db:seed-admin` clears the database and seeds only the admin account
+- `npm run db:reset -- --yes` clears all public tables without creating demo data
 
 ## Demo data included
 
@@ -143,4 +155,3 @@ The demo seed creates realistic data for manual testing:
 - Stripe payments are confirmed through webhooks, not the checkout redirect.
 - Translation defaults to English and persists across refreshes.
 - The UI is intentionally styled as a premium, editorial storage marketplace.
-

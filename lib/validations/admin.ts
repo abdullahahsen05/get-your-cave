@@ -45,6 +45,12 @@ export const adminListingModerationSchema = z.object({
   reason: z.string().trim().max(500).optional(),
 });
 
+export const adminListingModerationActionSchema = z.object({
+  id: z.string().trim().min(1),
+  action: z.enum(["approve", "reject"]),
+  reason: z.string().trim().max(500).optional(),
+});
+
 export const adminVerificationModerationSchema = z.object({
   rejectionReason: z.string().trim().max(500).optional(),
   reason: z.string().trim().max(500).optional(),

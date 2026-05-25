@@ -42,6 +42,7 @@ export default async function ContractsRoutePage() {
         <ContractsWorkspace
           canGenerate={currentUser.role === "OWNER" || currentUser.role === "ADMIN"}
           initialContracts={contracts}
+          isAdmin={currentUser.role === "ADMIN"}
         />
       ) : (
         <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-8 text-on-surface-variant">

@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "cross-env NODE_ENV=production tsx server.ts",
     "lint": "eslint",
+    "db:sanity": "tsx scripts/db-sanity-check.ts",
     "db:reset": "node scripts/reset-database.js",
-    "db:seed-demo": "tsx prisma/seed-demo.ts"
+    "db:seed-demo": "tsx prisma/seed-demo.ts",
+    "db:seed-admin": "node prisma/seed-admin.js --yes"
   },
   "prisma": {
     "seed": "tsx prisma/seed-demo.ts"

@@ -10,6 +10,7 @@ import { normalizeLocale } from "@/lib/i18n";
 type ContractsWorkspaceProps = {
   initialContracts: SafeGeneratedContract[];
   canGenerate: boolean;
+  isAdmin: boolean;
 };
 
 function formatDate(value: string, locale: string) {
@@ -20,15 +21,19 @@ function formatDate(value: string, locale: string) {
   });
 }
 
-function formatCurrency(value: string) {
+function formatCurrency(value: string, locale: string) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) {
-    return "$0";
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(0);
   }
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
+    currency: "EUR",
     maximumFractionDigits: 0,
   }).format(amount);
 }
@@ -62,12 +67,19 @@ function getTypeStyles(contractType: SafeGeneratedContract["contractType"]) {
   }
 }
 
+function getBookingStatusLabel(status: string, t: (key: string) => string) {
+  const translated = t(`status.booking.${status}`);
+  return translated === `status.booking.${status}` ? status : translated;
+}
+
 export function ContractsWorkspace({
   initialContracts,
   canGenerate,
+  isAdmin,
 }: ContractsWorkspaceProps) {
   const { t, i18n } = useTranslation();
   const locale = normalizeLocale(i18n.language);
+  const downloadHref = (contractId: string) => `/api/contracts/${contractId}/download`;
   const [filter, setFilter] = useState<"all" | "generated" | "sent" | "signed" | "cancelled">("all");
   const [sort, setSort] = useState<"newest" | "oldest" | "amount">("newest");
   const [selectedContractId, setSelectedContractId] = useState(
@@ -124,16 +136,16 @@ export function ContractsWorkspace({
     setBusyId(contract.id);
     setNotice(null);
 
-    try {
-      const response = await fetch("/api/contracts/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bookingId: contract.bookingId,
-        }),
-      });
+      try {
+        const response = await fetch("/api/contracts/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bookingId: contract.bookingId,
+          }),
+        });
 
       const payload = (await response.json()) as {
         contract?: SafeGeneratedContract;
@@ -141,7 +153,7 @@ export function ContractsWorkspace({
       };
 
       if (!response.ok || !payload.contract) {
-        throw new Error(payload.error ?? "Unable to generate contract.");
+        throw new Error(payload.error ?? t("contracts.unableToGenerate"));
       }
 
       setContracts((current) => {
@@ -152,9 +164,9 @@ export function ContractsWorkspace({
         return next;
       });
       setSelectedContractId(payload.contract.id);
-      setNotice("Contract generated successfully.");
+      setNotice(t("contracts.generatedSuccess"));
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Unable to generate contract.");
+      setNotice(error instanceof Error ? error.message : t("contracts.unableToGenerate"));
     } finally {
       setBusyId(null);
     }
@@ -175,7 +187,9 @@ export function ContractsWorkspace({
                 setFilter(event.target.value as "all" | "generated" | "sent" | "signed" | "cancelled")
               }
             >
-              <option value="all">{t("contracts.allStatuses")}</option>
+              <option value="all">
+                {isAdmin ? t("contracts.allContracts") : t("contracts.allStatuses")}
+              </option>
               <option value="generated">{t("contracts.statusGenerated")}</option>
               <option value="sent">{t("contracts.statusSent")}</option>
               <option value="signed">{t("contracts.statusSigned")}</option>
@@ -199,6 +213,12 @@ export function ContractsWorkspace({
           </div>
         </div>
 
+        {isAdmin ? (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-body-sm text-primary">
+            {t("contracts.adminAllContractsNote")}
+          </div>
+        ) : null}
+
         <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/30 overflow-x-auto shadow-[0_4px_20px_rgba(15,61,62,0.02)]">
           <table className="w-full min-w-[780px] text-left border-collapse">
             <thead className="bg-surface-container-low">
@@ -216,7 +236,7 @@ export function ContractsWorkspace({
                   {t("contracts.date")}
                 </th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30 text-right">
-                  Actions
+                  {t("contracts.actions")}
                 </th>
               </tr>
             </thead>
@@ -242,7 +262,7 @@ export function ContractsWorkspace({
                           {contract.listingTitle}
                         </div>
                         <div className="font-body-sm text-body-sm text-on-surface-variant">
-                          Booking: {contract.bookingNumber}
+                          {t("contracts.bookingNumber", { number: contract.bookingNumber })}
                         </div>
                       </button>
                     </td>
@@ -313,7 +333,7 @@ export function ContractsWorkspace({
             {selectedContract ? (
               <a
                 className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors"
-                href={`/api/contracts/${selectedContract.id}/download`}
+                href={downloadHref(selectedContract.id)}
                 aria-label={t("contracts.download")}
                 download={selectedContract.generatedFileName}
               >
@@ -346,13 +366,13 @@ export function ContractsWorkspace({
                   <div className="text-left">
                     <p className="text-xs text-on-surface-variant">{t("contracts.monthly")}</p>
                     <p className="text-sm font-semibold text-primary">
-                      {formatCurrency(selectedContract.monthlyPrice)}
+                      {formatCurrency(selectedContract.monthlyPrice, locale)}
                     </p>
                   </div>
                   <div className="text-left">
                     <p className="text-xs text-on-surface-variant">{t("contracts.deposit")}</p>
                     <p className="text-sm font-semibold text-primary">
-                      {formatCurrency(selectedContract.depositAmount)}
+                      {formatCurrency(selectedContract.depositAmount, locale)}
                     </p>
                   </div>
                 </div>
@@ -383,7 +403,7 @@ export function ContractsWorkspace({
                 className={`flex-1 bg-primary-container text-on-primary py-3 rounded-full text-sm font-bold text-center ${selectedContract ? "" : "opacity-50 pointer-events-none"}`}
                 href={
                   selectedContract
-                    ? `/api/contracts/${selectedContract.id}/download`
+                    ? downloadHref(selectedContract.id)
                     : "#"
                 }
                 download={selectedContract?.generatedFileName}
@@ -470,7 +490,7 @@ export function ContractsWorkspace({
                         {t("contracts.bookingReady")}
                       </p>
                       <p className="font-body-sm text-on-surface-variant text-xs mt-1">
-                        {selectedContract.bookingStatus}
+                        {getBookingStatusLabel(selectedContract.bookingStatus, t)}
                       </p>
                     </div>
                   </div>

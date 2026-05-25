@@ -238,6 +238,7 @@ export async function getAdminDashboardData(range: "7d" | "30d" | "90d" | "12m" 
     monthlyRevenueAggregate,
     paidPaymentsCount,
     failedPaymentsCount,
+    refundedPaymentsCount,
     totalInvoices,
     outstandingInvoices,
     signedContracts,
@@ -281,6 +282,7 @@ export async function getAdminDashboardData(range: "7d" | "30d" | "90d" | "12m" 
     }),
     prisma.payment.count({ where: { status: PaymentStatus.PAID } }),
     prisma.payment.count({ where: { status: PaymentStatus.FAILED } }),
+    prisma.payment.count({ where: { status: PaymentStatus.REFUNDED } }),
     prisma.invoice.count(),
     prisma.invoice.count({
       where: { status: { in: [InvoiceStatus.ISSUED, InvoiceStatus.OVERDUE] } },
@@ -320,6 +322,7 @@ export async function getAdminDashboardData(range: "7d" | "30d" | "90d" | "12m" 
     monthlyRevenue: toCurrencyString(monthlyRevenueAggregate._sum.amount),
     paidPaymentsCount,
     failedPaymentsCount,
+    refundedPaymentsCount,
     totalInvoices,
     outstandingInvoices,
     signedContracts,
@@ -359,7 +362,7 @@ export async function getRevenueAnalytics(range: "7d" | "30d" | "90d" | "12m" = 
     }
   }
 
-  const [totalRevenueAggregate, monthlyRevenueAggregate, paidPaymentsCount, failedPaymentsCount, outstandingInvoices] =
+  const [totalRevenueAggregate, monthlyRevenueAggregate, paidPaymentsCount, failedPaymentsCount, refundedPaymentsCount, outstandingInvoices] =
     await Promise.all([
       prisma.payment.aggregate({
         _sum: { amount: true },
@@ -377,6 +380,7 @@ export async function getRevenueAnalytics(range: "7d" | "30d" | "90d" | "12m" = 
       }),
       prisma.payment.count({ where: { status: PaymentStatus.PAID } }),
       prisma.payment.count({ where: { status: PaymentStatus.FAILED } }),
+      prisma.payment.count({ where: { status: PaymentStatus.REFUNDED } }),
       prisma.invoice.count({
         where: { status: { in: [InvoiceStatus.ISSUED, InvoiceStatus.OVERDUE] } },
       }),
@@ -393,9 +397,11 @@ export async function getRevenueAnalytics(range: "7d" | "30d" | "90d" | "12m" = 
     monthlyRevenue: toCurrencyString(monthlyRevenueAggregate._sum.amount),
     paidPayments: paidPaymentsCount,
     failedPayments: failedPaymentsCount,
+    refundedPayments: refundedPaymentsCount,
     outstandingInvoices,
     paidPaymentsCount,
     failedPaymentsCount,
+    refundedPaymentsCount,
   };
 }
 

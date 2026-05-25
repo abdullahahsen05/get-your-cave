@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   bookingId: string;
@@ -16,13 +17,15 @@ export default function RenterBookingActions({
   bookingId,
   listingId,
   status,
-  manageLabel = "Manage Unit",
+  manageLabel,
   receiptHref,
 }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canCancel = status === "PENDING" || status === "APPROVED" || status === "ACTIVE";
+  const resolvedManageLabel = manageLabel ?? t("dashboard.renter.manageUnit");
 
   async function handleCancel() {
     setIsCancelling(true);
@@ -41,13 +44,13 @@ export default function RenterBookingActions({
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
 
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Unable to cancel booking.");
+        throw new Error(t("errors.unableToCancelBooking"));
       }
 
       router.refresh();
     } catch (cancelError) {
       setError(
-        cancelError instanceof Error ? cancelError.message : "Unable to cancel booking.",
+        cancelError instanceof Error ? cancelError.message : t("errors.unableToCancelBooking"),
       );
     } finally {
       setIsCancelling(false);
@@ -60,7 +63,7 @@ export default function RenterBookingActions({
         className="flex-1 min-w-[160px] bg-primary-container text-on-primary py-3 rounded-full text-sm font-bold hover:opacity-95 transition-opacity text-center"
         href={`/storage/${listingId}`}
       >
-        {manageLabel}
+        {resolvedManageLabel}
       </Link>
 
       {receiptHref ? (
@@ -68,7 +71,7 @@ export default function RenterBookingActions({
           className="flex-1 min-w-[160px] text-primary-container font-bold hover:underline underline-offset-4 text-sm py-3 text-center"
           href={receiptHref}
         >
-          Download Receipt
+          {t("dashboard.renter.downloadReceipt")}
         </Link>
       ) : null}
 
@@ -81,7 +84,7 @@ export default function RenterBookingActions({
             void handleCancel();
           }}
         >
-          {isCancelling ? "Cancelling..." : "Cancel Booking"}
+          {isCancelling ? t("common.loading") : t("dashboard.renter.cancelBooking")}
         </button>
       ) : null}
 

@@ -19,6 +19,7 @@ type OwnerBooking = Awaited<ReturnType<typeof getOwnerBookings>>[number];
 export type OwnerDashboardSnapshot = {
   ownerListings: OwnerListing[];
   ownerBookings: OwnerBooking[];
+  pendingBookings: OwnerBooking[];
   recentInvoices: SafeInvoice[];
   totalEarnings: string;
   earningsGrowthPercent: number;
@@ -121,6 +122,7 @@ export async function getOwnerDashboardSnapshot(ownerProfileId: string) {
   return {
     ownerListings,
     ownerBookings,
+    pendingBookings,
     recentInvoices: invoicesResult.invoices.slice(0, 3),
     totalEarnings: formatMoneyAmount(new Prisma.Decimal(totalEarnings)),
     earningsGrowthPercent: getRevenueGrowthPercentage(revenueSeries),
@@ -134,4 +136,3 @@ export async function getOwnerDashboardSnapshot(ownerProfileId: string) {
     revenueAreaPath: revenuePaths.areaPath,
   };
 }
-

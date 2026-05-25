@@ -116,6 +116,32 @@ async function cleanupDemoGeneratedFiles() {
   );
 }
 
+async function resetDemoDatabase() {
+  const tables = await prisma.$queryRaw<Array<{ tablename: string }>>`
+    SELECT tablename
+    FROM pg_tables
+    WHERE schemaname = 'public'
+      AND tablename NOT IN ('_prisma_migrations', 'prisma_migrations')
+    ORDER BY tablename ASC
+  `;
+
+  if (!tables.length) {
+    console.log("No public tables found to reset.");
+    return;
+  }
+
+  const tableNames = tables.map((table) => `"${table.tablename.replace(/"/g, '""')}"`);
+  const statement = `TRUNCATE TABLE ${tableNames.join(", ")} RESTART IDENTITY CASCADE;`;
+
+  await prisma.$executeRawUnsafe(statement);
+
+  console.log(
+    `Reset complete. Cleared ${tables.length} table${tables.length === 1 ? "" : "s"}: ${tables
+      .map((table) => table.tablename)
+      .join(", ")}`,
+  );
+}
+
 async function seedUsers() {
   await prisma.user.deleteMany({
     where: {
@@ -1614,6 +1640,7 @@ async function main() {
     throw new Error("DATABASE_URL is required.");
   }
 
+  await resetDemoDatabase();
   await ensureDemoGeneratedFolder();
   await cleanupDemoGeneratedFiles();
 

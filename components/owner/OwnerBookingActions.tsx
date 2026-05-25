@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   bookingId: string;
@@ -10,7 +11,9 @@ type Props = {
 
 export default function OwnerBookingActions({ bookingId, status }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [busyStatus, setBusyStatus] = useState<"APPROVED" | "REJECTED" | null>(null);
+  const [isMessaging, setIsMessaging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (status !== "PENDING") {
@@ -34,30 +37,72 @@ export default function OwnerBookingActions({ bookingId, status }: Props) {
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
 
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Unable to update booking.");
+        throw new Error(t("errors.unableToUpdateBooking"));
       }
 
       router.refresh();
     } catch (updateError) {
       setError(
-        updateError instanceof Error ? updateError.message : "Unable to update booking.",
+        updateError instanceof Error ? updateError.message : t("errors.unableToUpdateBooking"),
       );
     } finally {
       setBusyStatus(null);
     }
   }
 
+  async function handleMessageRenter() {
+    setIsMessaging(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/messages/conversations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { conversation?: { id: string }; error?: string }
+        | null;
+
+      if (!response.ok || !payload?.conversation?.id) {
+        throw new Error(t("errors.unableToOpenMessaging"));
+      }
+
+      router.push(`/messaging?conversation=${payload.conversation.id}`);
+    } catch (messageError) {
+      setError(
+        messageError instanceof Error ? messageError.message : t("errors.unableToOpenMessaging"),
+      );
+    } finally {
+      setIsMessaging(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-2 pt-2">
       <button
+        className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
+        disabled={busyStatus !== null || isMessaging}
+        type="button"
+        onClick={() => {
+          void handleMessageRenter();
+        }}
+      >
+        {isMessaging ? t("common.loading") : t("dashboard.owner.messageRenter")}
+      </button>
+      <button
         className="rounded-full bg-primary px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-        disabled={busyStatus !== null}
+        disabled={busyStatus !== null || isMessaging}
         type="button"
         onClick={() => {
           void updateBooking("APPROVED");
         }}
       >
-        {busyStatus === "APPROVED" ? "Approving..." : "Approve"}
+        {busyStatus === "APPROVED" ? t("common.loading") : t("common.approve")}
       </button>
       <button
         className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
@@ -67,7 +112,7 @@ export default function OwnerBookingActions({ bookingId, status }: Props) {
           void updateBooking("REJECTED");
         }}
       >
-        {busyStatus === "REJECTED" ? "Rejecting..." : "Reject"}
+        {busyStatus === "REJECTED" ? t("common.loading") : t("common.reject")}
       </button>
       {error ? <p className="w-full text-xs text-error">{error}</p> : null}
     </div>

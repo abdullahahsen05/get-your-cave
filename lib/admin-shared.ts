@@ -49,6 +49,7 @@ export type AdminDashboardResponse = {
   monthlyRevenue: string;
   paidPaymentsCount: number;
   failedPaymentsCount: number;
+  refundedPaymentsCount: number;
   totalInvoices: number;
   outstandingInvoices: number;
   signedContracts: number;

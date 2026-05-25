@@ -26,12 +26,12 @@ type Props = {
   currentUser: SafeUser;
 };
 
-function formatDate(value: string | null | undefined) {
+function formatDate(value: string | null | undefined, locale: Locale) {
   if (!value) {
     return "—";
   }
 
-  return new Date(value).toLocaleDateString("en-US", {
+  return new Date(value).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -114,7 +114,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       };
 
       if (!response.ok) {
-        throw new Error(data.error ?? t("verification.loadError"));
+        throw new Error(t("verification.loadError"));
       }
 
       setDocuments(data.documents ?? []);
@@ -185,14 +185,14 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       };
 
       if (!response.ok || !data.document) {
-        throw new Error(data.error ?? "Unable to upload document.");
+        throw new Error(t("errors.unableToUploadDocument"));
       }
 
-      setActionMessage(`${formatDocumentType(uploadType, locale)} uploaded successfully.`);
+      setActionMessage(t("verification.documentUploaded", { type: formatDocumentType(uploadType, locale) }));
       await loadVerificationDocuments();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to upload document.",
+        error instanceof Error ? error.message : t("errors.unableToUploadDocument"),
       );
     } finally {
       setIsUploading(false);
@@ -200,9 +200,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
   }
 
   async function handleDeleteDocument(documentId: string) {
-    const confirmed = window.confirm(
-      "Delete this document? Approved documents cannot be deleted.",
-    );
+    const confirmed = window.confirm(t("verification.deleteConfirmation"));
 
     if (!confirmed) {
       return;
@@ -220,7 +218,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       const data = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(data.error ?? t("verification.deleteError"));
+        throw new Error(t("verification.deleteError"));
       }
 
       setActionMessage(t("verification.documentDeleted"));
@@ -250,7 +248,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       };
 
       if (!response.ok) {
-        throw new Error(data.error ?? t("verification.submitError"));
+        throw new Error(t("verification.submitError"));
       }
 
       if (data.documents) {
@@ -288,7 +286,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         <div className="lg:col-span-2 space-y-12">
           <section className="bg-surface-container-lowest border border-surface-variant p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="font-h3 text-h3 text-primary">Account Status</h3>
+              <h3 className="font-h3 text-h3 text-primary">{t("verification.accountStatusTitle")}</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
                 {t("verification.accountStatusDescription")}
               </p>
@@ -434,12 +432,12 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                             </span>
                           </td>
                           <td className="px-6 py-6 text-on-surface-variant">
-                            {formatDate(document.createdAt)}
+                            {formatDate(document.createdAt, locale)}
                           </td>
                           <td className="px-6 py-6 text-right space-x-4">
                             <a
                               className="text-primary hover:underline"
-                              href={document.fileUrl}
+                              href={`/api/verification-documents/${document.id}`}
                               rel="noreferrer"
                               target="_blank"
                             >

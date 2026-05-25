@@ -1,5 +1,6 @@
 import {
   BookingStatus,
+  ListingAvailability,
   InvoiceStatus,
   ListingStatus,
   Prisma,
@@ -343,7 +344,11 @@ export async function getBookableListingById(listingId: string) {
     return null;
   }
 
-  if (!listing.isPublished || listing.status !== ListingStatus.APPROVED) {
+  if (
+    !listing.isPublished ||
+    listing.status !== ListingStatus.APPROVED ||
+    listing.availability !== ListingAvailability.AVAILABLE
+  ) {
     return null;
   }
 

@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { createReadStream } from "node:fs";
-import { access } from "node:fs/promises";
 import path from "node:path";
-import { Readable } from "node:stream";
 
 import { getCurrentUser } from "@/lib/auth";
 import {
-  getContractDownloadFilePathForViewer,
+  getContractForViewer,
+  renderContractDocumentForBooking,
 } from "@/lib/contracts/generateContract";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +21,7 @@ function buildContentDispositionFileName(fileName: string) {
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
@@ -36,36 +34,37 @@ export async function GET(
     );
   }
 
-  const fileDetails = await getContractDownloadFilePathForViewer(id, {
+  const contract = await getContractForViewer(id, {
     role: currentUser.role,
     ownerProfileId: currentUser.ownerProfile?.id ?? null,
     renterProfileId: currentUser.renterProfile?.id ?? null,
   });
 
-  if (!fileDetails) {
+  if (!contract) {
     return NextResponse.json(
       { error: "Contract not found or access denied." },
       { status: 404 },
     );
   }
 
-  try {
-    await access(fileDetails.path);
-  } catch {
+  const localized = await renderContractDocumentForBooking({
+    bookingId: contract.bookingId,
+    contractTypeOverride: contract.contractType,
+    contractNumberOverride: contract.contractNumber,
+  });
+
+  if (!localized) {
     return NextResponse.json(
-      { error: "Generated contract file is missing." },
-      { status: 404 },
+      { error: "Unable to generate contract export." },
+      { status: 500 },
     );
   }
 
-  const stream = createReadStream(fileDetails.path);
-  const webStream = Readable.toWeb(stream) as ReadableStream;
-
-  return new NextResponse(webStream, {
+  return new NextResponse(new Uint8Array(localized.buffer), {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition": buildContentDispositionFileName(fileDetails.fileName),
+      "Content-Disposition": buildContentDispositionFileName(contract.generatedFileName),
       "Cache-Control": "no-store",
     },
   });

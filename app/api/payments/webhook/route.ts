@@ -1,5 +1,6 @@
 import { BookingStatus, InvoiceStatus, PaymentStatus, Prisma } from "@prisma/client";
 import Stripe from "stripe";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
@@ -10,6 +11,13 @@ import {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const WEBHOOK_REVALIDATION_PATHS = [
+  "/invoices",
+  "/renter/dashboard",
+  "/owner/dashboard",
+  "/admin/dashboard",
+];
 
 const bookingInclude = {
   listing: {
@@ -187,6 +195,28 @@ function buildPaymentWhere(params: {
   return or.length ? { OR: or } : null;
 }
 
+function logWebhookDebug(message: string, details?: Record<string, unknown>) {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
+  if (details) {
+    console.info(`[stripe-webhook] ${message}`, details);
+    return;
+  }
+
+  console.info(`[stripe-webhook] ${message}`);
+}
+
+function revalidatePaymentPaths(invoiceId: string) {
+  for (const path of WEBHOOK_REVALIDATION_PATHS) {
+    revalidatePath(path);
+  }
+
+  revalidatePath(`/invoices/${invoiceId}`);
+  revalidatePath(`/storage`);
+}
+
 function getStripeObjectChargeId(object: Stripe.Charge | Stripe.Refund) {
   if ("charge" in object) {
     return typeof object.charge === "string"
@@ -342,17 +372,41 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid Stripe webhook.";
+    logWebhookDebug("signature verification failed", {
+      message,
+    });
     return NextResponse.json({ error: message }, { status: 400 });
   }
+
+  logWebhookDebug("event received", {
+    eventId: event.id,
+    eventType: event.type,
+  });
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const metadata = readStripeCheckoutMetadata(session.metadata);
-  const paymentIntentId = getPaymentIntentId(session);
-  const chargeId = await getPaymentIntentChargeId(stripe, paymentIntentId);
-  const loaded = await loadBookingAndInvoice(metadata);
+    const paymentIntentId = getPaymentIntentId(session);
+    const chargeId = await getPaymentIntentChargeId(stripe, paymentIntentId);
+    const loaded = await loadBookingAndInvoice(metadata);
+
+    logWebhookDebug("checkout.session.completed payload", {
+      sessionId: session.id,
+      paymentIntentId,
+      chargeId,
+      hasMetadata: Boolean(metadata),
+      hasBooking: Boolean(loaded.booking),
+      hasInvoice: Boolean(loaded.invoice),
+      bookingId: metadata?.bookingId ?? null,
+      invoiceId: metadata?.invoiceId ?? null,
+      paymentId: metadata?.paymentId ?? null,
+      renterId: metadata?.renterId ?? null,
+    });
 
     if (!metadata || !loaded.booking || !loaded.invoice) {
+      logWebhookDebug("checkout.session.completed ignored because metadata or records were missing", {
+        sessionId: session.id,
+      });
       return NextResponse.json({ received: true });
     }
 
@@ -371,73 +425,99 @@ export async function POST(request: Request) {
     const paymentSplit = calculatePaymentSplit(invoice.totalAmount);
     const now = new Date();
 
-    await prisma.$transaction(async (transaction) => {
-      const currentPayment = await transaction.payment.findUnique({
-        where: { id: payment.id },
+    try {
+      await prisma.$transaction(async (transaction) => {
+        const currentPayment = await transaction.payment.findUnique({
+          where: { id: payment.id },
+        });
+
+        if (currentPayment && currentPayment.status !== PaymentStatus.PAID) {
+          const transition = await transaction.payment.updateMany({
+            where: {
+              id: currentPayment.id,
+              status: {
+                not: PaymentStatus.PAID,
+              },
+            },
+            data: {
+              amount: paymentSplit.amount,
+              currency: invoice.currency,
+              platformCommission: paymentSplit.platformCommission,
+              ownerAmount: paymentSplit.ownerAmount,
+              status: PaymentStatus.PAID,
+              paidAt: currentPayment.paidAt ?? now,
+              failedAt: null,
+              refundedAt: null,
+              stripeCheckoutSessionId: session.id,
+              stripePaymentIntentId: paymentIntentId,
+              stripeCustomerId:
+                typeof session.customer === "string"
+                  ? session.customer
+                  : session.customer?.id ?? currentPayment.stripeCustomerId ?? null,
+              stripeChargeId: chargeId ?? currentPayment.stripeChargeId ?? null,
+            },
+          });
+
+          if (transition.count > 0) {
+            await transaction.ownerProfile.update({
+              where: {
+                id: booking.ownerId,
+              },
+              data: {
+                walletBalance: {
+                  increment: paymentSplit.ownerAmount,
+                },
+                pendingPayout: {
+                  increment: paymentSplit.ownerAmount,
+                },
+                totalEarnings: {
+                  increment: paymentSplit.ownerAmount,
+                },
+              },
+            });
+          }
+        }
+
+        await transaction.invoice.update({
+          where: { id: invoice.id },
+          data: {
+            paymentId: payment.id,
+            status: InvoiceStatus.PAID,
+            paidAt: invoice.paidAt ?? now,
+            timeline: buildPaidTimeline(invoice.timeline, now),
+          },
+        });
+
+        if (
+          booking.status === BookingStatus.PENDING ||
+          booking.status === BookingStatus.APPROVED
+        ) {
+          await transaction.booking.update({
+            where: { id: booking.id },
+            data: {
+              status: BookingStatus.ACTIVE,
+              approvedAt: booking.approvedAt ?? now,
+            },
+          });
+        }
       });
-
-      if (currentPayment) {
-        await transaction.payment.update({
-          where: { id: currentPayment.id },
-          data: {
-            amount: paymentSplit.amount,
-            currency: invoice.currency,
-            platformCommission: paymentSplit.platformCommission,
-            ownerAmount: paymentSplit.ownerAmount,
-            status: PaymentStatus.PAID,
-            paidAt: currentPayment.paidAt ?? now,
-            failedAt: null,
-            refundedAt: null,
-            stripeCheckoutSessionId: session.id,
-            stripePaymentIntentId: paymentIntentId,
-            stripeCustomerId:
-              typeof session.customer === "string"
-                ? session.customer
-                : session.customer?.id ?? currentPayment.stripeCustomerId ?? null,
-            stripeChargeId: chargeId ?? currentPayment.stripeChargeId ?? null,
-          },
-        });
-      } else {
-        await transaction.payment.create({
-          data: {
-            bookingId: booking.id,
-            amount: paymentSplit.amount,
-            currency: invoice.currency,
-            platformCommission: paymentSplit.platformCommission,
-            ownerAmount: paymentSplit.ownerAmount,
-            status: PaymentStatus.PAID,
-            paidAt: now,
-            stripeCheckoutSessionId: session.id,
-            stripePaymentIntentId: paymentIntentId,
-            stripeCustomerId:
-              typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
-            stripeChargeId: chargeId,
-          },
-        });
-      }
-
-      await transaction.invoice.update({
-        where: { id: invoice.id },
-        data: {
-          paymentId: payment.id,
-          status: InvoiceStatus.PAID,
-          paidAt: invoice.paidAt ?? now,
-          timeline: buildPaidTimeline(invoice.timeline, now),
-        },
+    } catch (error) {
+      logWebhookDebug("checkout.session.completed failed", {
+        sessionId: session.id,
+        error: error instanceof Error ? error.message : "Unknown error",
       });
+      return NextResponse.json(
+        { error: "Unable to confirm paid payment." },
+        { status: 500 },
+      );
+    }
 
-      if (
-        booking.status === BookingStatus.PENDING ||
-        booking.status === BookingStatus.APPROVED
-      ) {
-        await transaction.booking.update({
-          where: { id: booking.id },
-          data: {
-            status: BookingStatus.ACTIVE,
-            approvedAt: booking.approvedAt ?? now,
-          },
-        });
-      }
+    revalidatePaymentPaths(invoice.id);
+    logWebhookDebug("checkout.session.completed applied", {
+      sessionId: session.id,
+      invoiceId: invoice.id,
+      bookingId: booking.id,
+      paymentId: payment.id,
     });
 
     return NextResponse.json({ received: true });
@@ -460,6 +540,11 @@ export async function POST(request: Request) {
           status: PaymentStatus.CANCELLED,
           failedAt: new Date(),
         },
+      });
+
+      logWebhookDebug("checkout.session.expired applied", {
+        sessionId: session.id,
+        paymentIntentId,
       });
     }
 
@@ -507,6 +592,11 @@ export async function POST(request: Request) {
     });
 
     if (!currentPayment) {
+      logWebhookDebug("refund ignored because payment was not found", {
+        paymentIntentId,
+        chargeId,
+        hasMetadata: Boolean(metadata),
+      });
       return NextResponse.json({ received: true });
     }
 
@@ -527,29 +617,85 @@ export async function POST(request: Request) {
         orderBy: [{ createdAt: "desc" as const }],
         include: invoiceInclude,
       }));
+    const refundOwnerId =
+      currentInvoice?.ownerId ??
+      (
+        await prisma.booking.findUnique({
+          where: { id: currentPayment.bookingId },
+          select: { ownerId: true },
+        })
+      )?.ownerId;
 
-    await prisma.$transaction(async (transaction) => {
-      await transaction.payment.update({
-        where: { id: currentPayment.id },
-        data: {
-          status: PaymentStatus.REFUNDED,
-          refundedAt: currentPayment.refundedAt ?? now,
-          failedAt: null,
-          stripePaymentIntentId: paymentIntentId ?? currentPayment.stripePaymentIntentId,
-          stripeChargeId: chargeId ?? currentPayment.stripeChargeId,
-        },
-      });
-
-      if (currentInvoice) {
-        await transaction.invoice.update({
-          where: { id: currentInvoice.id },
+    try {
+      await prisma.$transaction(async (transaction) => {
+        const transition = await transaction.payment.updateMany({
+          where: {
+            id: currentPayment.id,
+            status: {
+              not: PaymentStatus.REFUNDED,
+            },
+          },
           data: {
-            paymentId: currentPayment.id,
-            status: InvoiceStatus.REFUNDED,
-            timeline: buildRefundedTimeline(currentInvoice.timeline, now),
+            status: PaymentStatus.REFUNDED,
+            refundedAt: currentPayment.refundedAt ?? now,
+            failedAt: null,
+            stripePaymentIntentId: paymentIntentId ?? currentPayment.stripePaymentIntentId,
+            stripeChargeId: chargeId ?? currentPayment.stripeChargeId,
           },
         });
-      }
+
+        if (transition.count > 0 && refundOwnerId) {
+          await transaction.ownerProfile.update({
+            where: {
+              id: refundOwnerId,
+            },
+            data: {
+              walletBalance: {
+                decrement: currentPayment.ownerAmount,
+              },
+              pendingPayout: {
+                decrement: currentPayment.ownerAmount,
+              },
+              totalEarnings: {
+                decrement: currentPayment.ownerAmount,
+              },
+            },
+          });
+        }
+
+        if (currentInvoice) {
+          await transaction.invoice.update({
+            where: { id: currentInvoice.id },
+            data: {
+              paymentId: currentPayment.id,
+              status: InvoiceStatus.REFUNDED,
+              timeline: buildRefundedTimeline(currentInvoice.timeline, now),
+            },
+          });
+        }
+      });
+    } catch (error) {
+      logWebhookDebug("refund webhook failed", {
+        paymentIntentId,
+        chargeId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return NextResponse.json(
+        { error: "Unable to process refund webhook." },
+        { status: 500 },
+      );
+    }
+
+    if (currentInvoice) {
+      revalidatePaymentPaths(currentInvoice.id);
+    }
+
+    logWebhookDebug("refund applied", {
+      paymentId: currentPayment.id,
+      bookingId: currentPayment.bookingId,
+      invoiceId: currentInvoice?.id ?? null,
+      paymentIntentId,
+      chargeId,
     });
 
     return NextResponse.json({ received: true });
@@ -572,8 +718,16 @@ export async function POST(request: Request) {
           stripePaymentIntentId: paymentIntent.id,
         },
       });
+
+      logWebhookDebug("payment_intent.payment_failed applied", {
+        paymentIntentId: paymentIntent.id,
+      });
     }
 
+    return NextResponse.json({ received: true });
+  }
+
+  if (event.type === "refund.failed" || event.type === "charge.refund.updated") {
     return NextResponse.json({ received: true });
   }
 

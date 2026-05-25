@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   bookingId?: string | null;
@@ -13,10 +14,12 @@ export default function StripeCheckoutButton({
   bookingId,
   invoiceId,
   className = "bg-primary text-on-primary",
-  label = "Pay Now",
+  label,
 }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const resolvedLabel = label ?? t("common.payNow");
 
   async function handleCheckout() {
     setLoading(true);
@@ -41,7 +44,7 @@ export default function StripeCheckoutButton({
       };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to start Stripe checkout.");
+        throw new Error(t("errors.unableToStartStripeCheckout"));
       }
 
       if (payload.url) {
@@ -49,10 +52,10 @@ export default function StripeCheckoutButton({
         return;
       }
 
-      throw new Error("Stripe checkout is not configured correctly.");
+      throw new Error(t("errors.unableToStartCheckout"));
     } catch (checkoutError) {
       const message =
-        checkoutError instanceof Error ? checkoutError.message : "Unable to start checkout.";
+        checkoutError instanceof Error ? checkoutError.message : t("errors.unableToStartCheckout");
       setError(message);
     } finally {
       setLoading(false);
@@ -70,7 +73,7 @@ export default function StripeCheckoutButton({
         <span className="material-symbols-outlined text-[18px]">
           {loading ? "progress_activity" : "payments"}
         </span>
-        {loading ? "Starting checkout..." : label}
+        {loading ? t("common.loading") : resolvedLabel}
       </button>
 
       {error ? (
