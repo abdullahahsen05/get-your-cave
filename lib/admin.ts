@@ -1317,6 +1317,71 @@ export async function rejectVerificationDocumentForAdmin(
   });
 }
 
+export async function activateUserForAdmin(userId: string, adminId: string) {
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        status: true,
+        ownerProfile: { select: { id: true } },
+        renterProfile: { select: { id: true } },
+      },
+    });
+
+    if (!user) {
+      return { error: "User not found." } as const;
+    }
+
+    if (user.status === AccountStatus.ACTIVE) {
+      return { error: "User is already active." } as const;
+    }
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { status: AccountStatus.ACTIVE },
+    });
+
+    if (user.ownerProfile) {
+      await tx.ownerProfile.update({
+        where: { id: user.ownerProfile.id },
+        data: { verificationStatus: VerificationStatus.APPROVED },
+      });
+    }
+
+    if (user.renterProfile) {
+      await tx.renterProfile.update({
+        where: { id: user.renterProfile.id },
+        data: { verificationStatus: VerificationStatus.APPROVED },
+      });
+    }
+
+    await tx.adminLog.create({
+      data: {
+        adminId,
+        targetUserId: userId,
+        entityType: AdminEntityType.USER,
+        entityId: userId,
+        action: "USER_ACTIVATED",
+        details: {
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          statusLabel: "Verified",
+        },
+      },
+    });
+
+    return {
+      userId,
+      status: AccountStatus.ACTIVE,
+    } as const;
+  });
+}
+
 export function listVerificationDocumentsForUser(userId: string): Promise<VerificationDocumentView[]> {
   return prisma.verificationDocument
     .findMany({

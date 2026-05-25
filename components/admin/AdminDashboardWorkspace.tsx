@@ -10,6 +10,12 @@ import type {
   AdminRevenuePoint,
 } from "@/lib/admin-shared";
 import { normalizeLocale } from "@/lib/i18n";
+import {
+  getVerificationDocumentTypeLabel,
+  getVerificationStatusLabel as getVerificationStatusDisplayLabel,
+  type VerificationDocumentType,
+  type VerificationStatusValue,
+} from "@/lib/verification-types";
 
 function formatCurrency(value: string | number, currency = "USD") {
   const amount = Number(value);
@@ -73,10 +79,10 @@ type PendingListingRow = {
 
 type PendingVerificationRow = {
   id: string;
-  type: string;
+  type: VerificationDocumentType;
   fileName: string | null;
   fileUrl: string;
-  status: string;
+  status: VerificationStatusValue;
   rejectionReason: string | null;
   createdAt: string;
   reviewedAt: string | null;
@@ -86,6 +92,123 @@ type PendingVerificationRow = {
     role: string;
   };
 };
+
+type PendingUserRow = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  status: string;
+  createdAt: string;
+};
+
+function getListingStatusLabel(status: string, t: (key: string) => string) {
+  const key = `status.listing.${status}`;
+  const translated = t(key);
+  return translated === key ? status : translated;
+}
+
+function getVerificationStatusLabel(status: string, t: (key: string) => string) {
+  const key = `status.verification.${status}`;
+  const translated = t(key);
+  return translated === key ? status : translated;
+}
+
+function getAdminActivityTypeLabel(entityType: string, t: (key: string) => string) {
+  switch (entityType) {
+    case "USER":
+      return t("dashboard.admin.users");
+    case "LISTING":
+      return t("dashboard.admin.listings");
+    case "BOOKING":
+      return t("dashboard.admin.bookings");
+    case "PAYMENT":
+      return t("dashboard.admin.payments");
+    case "INVOICE":
+      return t("invoices.title");
+    case "CONTRACT":
+      return t("nav.contracts");
+    case "VERIFICATION_DOCUMENT":
+      return t("dashboard.admin.documents");
+    default:
+      return t("dashboard.admin.platformOverview");
+  }
+}
+
+function getAdminActivityStatusLabel(
+  activity: { entityType: string; status: string },
+  t: (key: string) => string,
+) {
+  if (activity.entityType === "USER") {
+    if (activity.status === "Verified") {
+      return t("status.account.ACTIVE");
+    }
+    if (activity.status === "Pending") {
+      return t("status.account.PENDING_VERIFICATION");
+    }
+    return activity.status;
+  }
+
+  if (activity.entityType === "LISTING") {
+    if (activity.status === "Pending") {
+      return t("status.listing.PENDING_APPROVAL");
+    }
+    if (activity.status === "Approved") {
+      return t("status.listing.APPROVED");
+    }
+    if (activity.status === "Rejected") {
+      return t("status.listing.REJECTED");
+    }
+    return activity.status;
+  }
+
+  if (activity.entityType === "BOOKING") {
+    if (activity.status === "Pending") return t("status.booking.PENDING");
+    if (activity.status === "Approved") return t("status.booking.APPROVED");
+    if (activity.status === "Active") return t("status.booking.ACTIVE");
+    if (activity.status === "Completed") return t("status.booking.COMPLETED");
+    if (activity.status === "Rejected") return t("status.booking.REJECTED");
+    if (activity.status === "Cancelled") return t("status.booking.CANCELLED");
+    return activity.status;
+  }
+
+  if (activity.entityType === "PAYMENT") {
+    if (activity.status === "Paid") return t("status.payment.PAID");
+    if (activity.status === "Failed") return t("status.payment.FAILED");
+    if (activity.status === "Refunded") return t("status.payment.REFUNDED");
+    if (activity.status === "Pending") return t("status.payment.PENDING");
+    if (activity.status === "Cancelled") return t("status.payment.CANCELLED");
+    return activity.status;
+  }
+
+  if (activity.entityType === "INVOICE") {
+    if (activity.status === "Pending") return t("status.invoice.DRAFT");
+    if (activity.status === "Issued") return t("status.invoice.ISSUED");
+    if (activity.status === "Paid") return t("status.invoice.PAID");
+    if (activity.status === "Overdue") return t("status.invoice.OVERDUE");
+    if (activity.status === "Refunded") return t("status.invoice.REFUNDED");
+    if (activity.status === "Cancelled") return t("status.invoice.CANCELLED");
+    return activity.status;
+  }
+
+  if (activity.entityType === "CONTRACT") {
+    if (activity.status === "Draft") return t("status.contract.DRAFT");
+    if (activity.status === "Generated") return t("status.contract.GENERATED");
+    if (activity.status === "Signed") return t("status.contract.SIGNED");
+    if (activity.status === "Cancelled") return t("status.contract.CANCELLED");
+    return activity.status;
+  }
+
+  if (activity.entityType === "VERIFICATION_DOCUMENT") {
+    if (activity.status === "Pending") return t("status.verification.PENDING");
+    if (activity.status === "Approved") return t("status.verification.APPROVED");
+    if (activity.status === "Rejected") return t("status.verification.REJECTED");
+    if (activity.status === "Not submitted") return t("status.verification.NOT_SUBMITTED");
+    return activity.status;
+  }
+
+  return activity.status;
+}
 
 export default function AdminDashboardWorkspace() {
   const { t, i18n } = useTranslation();
@@ -100,10 +223,11 @@ export default function AdminDashboardWorkspace() {
   const [moderationReloadKey, setModerationReloadKey] = useState(0);
   const [pendingListings, setPendingListings] = useState<PendingListingRow[]>([]);
   const [pendingVerifications, setPendingVerifications] = useState<PendingVerificationRow[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<PendingUserRow[]>([]);
   const [moderationLoading, setModerationLoading] = useState(true);
   const [moderationError, setModerationError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<{
-    kind: "listing" | "verification";
+    kind: "listing" | "verification" | "user";
     id: string;
     action: "approve" | "reject";
   } | null>(null);
@@ -119,11 +243,11 @@ export default function AdminDashboardWorkspace() {
         ]);
 
         if (!dashboardResponse.ok) {
-          throw new Error("Unable to load admin dashboard.");
+          throw new Error(t("errors.unableToLoadDashboard"));
         }
 
         if (!activityResponse.ok) {
-          throw new Error("Unable to load recent activity.");
+          throw new Error(t("errors.unableToLoadRecentActivity"));
         }
 
         const dashboardData = (await dashboardResponse.json()) as AdminDashboardResponse;
@@ -136,7 +260,7 @@ export default function AdminDashboardWorkspace() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Unable to load admin dashboard.");
+          setError(loadError instanceof Error ? loadError.message : t("errors.unableToLoadDashboard"));
         }
       }
     }
@@ -154,7 +278,7 @@ export default function AdminDashboardWorkspace() {
     fetch(`/api/admin/revenue?range=${range}`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error("Unable to load revenue analytics.");
+          throw new Error(t("errors.unableToLoadRevenueAnalytics"));
         }
 
         return response.json();
@@ -174,7 +298,7 @@ export default function AdminDashboardWorkspace() {
       })
       .catch((loadError) => {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Unable to load revenue analytics.");
+          setError(loadError instanceof Error ? loadError.message : t("errors.unableToLoadRevenueAnalytics"));
         }
       });
 
@@ -191,21 +315,28 @@ export default function AdminDashboardWorkspace() {
       setModerationError(null);
 
       try {
-        const [listingsResponse, verificationsResponse] = await Promise.all([
+        const [listingsResponse, verificationsResponse, usersResponse] = await Promise.all([
           fetch("/api/admin/listings?status=PENDING_APPROVAL&limit=5", {
             cache: "no-store",
           }),
           fetch("/api/admin/verifications?status=PENDING&limit=5", {
             cache: "no-store",
           }),
+          fetch("/api/admin/users?status=PENDING_VERIFICATION&limit=5", {
+            cache: "no-store",
+          }),
         ]);
 
         if (!listingsResponse.ok) {
-          throw new Error("Unable to load pending listings.");
+          throw new Error(t("errors.unableToLoadPendingListings"));
         }
 
         if (!verificationsResponse.ok) {
-          throw new Error("Unable to load pending verification documents.");
+          throw new Error(t("errors.unableToLoadPendingVerificationDocuments"));
+        }
+
+        if (!usersResponse.ok) {
+          throw new Error("Unable to load pending users.");
         }
 
         const listingsData = (await listingsResponse.json()) as {
@@ -214,18 +345,22 @@ export default function AdminDashboardWorkspace() {
         const verificationsData = (await verificationsResponse.json()) as {
           rows?: PendingVerificationRow[];
         };
+        const usersData = (await usersResponse.json()) as {
+          rows?: PendingUserRow[];
+        };
 
         if (!cancelled) {
           setPendingListings(listingsData.rows ?? []);
           setPendingVerifications(verificationsData.rows ?? []);
+          setPendingUsers(usersData.rows ?? []);
         }
       } catch (loadError) {
         if (!cancelled) {
           setModerationError(
             loadError instanceof Error
-              ? loadError.message
-              : "Unable to load moderation queues.",
-          );
+            ? loadError.message
+              : t("errors.unableToLoadModerationQueues"),
+        );
         }
       } finally {
         if (!cancelled) {
@@ -255,14 +390,14 @@ export default function AdminDashboardWorkspace() {
         );
 
         if (!response.ok) {
-          throw new Error("Unable to load activity.");
+          throw new Error(t("errors.unableToLoadActivity"));
         }
 
         const data = (await response.json()) as AdminActivityPage;
         setActivity(data);
       } catch (loadError) {
         if (!controller.signal.aborted) {
-          setError(loadError instanceof Error ? loadError.message : "Unable to load activity.");
+          setError(loadError instanceof Error ? loadError.message : t("errors.unableToLoadActivity"));
         }
       }
     }, 250);
@@ -274,20 +409,21 @@ export default function AdminDashboardWorkspace() {
   }, [page, search]);
 
   async function handleModerationAction(
-    kind: "listing" | "verification",
+    kind: "listing" | "verification" | "user",
     id: string,
     action: "approve" | "reject",
   ) {
     const isReject = action === "reject";
-    const rejectionReason = isReject
-      ? window.prompt(
-          kind === "listing"
-            ? "Optional rejection reason for this listing:"
-            : "Optional rejection reason for this verification document:",
-        )
-      : null;
+    const rejectionReason =
+      isReject && kind !== "user"
+        ? window.prompt(
+            kind === "listing"
+              ? t("errors.optionalRejectionReasonListing")
+              : t("errors.optionalRejectionReasonVerification"),
+          )
+        : null;
 
-    if (isReject && rejectionReason === null) {
+    if (isReject && kind !== "user" && rejectionReason === null) {
       return;
     }
 
@@ -297,8 +433,28 @@ export default function AdminDashboardWorkspace() {
     try {
       const endpoint =
         kind === "listing"
-          ? `/api/admin/listings/${id}/${action}`
-          : `/api/admin/verifications/${id}/${action}`;
+          ? "/api/admin/listings"
+          : kind === "user"
+            ? `/api/admin/users/${id}/verify`
+            : `/api/admin/verifications/${id}/${action}`;
+
+      const bodyPayload =
+        kind === "listing"
+          ? {
+              id,
+              action,
+              reason:
+                isReject && rejectionReason !== null
+                  ? rejectionReason.trim() || undefined
+                  : undefined,
+            }
+          : kind === "user"
+            ? undefined
+            : isReject && rejectionReason !== null
+              ? {
+                  rejectionReason: rejectionReason.trim() || undefined,
+                }
+              : undefined;
 
       const response = await fetch(endpoint, {
         method: "PATCH",
@@ -306,14 +462,7 @@ export default function AdminDashboardWorkspace() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body:
-          isReject && rejectionReason !== null
-            ? JSON.stringify(
-                kind === "listing"
-                  ? { reason: rejectionReason.trim() || undefined }
-                  : { rejectionReason: rejectionReason.trim() || undefined },
-              )
-            : undefined,
+        body: bodyPayload ? JSON.stringify(bodyPayload) : undefined,
       });
 
       const payload = (await response.json().catch(() => null)) as
@@ -321,7 +470,7 @@ export default function AdminDashboardWorkspace() {
         | null;
 
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Unable to update moderation item.");
+        throw new Error(t("errors.unableToUpdateModerationItem"));
       }
 
       setDashboardReloadKey((value) => value + 1);
@@ -330,7 +479,7 @@ export default function AdminDashboardWorkspace() {
       setModerationError(
         moderationActionError instanceof Error
           ? moderationActionError.message
-          : "Unable to update moderation item.",
+          : t("errors.unableToUpdateModerationItem"),
       );
     } finally {
       setBusyAction(null);
@@ -354,42 +503,54 @@ export default function AdminDashboardWorkspace() {
   }> = dashboard
     ? [
         {
-          label: "Total Users",
+          label: t("dashboard.admin.totalUsers"),
           icon: "group",
           value: formatCompactNumber(dashboard.totalUsers),
-          note: `${dashboard.totalAdmins} admin accounts active`,
+          note: t("dashboard.admin.totalAdminsActive", { count: dashboard.totalAdmins }),
         },
         {
-          label: "Active Listings",
+          label: t("dashboard.admin.activeListings"),
           icon: "garage",
           value: formatCompactNumber(dashboard.activeListings),
-          note: `${dashboard.pendingListings} pending review`,
+          note: t("dashboard.admin.pendingReviewCount", { count: dashboard.pendingListings }),
         },
         {
-          label: "Monthly Revenue",
+          label: t("dashboard.admin.monthlyRevenue"),
           icon: "payments",
           value: formatCurrency(dashboard.monthlyRevenue, "EUR"),
-          note: `${dashboard.paidPaymentsCount} paid payments recorded`,
+          note: t("dashboard.admin.paidPaymentsRecorded", { count: dashboard.paidPaymentsCount }),
+        },
+        {
+          label: t("dashboard.admin.refundedPayments"),
+          icon: "undo",
+          value: formatCompactNumber(dashboard.refundedPaymentsCount),
+          note: t("dashboard.admin.refundedPaymentsRecorded", { count: dashboard.refundedPaymentsCount }),
         },
       ]
     : [
         {
-          label: "Total Users",
+          label: t("dashboard.admin.totalUsers"),
           icon: "group",
           value: "—",
-          note: "Loading metrics…",
+          note: t("dashboard.admin.loadingMetrics"),
         },
         {
-          label: "Active Listings",
+          label: t("dashboard.admin.activeListings"),
           icon: "garage",
           value: "—",
-          note: "Loading metrics…",
+          note: t("dashboard.admin.loadingMetrics"),
         },
         {
-          label: "Monthly Revenue",
+          label: t("dashboard.admin.monthlyRevenue"),
           icon: "payments",
           value: "—",
-          note: "Loading metrics…",
+          note: t("dashboard.admin.loadingMetrics"),
+        },
+        {
+          label: t("dashboard.admin.refundedPayments"),
+          icon: "undo",
+          value: "—",
+          note: t("dashboard.admin.loadingMetrics"),
         },
       ];
 
@@ -483,22 +644,25 @@ export default function AdminDashboardWorkspace() {
             </div>
 
             <div className="mt-4 flex justify-between text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848]">
-              <span>Week 01</span>
-              <span>Week 02</span>
-              <span>Week 03</span>
-              <span>Week 04</span>
+              <span>{t("dashboard.admin.week1")}</span>
+              <span>{t("dashboard.admin.week2")}</span>
+              <span>{t("dashboard.admin.week3")}</span>
+              <span>{t("dashboard.admin.week4")}</span>
             </div>
           </div>
 
           <div className="tonal-card flex flex-col justify-between rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
             <div>
               <h3 className="mb-4 text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
-                Market Insights
+                {t("dashboard.admin.marketInsights")}
               </h3>
               <p className="text-base leading-relaxed text-[#404848]">
                 {dashboard?.marketInsights?.[0]
-                  ? `${dashboard.marketInsights[0].label} has ${dashboard.marketInsights[0].value}.`
-                  : "Demand for climate-controlled Premium Vaults has increased by 18% in the urban sector."}
+                  ? t("dashboard.admin.marketInsightSentence", {
+                      label: dashboard.marketInsights[0].label,
+                      value: dashboard.marketInsights[0].value,
+                    })
+                  : t("dashboard.admin.marketInsightsFallback")}
               </p>
             </div>
 
@@ -506,8 +670,8 @@ export default function AdminDashboardWorkspace() {
               {(dashboard?.marketInsights?.length
                 ? dashboard.marketInsights
                 : [
-                    { label: "New York City", value: "+24%" },
-                    { label: "Los Angeles", value: "+16%" },
+                    { label: t("dashboard.admin.sampleCity1"), value: "+24%" },
+                    { label: t("dashboard.admin.sampleCity2"), value: "+16%" },
                   ]
               ).map((item) => (
                 <div
@@ -539,10 +703,10 @@ export default function AdminDashboardWorkspace() {
           <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
-                Pending Listings
+                {t("dashboard.admin.pendingListings")}
               </h3>
               <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
-                {pendingListings.length} queued
+                {t("dashboard.admin.queuedCount", { count: pendingListings.length })}
               </span>
             </div>
 
@@ -553,23 +717,23 @@ export default function AdminDashboardWorkspace() {
             ) : null}
 
             {moderationLoading ? (
-              <p className="text-sm font-medium text-stone-500">Loading moderation queues...</p>
+              <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
             ) : pendingListings.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-left">
                   <thead className="border-b border-[#EBEBE8]">
                     <tr>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        Listing
+                        {t("dashboard.admin.listing")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        Owner
+                        {t("dashboard.admin.owner")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        Status
+                        {t("dashboard.admin.status")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
-                        Actions
+                        {t("dashboard.admin.actions")}
                       </th>
                     </tr>
                   </thead>
@@ -581,7 +745,7 @@ export default function AdminDashboardWorkspace() {
                             {listing.title}
                           </p>
                           <p className="text-xs leading-[1.5] text-[#404848]">
-                            {listing.city} · {formatCurrency(listing.pricePerMonth, "EUR")}
+                            {listing.city} • {formatCurrency(listing.pricePerMonth, "EUR")}
                           </p>
                         </td>
                         <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
@@ -594,7 +758,7 @@ export default function AdminDashboardWorkspace() {
                         </td>
                         <td className="py-4 pr-4">
                           <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
-                            {listing.status}
+                            {getListingStatusLabel(listing.status, t)}
                           </span>
                         </td>
                         <td className="py-4 text-right">
@@ -614,8 +778,8 @@ export default function AdminDashboardWorkspace() {
                               {busyAction?.kind === "listing" &&
                               busyAction.id === listing.id &&
                               busyAction.action === "approve"
-                                ? "Approving..."
-                                : "Approve"}
+                                ? t("common.loading")
+                                : t("common.approve")}
                             </button>
                             <button
                               className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-white disabled:opacity-60"
@@ -632,8 +796,8 @@ export default function AdminDashboardWorkspace() {
                               {busyAction?.kind === "listing" &&
                               busyAction.id === listing.id &&
                               busyAction.action === "reject"
-                                ? "Rejecting..."
-                                : "Reject"}
+                                ? t("common.loading")
+                                : t("common.reject")}
                             </button>
                           </div>
                         </td>
@@ -644,7 +808,7 @@ export default function AdminDashboardWorkspace() {
               </div>
             ) : (
               <div className="rounded-2xl border border-[#EBEBE8] bg-white p-4 text-sm text-stone-500">
-                No pending listings found.
+                {t("dashboard.admin.noPendingListings")}
               </div>
             )}
           </div>
@@ -652,31 +816,31 @@ export default function AdminDashboardWorkspace() {
           <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
-                Pending Verifications
+                {t("dashboard.admin.pendingVerifications")}
               </h3>
               <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
-                {pendingVerifications.length} queued
+                {t("dashboard.admin.queuedCount", { count: pendingVerifications.length })}
               </span>
             </div>
 
             {moderationLoading ? (
-              <p className="text-sm font-medium text-stone-500">Loading moderation queues...</p>
+              <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
             ) : pendingVerifications.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-left">
                   <thead className="border-b border-[#EBEBE8]">
                     <tr>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        Document
+                        {t("dashboard.admin.document")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        User
+                        {t("dashboard.admin.user")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        Status
+                        {t("dashboard.admin.status")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
-                        Actions
+                        {t("dashboard.admin.actions")}
                       </th>
                     </tr>
                   </thead>
@@ -685,18 +849,18 @@ export default function AdminDashboardWorkspace() {
                       <tr key={document.id}>
                         <td className="py-4 pr-4">
                           <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
-                            {document.fileName ?? document.type}
+                            {document.fileName ?? getVerificationDocumentTypeLabel(document.type, locale)}
                           </p>
                           <p className="text-xs leading-[1.5] text-[#404848]">
-                            {document.type}
+                            {getVerificationDocumentTypeLabel(document.type, locale)}
                           </p>
                           <a
                             className="text-xs font-semibold text-[#4b6547] hover:underline"
-                            href={document.fileUrl}
+                            href={`/api/verification-documents/${document.id}`}
                             rel="noreferrer"
                             target="_blank"
                           >
-                            View document
+                            {t("dashboard.admin.viewDocument")}
                           </a>
                         </td>
                         <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
@@ -709,7 +873,7 @@ export default function AdminDashboardWorkspace() {
                         </td>
                         <td className="py-4 pr-4">
                           <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
-                            {document.status}
+                            {getVerificationStatusDisplayLabel(document.status, locale)}
                           </span>
                         </td>
                         <td className="py-4 text-right">
@@ -729,8 +893,8 @@ export default function AdminDashboardWorkspace() {
                               {busyAction?.kind === "verification" &&
                               busyAction.id === document.id &&
                               busyAction.action === "approve"
-                                ? "Approving..."
-                                : "Approve"}
+                                ? t("common.loading")
+                                : t("common.approve")}
                             </button>
                             <button
                               className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-white disabled:opacity-60"
@@ -747,8 +911,8 @@ export default function AdminDashboardWorkspace() {
                               {busyAction?.kind === "verification" &&
                               busyAction.id === document.id &&
                               busyAction.action === "reject"
-                                ? "Rejecting..."
-                                : "Reject"}
+                                ? t("common.loading")
+                                : t("common.reject")}
                             </button>
                           </div>
                         </td>
@@ -759,15 +923,96 @@ export default function AdminDashboardWorkspace() {
               </div>
             ) : (
               <div className="rounded-2xl border border-[#EBEBE8] bg-white p-4 text-sm text-stone-500">
-                No pending verification documents found.
+                {t("dashboard.admin.noPendingVerifications")}
               </div>
             )}
           </div>
         </section>
 
+        {pendingUsers.length > 0 ? (
+          <section className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
+                Pending Users
+              </h3>
+              <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
+                {t("dashboard.admin.queuedCount", { count: pendingUsers.length })}
+              </span>
+            </div>
+
+            {moderationError ? (
+              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                {moderationError}
+              </div>
+            ) : null}
+
+            {moderationLoading ? (
+              <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left">
+                  <thead className="border-b border-[#EBEBE8]">
+                    <tr>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        {t("dashboard.admin.user")}
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        Role
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        {t("dashboard.admin.status")}
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
+                        {t("dashboard.admin.actions")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EBEBE8]">
+                    {pendingUsers.map((user) => (
+                      <tr key={user.id}>
+                        <td className="py-4 pr-4">
+                          <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
+                            {user.fullName}
+                          </p>
+                          <p className="text-xs leading-[1.5] text-[#404848]">{user.email}</p>
+                        </td>
+                        <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
+                          {user.role}
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                            {t("status.account.PENDING_VERIFICATION")}
+                          </span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            className="rounded-full bg-[#0f3d3e] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                            disabled={
+                              busyAction?.kind === "user" &&
+                              busyAction.id === user.id
+                            }
+                            type="button"
+                            onClick={() => {
+                              void handleModerationAction("user", user.id, "approve");
+                            }}
+                          >
+                            {busyAction?.kind === "user" && busyAction.id === user.id
+                              ? t("common.loading")
+                              : t("common.approve")}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        ) : null}
+
         <section className="tonal-card overflow-hidden rounded-[2rem] border border-[#EBEBE8]">
           <div className="flex flex-col gap-4 border-b border-[#EBEBE8] px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-12">
-            <h2 className="text-[28px] font-bold leading-[1.3] text-[#0f3d3e]">Recent Activity</h2>
+            <h2 className="text-[28px] font-bold leading-[1.3] text-[#0f3d3e]">{t("dashboard.admin.recentActivity")}</h2>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#404848]">
@@ -775,7 +1020,7 @@ export default function AdminDashboardWorkspace() {
                 </span>
                 <input
                   className="w-56 sm:w-64 rounded-full border border-[#EBEBE8] bg-white py-2 pl-10 pr-4 text-sm leading-[1.5] focus:border-[#4b6547] focus:ring-0"
-                  placeholder="Filter activity..."
+                placeholder={t("dashboard.admin.filterActivity")}
                   type="text"
                   value={search}
                   onChange={(event) => {
@@ -784,7 +1029,11 @@ export default function AdminDashboardWorkspace() {
                   }}
                 />
               </div>
-              <button className="material-symbols-outlined rounded-full p-2 text-[#404848] transition-colors hover:bg-white">
+              <button
+                aria-label={t("dashboard.admin.filterActivity")}
+                className="material-symbols-outlined rounded-full p-2 text-[#404848] transition-colors hover:bg-white"
+                type="button"
+              >
                 filter_list
               </button>
             </div>
@@ -794,7 +1043,7 @@ export default function AdminDashboardWorkspace() {
             <table className="w-full text-left">
               <thead className="bg-[#f6f3f2]">
                 <tr>
-                  {["Name / ID", "Type", "Status", "Date"].map((heading) => (
+                  {[t("dashboard.admin.nameId"), t("dashboard.admin.type"), t("dashboard.admin.status"), t("dashboard.admin.date")].map((heading) => (
                     <th
                       key={heading}
                       className="px-4 py-4 text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848] sm:px-6 lg:px-12"
@@ -821,13 +1070,15 @@ export default function AdminDashboardWorkspace() {
                       </td>
                       <td className="px-4 py-4 sm:px-6 lg:px-12">
                         <span className={`rounded-full px-3 py-1 text-xs font-medium ${activity.typeClass}`}>
-                          {activity.type}
+                          {getAdminActivityTypeLabel(activity.entityType, t)}
                         </span>
                       </td>
                       <td className="px-4 py-4 sm:px-6 lg:px-12">
                         <div className="flex items-center gap-2">
                           <span className={`h-2 w-2 rounded-full ${activity.statusDot}`} />
-                          <span className="text-sm font-medium leading-[1.5]">{activity.status}</span>
+                          <span className="text-sm font-medium leading-[1.5]">
+                            {getAdminActivityStatusLabel(activity, t)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm leading-[1.5] text-[#404848] sm:px-6 lg:px-12">
@@ -843,7 +1094,7 @@ export default function AdminDashboardWorkspace() {
                 ) : (
                   <tr>
                     <td className="px-4 py-8 text-sm text-[#404848] sm:px-6 lg:px-12" colSpan={5}>
-                      No activity found.
+                      {t("dashboard.admin.noActivityFound")}
                     </td>
                   </tr>
                 )}
@@ -853,7 +1104,10 @@ export default function AdminDashboardWorkspace() {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-[#EBEBE8] bg-white px-4 sm:px-6 lg:px-12 py-4">
             <span className="text-sm leading-[1.5] text-[#404848]">
-              Showing {activityRows.length} of {formatCompactNumber(totalItems)} activities
+              {t("dashboard.admin.showingActivities", {
+                visible: activityRows.length,
+                total: formatCompactNumber(totalItems),
+              })}
             </span>
             <div className="flex items-center gap-2">
               <button className="rounded p-1 opacity-30 hover:bg-stone-100" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
