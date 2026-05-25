@@ -254,6 +254,7 @@ type InvoiceBooking = {
   status: string;
   startDate: Date;
   endDate: Date | null;
+  durationMonths: number | null;
   monthlyPrice: Prisma.Decimal;
   securityDeposit: Prisma.Decimal;
   insuranceFee: Prisma.Decimal;
@@ -401,24 +402,29 @@ async function loadInvoiceBooking(bookingId: string) {
 }
 
 function buildInvoiceLineItems(params: {
+  months: number;
   monthlyPrice: Prisma.Decimal;
   insuranceFee: Prisma.Decimal;
   securityDeposit: Prisma.Decimal;
   platformFee: Prisma.Decimal;
   taxes: Prisma.Decimal;
+  totalRent: Prisma.Decimal;
+  totalInsurance: Prisma.Decimal;
+  totalPlatform: Prisma.Decimal;
+  totalTaxes: Prisma.Decimal;
 }) {
   return [
     {
-      description: "Monthly rental charge",
-      quantity: 1,
+      description: params.months > 1 ? `Monthly rental charge (${params.months} months)` : "Monthly rental charge",
+      quantity: params.months,
       unitPrice: params.monthlyPrice,
-      total: params.monthlyPrice,
+      total: params.totalRent,
     },
     {
-      description: "Insurance fee",
-      quantity: 1,
+      description: params.months > 1 ? `Insurance fee (${params.months} months)` : "Insurance fee",
+      quantity: params.months,
       unitPrice: params.insuranceFee,
-      total: params.insuranceFee,
+      total: params.totalInsurance,
     },
     {
       description: "Security deposit",
@@ -427,18 +433,18 @@ function buildInvoiceLineItems(params: {
       total: params.securityDeposit,
     },
     {
-      description: "Platform commission",
-      quantity: 1,
+      description: params.months > 1 ? `Platform commission (${params.months} months)` : "Platform commission",
+      quantity: params.months,
       unitPrice: params.platformFee,
-      total: params.platformFee,
+      total: params.totalPlatform,
     },
     ...(params.taxes.gt(0)
       ? [
           {
-            description: "Taxes",
-            quantity: 1,
+            description: params.months > 1 ? `Taxes (${params.months} months)` : "Taxes",
+            quantity: params.months,
             unitPrice: params.taxes,
-            total: params.taxes,
+            total: params.totalTaxes,
           },
         ]
       : []),
@@ -498,6 +504,7 @@ export async function generateInvoiceForBooking(params: {
     insuranceFee: booking.insuranceFee,
     securityDeposit: booking.securityDeposit,
     platformCommission: booking.platformCommission,
+    durationMonths: booking.durationMonths ?? 1,
   });
 
   const issuedAt = new Date();
@@ -506,11 +513,16 @@ export async function generateInvoiceForBooking(params: {
   const invoiceStatus =
     payment?.status === "PAID" ? InvoiceStatus.PAID : params.status ?? InvoiceStatus.ISSUED;
   const lineItems = buildInvoiceLineItems({
+    months: charges.months,
     monthlyPrice: charges.monthlyPrice,
     insuranceFee: charges.insuranceFee,
     securityDeposit: charges.securityDeposit,
     platformFee: charges.platformFee,
     taxes: charges.taxes,
+    totalRent: charges.totalRent,
+    totalInsurance: charges.totalInsurance,
+    totalPlatform: charges.totalPlatform,
+    totalTaxes: charges.totalTaxes,
   });
   const existing = booking.invoices[0] ?? null;
 
