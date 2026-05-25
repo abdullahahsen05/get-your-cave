@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 
 import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
@@ -30,11 +29,6 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
   // This is idempotent — the webhook handler uses the same guards so no double-credit occurs.
   if (sessionId) {
     await confirmStripeSessionIfPaid(sessionId);
-    if (invoiceId) {
-      revalidatePath(`/invoices/${invoiceId}`);
-      revalidatePath("/invoices");
-      revalidatePath("/renter/dashboard");
-    }
   }
   const invoiceHref = invoiceId
     ? `/invoices/${invoiceId}${sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : ""}`
