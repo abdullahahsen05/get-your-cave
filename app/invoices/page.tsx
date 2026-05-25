@@ -8,6 +8,8 @@ import {
   normalizeInvoiceStatusFilter,
 } from "@/lib/invoices/invoiceTypes";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };

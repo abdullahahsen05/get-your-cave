@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type ListingDetail = {
   id: string;
@@ -11,6 +12,7 @@ type ListingDetail = {
   storageType: string;
   city: string;
   address: string;
+  availability: string;
   latitude: number | null;
   longitude: number | null;
   pricePerMonth: string;
@@ -65,7 +67,12 @@ const ListingMap = dynamic(() => import("@/components/maps/ListingMap"), {
   ),
 });
 
-function formatStorageType(value: string) {
+function formatStorageType(value: string, t: (key: string) => string) {
+  if (value === "GARAGE") return t("createListing.storageTypes.garage");
+  if (value === "BASEMENT") return t("createListing.storageTypes.basement");
+  if (value === "ROOM") return t("createListing.storageTypes.room");
+  if (value === "WAREHOUSE") return t("createListing.storageTypes.warehouse");
+
   return value
     .toLowerCase()
     .split("_")
@@ -75,6 +82,7 @@ function formatStorageType(value: string) {
 
 export default function ListingDetailPage({ listingId }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [activeListingId, setActiveListingId] = useState<string | null>(listingId ?? null);
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,7 +132,7 @@ export default function ListingDetailPage({ listingId }: Props) {
         const data = (await response.json()) as { listing?: ListingDetail; error?: string };
 
         if (!response.ok) {
-          throw new Error(data.error ?? "Unable to load listing.");
+          throw new Error(t("listingDetail.loadError"));
         }
 
         if (!cancelled) {
@@ -146,7 +154,7 @@ export default function ListingDetailPage({ listingId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [activeListingId]);
+  }, [activeListingId, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -217,9 +225,9 @@ export default function ListingDetailPage({ listingId }: Props) {
       <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-28 sm:pt-32 pb-xxl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-outline-variant/30 bg-white p-8">
-            <h1 className="font-h1 text-h1 text-primary">Listing not found</h1>
+            <h1 className="font-h1 text-h1 text-primary">{t("listingDetail.notFoundTitle")}</h1>
             <p className="text-body-md text-on-surface-variant mt-2">
-              The listing you requested is unavailable.
+              {t("listingDetail.notFoundDescription")}
             </p>
           </div>
         </div>
@@ -231,8 +239,9 @@ export default function ListingDetailPage({ listingId }: Props) {
   const secondaryImages = galleryImages.slice(1, 5);
   const hasCoordinates =
     typeof listing.latitude === "number" && typeof listing.longitude === "number";
+  const isBookable = listing.availability === "AVAILABLE";
 
-  const canBook = sessionUser?.role === "RENTER";
+  const canBook = sessionUser?.role === "RENTER" && isBookable;
   const canStartConversation = sessionUser?.role === "RENTER";
   const loginHref = `/login?next=${encodeURIComponent(`/storage/${listing.id}`)}`;
   const signupHref = `/signup?next=${encodeURIComponent(`/storage/${listing.id}`)}`;
@@ -275,19 +284,23 @@ export default function ListingDetailPage({ listingId }: Props) {
       };
 
       if (!response.ok || !data.booking?.bookingNumber) {
-        setBookingError(data.error ?? "Unable to create booking right now.");
+        setBookingError(t("listingDetail.bookingError"));
         return;
       }
 
+      const statusKey = data.booking.status ? `status.booking.${data.booking.status}` : "status.booking.PENDING";
       setBookingMessage(
-        `Booking request ${data.booking.bookingNumber} submitted as ${data.booking.status ?? "PENDING"}.`,
+        t("listingDetail.bookingSubmitted", {
+          bookingNumber: data.booking.bookingNumber,
+          status: t(statusKey),
+        }),
       );
       setBookingStartDate("");
       setBookingDuration("1");
       setBookingNote("");
       router.refresh();
     } catch {
-      setBookingError("Unable to create booking right now.");
+      setBookingError(t("listingDetail.bookingError"));
     } finally {
       setIsBooking(false);
     }
@@ -331,13 +344,13 @@ export default function ListingDetailPage({ listingId }: Props) {
       };
 
       if (!response.ok || !data.conversation?.id) {
-        setConversationError(data.error ?? "Unable to start a conversation right now.");
+        setConversationError(t("listingDetail.conversationError"));
         return;
       }
 
       router.push(`/messaging?conversation=${data.conversation.id}`);
     } catch {
-      setConversationError("Unable to start a conversation right now.");
+      setConversationError(t("listingDetail.conversationError"));
     } finally {
       setIsStartingConversation(false);
     }
@@ -357,7 +370,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 <span className="font-bold text-on-surface">
                   {listing.ratingAverage.toFixed(2)}
                 </span>
-                <span>({listing.ratingCount} reviews)</span>
+                <span>{t("listingDetail.reviewsLabel", { count: listing.ratingCount })}</span>
               </div>
               <span className="text-surface-dim">•</span>
               <span className="underline font-medium cursor-pointer">
@@ -368,11 +381,11 @@ export default function ListingDetailPage({ listingId }: Props) {
           <div className="flex flex-wrap gap-3">
             <button className="flex items-center gap-2 font-label-caps text-label-caps hover:bg-surface-container transition-colors p-2 rounded-lg" type="button">
               <span className="material-symbols-outlined text-md">ios_share</span>
-              SHARE
+              {t("listingDetail.share")}
             </button>
             <button className="flex items-center gap-2 font-label-caps text-label-caps hover:bg-surface-container transition-colors p-2 rounded-lg" type="button">
               <span className="material-symbols-outlined text-md">favorite</span>
-              SAVE
+              {t("listingDetail.save")}
             </button>
           </div>
         </div>
@@ -400,7 +413,7 @@ export default function ListingDetailPage({ listingId }: Props) {
           <section className="mb-xl">
             <div className="flex items-center justify-between gap-4 mb-4">
               <div>
-                <h2 className="font-h3 text-h3 text-primary">Location map</h2>
+                <h2 className="font-h3 text-h3 text-primary">{t("listingDetail.locationMap")}</h2>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">
                   {listing.city}, {listing.address}
                 </p>
@@ -422,10 +435,10 @@ export default function ListingDetailPage({ listingId }: Props) {
               <div className="flex justify-between items-start gap-6">
                 <div>
             <h2 className="font-h2 text-h2 text-primary mb-2">
-                    {formatStorageType(listing.storageType)} in {listing.city}
+                    {formatStorageType(listing.storageType, t)} in {listing.city}
                   </h2>
                   <p className="text-body-md text-on-surface-variant italic-emphasis italic opacity-80">
-                    {listing.sizeSqFt ?? "—"} sq ft • {listing.address}
+                    {listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")} • {listing.address}
                   </p>
                 </div>
                 <img
@@ -442,7 +455,7 @@ export default function ListingDetailPage({ listingId }: Props) {
             <section className="grid grid-cols-1 md:grid-cols-3 gap-lg py-sm">
               {(listing.amenityNames.slice(0, 3).length
                 ? listing.amenityNames.slice(0, 3)
-                : ["Secure Access", "Climate Control", "24/7 Access"]
+                : [t("listingDetail.secureAccess"), t("listingDetail.climateControl"), t("listingDetail.access247")]
               ).map((amenity) => (
                 <div className="flex gap-4" key={amenity}>
                   <span className="material-symbols-outlined text-primary text-3xl">
@@ -451,7 +464,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                   <div>
                     <h4 className="font-bold text-body-md">{amenity}</h4>
                     <p className="text-body-sm text-on-surface-variant">
-                      Trusted feature available in this listing.
+                      {t("listingDetail.trustedFeature")}
                     </p>
                   </div>
                 </div>
@@ -459,11 +472,11 @@ export default function ListingDetailPage({ listingId }: Props) {
             </section>
 
             <section className="border-t border-stone-200 pt-xl">
-              <h3 className="font-h3 text-h3 text-primary mb-md">About this space</h3>
+              <h3 className="font-h3 text-h3 text-primary mb-md">{t("listingDetail.aboutThisSpace")}</h3>
               <div className="space-y-md text-body-lg text-on-surface-variant leading-relaxed max-w-3xl">
                 <p>{listing.description}</p>
                 <button className="font-bold text-primary underline underline-offset-4 flex items-center gap-1 mt-4" type="button">
-                  Show more
+                  {t("listingDetail.showMore")}
                   <span className="material-symbols-outlined text-sm">chevron_right</span>
                 </button>
               </div>
@@ -480,23 +493,23 @@ export default function ListingDetailPage({ listingId }: Props) {
               />
               <div className="flex-1 text-center md:text-left">
                 <h3 className="font-h2 text-h2 text-primary">
-                  Meet your host, {listing.owner.fullName}
+                  {t("listingDetail.meetHost", { name: listing.owner.fullName })}
                 </h3>
                 <p className="text-body-sm text-on-surface-variant mb-md">
-                  {listing.owner.bio ?? listing.owner.city ?? "Verified owner on GetYourCave"}
+                  {listing.owner.bio ?? listing.owner.city ?? t("listingDetail.verifiedOwner")}
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-lg">
                   <span className="flex items-center gap-1 text-body-sm font-semibold">
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                       star
                     </span>
-                    {listing.ratingCount} Reviews
+                    {t("listingDetail.reviewsCount", { count: listing.ratingCount })}
                   </span>
                   <span className="flex items-center gap-1 text-body-sm font-semibold">
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                       verified
                     </span>
-                    Identity verified
+                    {t("listingDetail.identityVerified")}
                   </span>
                 </div>
                 {sessionLoading ? (
@@ -505,7 +518,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     type="button"
                     disabled
                   >
-                    Loading...
+                    {t("common.loading")}
                   </button>
                 ) : sessionUser ? (
                   canStartConversation ? (
@@ -517,7 +530,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                         void handleContactOwner();
                       }}
                     >
-                      {isStartingConversation ? "Starting chat..." : "Contact Owner"}
+                      {isStartingConversation ? t("listingDetail.startingChat") : t("listingDetail.contactOwner")}
                     </button>
                   ) : (
                     <button
@@ -525,7 +538,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                       type="button"
                       disabled
                     >
-                      Contact Owner
+                      {t("listingDetail.contactOwner")}
                     </button>
                   )
                 ) : (
@@ -534,7 +547,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     type="button"
                     onClick={() => router.push(loginHref)}
                   >
-                    Log in to Contact Owner
+                    {t("listingDetail.loginToContactOwner")}
                   </button>
                 )}
                 {conversationError ? (
@@ -549,24 +562,24 @@ export default function ListingDetailPage({ listingId }: Props) {
               <div className="flex justify-between items-baseline mb-lg">
                 <span className="font-h2 text-h2 text-primary">
                   ${listing.pricePerMonth}
-                  <span className="text-body-md font-normal text-on-surface-variant">/ month</span>
+                  <span className="text-body-md font-normal text-on-surface-variant">{t("listingDetail.perMonth")}</span>
                 </span>
-                <span className="text-body-sm font-semibold underline">Details</span>
+                <span className="text-body-sm font-semibold underline">{t("listingDetail.details")}</span>
               </div>
               <div className="border border-stone-200 rounded-lg overflow-hidden mb-lg">
                 <div className="grid grid-cols-2 border-b border-stone-200">
                   <div className="p-3 border-r border-stone-200 cursor-pointer hover:bg-surface-container-low transition-colors">
-                    <p className="font-label-caps text-[10px] text-on-surface-variant">MOVE-IN</p>
-                    <p className="text-sm font-medium">Anytime</p>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.moveIn")}</p>
+                    <p className="text-sm font-medium">{t("listingDetail.anytime")}</p>
                   </div>
                   <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
-                    <p className="font-label-caps text-[10px] text-on-surface-variant">DURATION</p>
-                    <p className="text-sm font-medium">Monthly</p>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.duration")}</p>
+                    <p className="text-sm font-medium">{t("listingDetail.monthly")}</p>
                   </div>
                 </div>
                 <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
-                  <p className="font-label-caps text-[10px] text-on-surface-variant">UNIT SIZE</p>
-                  <p className="text-sm font-medium">{listing.sizeSqFt ?? "—"} sq ft</p>
+                  <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.unitSize")}</p>
+                  <p className="text-sm font-medium">{listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")}</p>
                 </div>
               </div>
 
@@ -576,14 +589,27 @@ export default function ListingDetailPage({ listingId }: Props) {
                   type="button"
                   disabled
                 >
-                  Loading...
+                  {t("common.loading")}
                 </button>
+              ) : !isBookable ? (
+                <div className="mb-lg space-y-3">
+                  <button
+                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 opacity-70 transition-all cursor-not-allowed"
+                    type="button"
+                    disabled
+                  >
+                    {t("listing.unavailable")}
+                  </button>
+                  <p className="text-xs text-on-surface-variant text-center">
+                    {t("listing.unavailable")}
+                  </p>
+                </div>
               ) : canBook ? (
                 <div className="space-y-4 mb-lg">
                   <div className="grid grid-cols-1 gap-3">
                     <label className="block">
                       <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
-                        Move-in Date
+                        {t("listingDetail.moveInDate")}
                       </span>
                       <input
                         className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0"
@@ -594,28 +620,28 @@ export default function ListingDetailPage({ listingId }: Props) {
                     </label>
                     <label className="block">
                       <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
-                        Duration
+                        {t("listingDetail.duration")}
                       </span>
                       <select
                         className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0"
                         value={bookingDuration}
                         onChange={(event) => setBookingDuration(event.target.value)}
                       >
-                        <option value="1">1 month</option>
-                        <option value="2">2 months</option>
-                        <option value="3">3 months</option>
-                        <option value="6">6 months</option>
-                        <option value="12">12 months</option>
+                        <option value="1">{t("listingDetail.oneMonth")}</option>
+                        <option value="2">{t("listingDetail.twoMonths")}</option>
+                        <option value="3">{t("listingDetail.threeMonths")}</option>
+                        <option value="6">{t("listingDetail.sixMonths")}</option>
+                        <option value="12">{t("listingDetail.twelveMonths")}</option>
                       </select>
                     </label>
                     <label className="block">
                       <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
-                        Note
+                        {t("listingDetail.note")}
                       </span>
                       <textarea
                         className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0 resize-none"
                         rows={3}
-                        placeholder="Add a short message for the owner"
+                        placeholder={t("listingDetail.notePlaceholder")}
                         value={bookingNote}
                         onChange={(event) => setBookingNote(event.target.value)}
                       />
@@ -629,7 +655,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                       void handleBookingSubmit();
                     }}
                   >
-                    {isBooking ? "Requesting..." : "Book Now"}
+                    {isBooking ? t("listingDetail.requesting") : t("listingDetail.bookNow")}
                   </button>
                 </div>
               ) : sessionUser ? (
@@ -639,7 +665,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     type="button"
                     disabled
                   >
-                    Renters Only
+                    {t("listingDetail.rentersOnly")}
                   </button>
                 </div>
               ) : (
@@ -649,20 +675,20 @@ export default function ListingDetailPage({ listingId }: Props) {
                     type="button"
                     onClick={() => router.push(loginHref)}
                   >
-                    Log in to Book
+                    {t("listingDetail.loginToBook")}
                   </button>
                   <button
                     className="w-full border border-outline-variant text-primary py-3 rounded-full font-bold text-body-md hover:bg-surface-container transition-all"
                     type="button"
                     onClick={() => router.push(signupHref)}
                   >
-                    Sign up to Book
+                    {t("listingDetail.signUpToBook")}
                   </button>
                 </div>
               )}
 
               <p className="text-center text-body-sm text-on-surface-variant italic-emphasis mb-lg">
-                You won&apos;t be charged yet
+                {t("listingDetail.noChargeYet")}
               </p>
               {bookingMessage ? (
                 <div className="mb-4 rounded-lg border border-secondary/30 bg-secondary-container/20 px-4 py-3 text-sm text-primary">
@@ -676,11 +702,11 @@ export default function ListingDetailPage({ listingId }: Props) {
               ) : null}
               <div className="space-y-3">
                 <div className="flex justify-between text-body-md">
-                  <span className="underline">Monthly rate x 1</span>
+                  <span className="underline">{t("listingDetail.monthlyRateX1")}</span>
                   <span>${listing.pricePerMonth}</span>
                 </div>
                 <div className="flex justify-between text-body-md">
-                  <span className="underline">Platform commission</span>
+                  <span className="underline">{t("listingDetail.platformCommission")}</span>
                   <span>
                     ${(
                       Number(listing.pricePerMonth) * 0.12
@@ -688,15 +714,15 @@ export default function ListingDetailPage({ listingId }: Props) {
                   </span>
                 </div>
                 <div className="flex justify-between text-body-md">
-                  <span className="underline">Security deposit</span>
+                  <span className="underline">{t("listingDetail.securityDeposit")}</span>
                   <span>${listing.securityDeposit}</span>
                 </div>
                 <div className="flex justify-between text-body-md">
-                  <span className="underline">Cave insurance</span>
+                  <span className="underline">{t("listingDetail.caveInsurance")}</span>
                   <span>${listing.insuranceFee}</span>
                 </div>
                 <div className="border-t border-stone-200 pt-3 mt-4 flex justify-between font-bold text-primary text-body-lg">
-                  <span>Total (monthly)</span>
+                  <span>{t("listingDetail.totalMonthly")}</span>
                   <span>
                     ${(
                       Number(listing.pricePerMonth) +
@@ -709,9 +735,9 @@ export default function ListingDetailPage({ listingId }: Props) {
             <div className="mt-lg p-lg bg-secondary-container/20 rounded-lg border border-secondary-container/30 flex gap-4 items-start">
               <span className="material-symbols-outlined text-secondary">verified</span>
               <div>
-                <p className="font-bold text-primary text-sm">Protected by CaveShield</p>
+                <p className="font-bold text-primary text-sm">{t("listingDetail.protectedByCaveShield")}</p>
                 <p className="text-xs text-on-surface-variant">
-                  Every rental is covered by our $100k asset protection guarantee.
+                  {t("listingDetail.protectionDescription")}
                 </p>
               </div>
             </div>

@@ -82,10 +82,10 @@ export default async function HomeLandingPageScalableExact() {
                   </div>
                   <div>
                     <div className="flex -space-x-3 mb-4">
-                      <img alt="User" className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqHEqt0RWhmdF_GpRoXrBzUY25jLA14ju6LIeSvMPYwZf3H9dZSOASEKdkfqeRScCXFTH4hoq0cfiZlV8EMSm_XclyLCvusTp35SYX2wafIP0p_fd6kpduiv7ukrgHELnd-fDk2Lv7FE-gg3HVUoamT1vdZsHfS3lrrbPXORM0jgfG0QPdr0VMmezeehVf_Ve7Aef3w5vAuh0AnjQd4wedPD7Y5cB3YxVld1n_DcusNzY9XsfNu-rWBU-NWkfLJY4-T3x7HjGyB6M"/>
-                      <img alt="User" className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtKHr5i3U1JF7nJWj1Y0_ygAoHV2Xqn1WPKY67KGjAxE6YlhpeC_NNaNSWDN2kD8PY2b1J5NHdmYx6REoOeWw4X_XyS976X-gOP0piKjZoR3kWhPMGpr7ShEqZ1fspbD2B1Okj_9aKiBKaayQ_yRJJjYU0Vn564XjhFmif_3dQofAZcFzpa4CBZ8au-Z8MxXnC-tC224fxe1_6OHiC8aYvdQ3LyIDeSGurMw8A0zNh6X1JB3Sct6ZkW-ZRMGGV3yZnp2qIGWiJkS8"/>
-                      <img alt="User" className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvXVWmaD5vig7Ze51DeKr0wKkNvGi5zKXto_0M0SUznS8dun3SwmCMhkPVCLW0JobyQNabmMHXLgnEHWrcxAcd3vLZYKudRNf_LsSO3tsCs4Th9ABHygt01te7qxjBW3Wbb_Xcn-f64mAK6Xn-zNnpf_QMIewUpnbIZ3RRzyDwQU5IU5yfLiosQk0heVdf_PeYRPd_Ti9dGi9_Sg3hg6EeuuXdxgjfXJPoNarpFDlCVKA9YuewdG0n2QHu68xupQchZYOCE_NJ74"/>
-                      <img alt="User" className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ7anrlDclyUuJJ2JtRK3D_axEqiyEK8DXFTVdqvV3rwSAU2ikktvX_mDbgOc3PL8ZDe-bT3FxQANug1vOrE8j9vCw1qCoOKWPzve63DKrs6EcMsQbav0z7FzsTR8zN7MTniVhMOSdlXyfoi25PiKcCPyaZUZoLO-1JRgc3XXleqpReCLZuZi0rUsPz7J2mFxijBZ37RJVLRebaId7Ji8clKapJF419tTGHl9cQUSgQArmSNE0sxRtQXR1gT7f7r5Rb5f8c45JjxY"/>
+                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqHEqt0RWhmdF_GpRoXrBzUY25jLA14ju6LIeSvMPYwZf3H9dZSOASEKdkfqeRScCXFTH4hoq0cfiZlV8EMSm_XclyLCvusTp35SYX2wafIP0p_fd6kpduiv7ukrgHELnd-fDk2Lv7FE-gg3HVUoamT1vdZsHfS3lrrbPXORM0jgfG0QPdr0VMmezeehVf_Ve7Aef3w5vAuh0AnjQd4wedPD7Y5cB3YxVld1n_DcusNzY9XsfNu-rWBU-NWkfLJY4-T3x7HjGyB6M"/>
+                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtKHr5i3U1JF7nJWj1Y0_ygAoHV2Xqn1WPKY67KGjAxE6YlhpeC_NNaNSWDN2kD8PY2b1J5NHdmYx6REoOeWw4X_XyS976X-gOP0piKjZoR3kWhPMGpr7ShEqZ1fspbD2B1Okj_9aKiBKaayQ_yRJJjYU0Vn564XjhFmif_3dQofAZcFzpa4CBZ8au-Z8MxXnC-tC224fxe1_6OHiC8aYvdQ3LyIDeSGurMw8A0zNh6X1JB3Sct6ZkW-ZRMGGV3yZnp2qIGWiJkS8"/>
+                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvXVWmaD5vig7Ze51DeKr0wKkNvGi5zKXto_0M0SUznS8dun3SwmCMhkPVCLW0JobyQNabmMHXLgnEHWrcxAcd3vLZYKudRNf_LsSO3tsCs4Th9ABHygt01te7qxjBW3Wbb_Xcn-f64mAK6Xn-zNnpf_QMIewUpnbIZ3RRzyDwQU5IU5yfLiosQk0heVdf_PeYRPd_Ti9dGi9_Sg3hg6EeuuXdxgjfXJPoNarpFDlCVKA9YuewdG0n2QHu68xupQchZYOCE_NJ74"/>
+                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ7anrlDclyUuJJ2JtRK3D_axEqiyEK8DXFTVdqvV3rwSAU2ikktvX_mDbgOc3PL8ZDe-bT3FxQANug1vOrE8j9vCw1qCoOKWPzve63DKrs6EcMsQbav0z7FzsTR8zN7MTniVhMOSdlXyfoi25PiKcCPyaZUZoLO-1JRgc3XXleqpReCLZuZi0rUsPz7J2mFxijBZ37RJVLRebaId7Ji8clKapJF419tTGHl9cQUSgQArmSNE0sxRtQXR1gT7f7r5Rb5f8c45JjxY"/>
                     </div>
                     <div className="text-stone-600 font-semibold tracking-wide uppercase text-sm">
                       {t("home.availableDescription")}
@@ -227,27 +227,27 @@ export default async function HomeLandingPageScalableExact() {
               <div className="bg-background p-6 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/20 hover:border-primary/20 transition-all cursor-pointer">
                 <img className="w-full h-32 object-cover rounded-md mb-4" alt={t("home.availableTitle")} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvanMgbDoM75fNGhHAYCWN1kVhVYTie6hT-wtjwRAU5KbSqQ69pWLV-3GbQ5csInFWWy-TFQkcsYnl2wEQjPGL2XTKV8PURmMhXQiP8nemi9anwxMc1hUkMBpfOH-nZt4LQnzJBpzecxV6VWmwVdNAl1J2N4tDQiXspcOAwhlo2heLmIQ01QAtGmjB-kZ-qIjogVHeYA5lUakMVbewaARLwJg_mT_jyagDgGBYOmxsGG66PB2vKd82VgDqO4ht-0gtIpoEXZ0F-M0"/>
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-h3 text-body-lg text-primary">The Heights Garage</h4>
-                  <span className="font-bold text-primary">$120/mo</span>
+                  <h4 className="font-h3 text-body-lg text-primary">{t("home.sampleListing1Title")}</h4>
+                  <span className="font-bold text-primary">{t("home.sampleListing1Price")}</span>
                 </div>
                 <p className="text-body-sm text-on-surface-variant flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">location_on</span> Pacific Heights, SF
+                  <span className="material-symbols-outlined text-sm">location_on</span> {t("home.sampleListing1Location")}
                 </p>
                 <p className="text-body-sm text-on-surface-variant flex items-center gap-2 mt-1">
-                  <span className="material-symbols-outlined text-sm">square_foot</span> 150 sq ft
+                  <span className="material-symbols-outlined text-sm">square_foot</span> {t("home.sampleListing1Size")}
                 </p>
               </div>
               <div className="bg-background p-6 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/20 hover:border-primary/20 transition-all cursor-pointer">
                 <img className="w-full h-32 object-cover rounded-md mb-4" alt={t("home.availableTitle")} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWoo8Zsw06j8esugC8l1o4BX3B7CACiNFhOuTTYV059ReSnhWUO-2_eXHnTWLyLbYroWkT61uVV13XZ1wTL0BKOTqJYx4i3GamXUjvsvPw5yeYejjoQCLqRND0sGvjq6yCwaZ1ZPc881TvH0UGXGTHD06YNmCIjRtLekY108ZMjEqHCt2edA3fwypj2Rlp4zyp85y_NbZFTuAVdxJpHZ3PHZ2hDpU0R2jsFEMG__0Coeh4WikKYGYYJWpYXOvOtwqLmcauQwG7VQU"/>
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-h3 text-body-lg text-primary">Mission Loft Storage</h4>
-                  <span className="font-bold text-primary">$85/mo</span>
+                  <h4 className="font-h3 text-body-lg text-primary">{t("home.sampleListing2Title")}</h4>
+                  <span className="font-bold text-primary">{t("home.sampleListing2Price")}</span>
                 </div>
                 <p className="text-body-sm text-on-surface-variant flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">location_on</span> Mission District, SF
+                  <span className="material-symbols-outlined text-sm">location_on</span> {t("home.sampleListing2Location")}
                 </p>
                 <p className="text-body-sm text-on-surface-variant flex items-center gap-2 mt-1">
-                  <span className="material-symbols-outlined text-sm">square_foot</span> 75 sq ft
+                  <span className="material-symbols-outlined text-sm">square_foot</span> {t("home.sampleListing2Size")}
                 </p>
               </div>
             </div>

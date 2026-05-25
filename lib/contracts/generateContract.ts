@@ -191,7 +191,6 @@ function ensureDocxFileName(fileName: string) {
 function renderTemplateToBuffer(
   templateBuffer: Buffer,
   placeholders: ContractPlaceholderData,
-  locale: Locale,
 ) {
   const zip = new PizZip(templateBuffer);
   const doc = new Docxtemplater(zip, {
@@ -326,9 +325,8 @@ async function writeGeneratedContractFile(
   filePath: string,
   templateBuffer: Buffer,
   placeholders: ContractPlaceholderData,
-  locale: Locale,
 ) {
-  const outputBuffer = renderTemplateToBuffer(templateBuffer, placeholders, locale);
+  const outputBuffer = renderTemplateToBuffer(templateBuffer, placeholders);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, outputBuffer);
   return outputBuffer.length;
@@ -360,7 +358,7 @@ export async function renderContractDocumentForBooking(params: {
     locale,
   });
 
-  const buffer = renderTemplateToBuffer(templateBuffer, placeholders, locale);
+  const buffer = renderTemplateToBuffer(templateBuffer, placeholders);
 
   return {
     buffer,
@@ -438,7 +436,6 @@ export async function generateContractForBooking(params: {
     generatedFilePath,
     templateBuffer,
     placeholders,
-    locale,
   );
 
   try {

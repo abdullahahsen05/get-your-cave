@@ -41,8 +41,6 @@ export default function RenterBookingActions({
         body: JSON.stringify({ status: "CANCELLED" }),
       });
 
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-
       if (!response.ok) {
         throw new Error(t("errors.unableToCancelBooking"));
       }

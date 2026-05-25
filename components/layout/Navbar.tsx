@@ -49,6 +49,7 @@ export default async function Navbar() {
       ? [
           { href: "/owner/dashboard", labelKey: "nav.dashboard" },
           { href: "/storage", labelKey: "nav.browseStorage" },
+          { href: "/messaging", labelKey: "nav.messages" },
           { href: "/create-listing", labelKey: "nav.createListing" },
           { href: "/contracts", labelKey: "nav.contracts" },
         ]
@@ -94,15 +95,15 @@ export default async function Navbar() {
               { href: "/contracts", labelKey: "nav.contractsDocs" },
             ],
           },
-          {
-            titleKey: "nav.resources",
-            links: [
-              { href: "/document", labelKey: "nav.ownerGuide" },
-              { href: "/document", labelKey: "nav.safetySecurity" },
-              { href: "/storage", labelKey: "nav.pricingFees" },
-              { href: "/messaging", labelKey: "nav.helpCenter" },
-            ],
-          },
+            {
+              titleKey: "nav.resources",
+              links: [
+                { href: "/document", labelKey: "nav.ownerGuide" },
+                { href: "/document", labelKey: "nav.safetySecurity" },
+                { href: "/storage", labelKey: "nav.pricingFees" },
+                { href: "/messaging", labelKey: "nav.messages" },
+              ],
+            },
           {
             titleKey: "nav.tools",
             links: [

@@ -125,7 +125,7 @@ export function ContractsWorkspace({
     });
 
     return sorted;
-  }, [contracts, filter, sort, t]);
+  }, [contracts, filter, sort]);
 
   const selectedContract =
     filteredContracts.find((contract) => contract.id === selectedContractId) ??

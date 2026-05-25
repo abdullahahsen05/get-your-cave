@@ -33,6 +33,14 @@ function formatDate(value: string | null, locale: string) {
   });
 }
 
+function getStorageTypeLabel(storageType: string, t: (key: string) => string) {
+  if (storageType === "GARAGE") return t("createListing.storageTypes.garage");
+  if (storageType === "BASEMENT") return t("createListing.storageTypes.basement");
+  if (storageType === "ROOM") return t("createListing.storageTypes.room");
+  if (storageType === "WAREHOUSE") return t("createListing.storageTypes.warehouse");
+  return storageType;
+}
+
 export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Props) {
   const { t, i18n } = useTranslation();
   const locale = normalizeLocale(i18n.language);
@@ -60,6 +68,13 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             >
               {getInvoiceStatusLabel(invoice.status, locale)}
             </span>
+            <a
+              className="inline-flex items-center gap-2 rounded-full border border-outline-variant px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low"
+              href={`/api/invoices/${invoice.id}/pdf`}
+            >
+              <span className="material-symbols-outlined text-sm">download</span>
+              {t("invoiceDetail.download")}
+            </a>
             {canGenerate ? (
               <GenerateInvoiceButton
                 bookingId={invoice.bookingId}
@@ -92,7 +107,9 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                   {invoice.bookingAddress}, {invoice.bookingCity}
                 </p>
                 <p className="text-body-sm font-body-sm text-on-surface-variant mt-1">
-                  {t("invoiceDetail.storageType", { storageType: invoice.bookingStorageType })}
+                  {t("invoiceDetail.storageType", {
+                    storageType: getStorageTypeLabel(invoice.bookingStorageType, t),
+                  })}
                 </p>
               </div>
 

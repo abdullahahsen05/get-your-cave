@@ -45,6 +45,18 @@ function formatDate(value: string | null, locale: string) {
   });
 }
 
+function getRoleLabel(role: string, t: (key: string) => string) {
+  if (role === "OWNER") {
+    return t("common.owner");
+  }
+
+  if (role === "RENTER") {
+    return t("common.renter");
+  }
+
+  return t("common.admin");
+}
+
 export default function InvoicesWorkspace({
   invoices,
   pagination,
@@ -105,7 +117,7 @@ export default function InvoicesWorkspace({
             {t("invoices.records", { count: pagination.totalItems })}
           </span>
           <span className="rounded-full border border-outline-variant px-4 py-2 bg-surface-container-low">
-            {t("invoices.role", { role: currentRole })}
+            {t("invoices.role", { role: getRoleLabel(currentRole, t) })}
           </span>
         </div>
       </section>
@@ -268,7 +280,9 @@ export default function InvoicesWorkspace({
                     <td className="px-6 py-5 font-body-sm text-on-surface">
                       <div className="flex flex-col">
                         <span>{invoice.renterName}</span>
-                        <span className="text-on-surface-variant">Owner: {invoice.ownerName}</span>
+                        <span className="text-on-surface-variant">
+                          {t("invoices.ownerLabel", { owner: invoice.ownerName })}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-5 font-body-md font-semibold text-primary">
@@ -292,14 +306,12 @@ export default function InvoicesWorkspace({
                         >
                           {t("common.viewDetails")}
                         </Link>
-                        <button
-                          className="rounded-full border border-outline-variant px-4 py-2 text-sm font-bold text-on-surface-variant opacity-60 cursor-not-allowed"
-                          disabled
-                          type="button"
-                          title="Invoice export coming soon"
+                        <a
+                          className="rounded-full border border-outline-variant px-4 py-2 text-sm font-bold text-on-surface-variant hover:bg-surface-container transition-colors"
+                          href={`/api/invoices/${invoice.id}/pdf`}
                         >
                           {t("common.download")}
-                        </button>
+                        </a>
                       </div>
                     </td>
                   </tr>

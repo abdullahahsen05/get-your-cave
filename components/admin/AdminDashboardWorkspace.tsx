@@ -108,12 +108,6 @@ function getListingStatusLabel(status: string, t: (key: string) => string) {
   return translated === key ? status : translated;
 }
 
-function getVerificationStatusLabel(status: string, t: (key: string) => string) {
-  const key = `status.verification.${status}`;
-  const translated = t(key);
-  return translated === key ? status : translated;
-}
-
 function getAdminActivityTypeLabel(entityType: string, t: (key: string) => string) {
   switch (entityType) {
     case "USER":
@@ -270,7 +264,7 @@ export default function AdminDashboardWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [dashboardReloadKey]);
+  }, [dashboardReloadKey, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -305,7 +299,7 @@ export default function AdminDashboardWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [range]);
+  }, [range, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -374,7 +368,7 @@ export default function AdminDashboardWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [moderationReloadKey]);
+  }, [moderationReloadKey, t]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -406,7 +400,7 @@ export default function AdminDashboardWorkspace() {
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [page, search]);
+  }, [page, search, t]);
 
   async function handleModerationAction(
     kind: "listing" | "verification" | "user",
@@ -464,10 +458,6 @@ export default function AdminDashboardWorkspace() {
         },
         body: bodyPayload ? JSON.stringify(bodyPayload) : undefined,
       });
-
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string }
-        | null;
 
       if (!response.ok) {
         throw new Error(t("errors.unableToUpdateModerationItem"));

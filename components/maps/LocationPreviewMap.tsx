@@ -1,6 +1,7 @@
 "use client";
 
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useTranslation } from "react-i18next";
 
 import {
   createListingMarkerIcon,
@@ -23,6 +24,7 @@ function parseCoordinate(value: string) {
 }
 
 export default function LocationPreviewMap({ latitude, longitude }: Props) {
+  const { t } = useTranslation();
   const parsedLatitude = parseCoordinate(latitude);
   const parsedLongitude = parseCoordinate(longitude);
   const hasValidCoordinates = isValidCoordinatePair(parsedLatitude, parsedLongitude);
@@ -31,9 +33,9 @@ export default function LocationPreviewMap({ latitude, longitude }: Props) {
     return (
       <div className="flex h-full min-h-[200px] items-center justify-center overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container px-6 text-center">
         <div className="max-w-xs space-y-2">
-          <p className="font-h3 text-h3 text-primary">Location preview</p>
+          <p className="font-h3 text-h3 text-primary">{t("maps.previewTitle")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
-            Enter both latitude and longitude to preview the map.
+            {t("maps.previewDescription")}
           </p>
         </div>
       </div>
@@ -57,7 +59,7 @@ export default function LocationPreviewMap({ latitude, longitude }: Props) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker icon={createListingMarkerIcon()} position={position}>
-          <Popup>Selected location preview</Popup>
+          <Popup>{t("maps.selectedLocationPreview")}</Popup>
         </Marker>
       </MapContainer>
     </div>

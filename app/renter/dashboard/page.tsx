@@ -5,6 +5,7 @@ import RenterBookingActions from "@/components/renter/RenterBookingActions";
 import { getCurrentUser, getDashboardPath } from "@/lib/auth";
 import { getRenterDashboardSnapshot, formatRenterDateRange } from "@/lib/dashboard/renter";
 import { formatCurrency } from "@/lib/invoices/formatCurrency";
+import { getInvoiceStatusClass, getInvoiceStatusLabel } from "@/lib/invoices/invoiceTypes";
 import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
 
@@ -20,16 +21,17 @@ function formatFullDate(value: string | null | undefined, locale: string) {
   });
 }
 
-function formatPastRentalStatus(status: string) {
-  if (status === "COMPLETED") {
-    return "Completed";
-  }
+function formatDateRange(startDate: string, endDate: string | null, locale: string) {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
-  if (status === "CANCELLED") {
-    return "Cancelled";
-  }
+  const start = formatter.format(new Date(startDate));
+  const end = formatter.format(new Date(endDate ?? startDate));
 
-  return status;
+  return `${start} - ${end}`;
 }
 
 export const dynamic = "force-dynamic";
@@ -64,7 +66,7 @@ export default async function RenterDashboardPage() {
     <main className="min-h-screen bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed antialiased max-w-[1200px] mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-24">
       <header className="mb-12">
         <h1 className="font-h1 text-h1 text-primary mb-2">
-          {t("dashboard.renter.welcome", { name: currentUser.fullName ?? "Julian" })}
+          {t("dashboard.renter.welcome", { name: currentUser.fullName ?? t("common.renter") })}
         </h1>
         <p className="font-body-md text-body-md text-outline">
           {t("dashboard.renter.summary", {
@@ -108,6 +110,212 @@ export default async function RenterDashboardPage() {
             <span className="material-symbols-outlined text-sm">check_circle</span>
             {t("dashboard.renter.verifiedCapacity")}
           </p>
+        </div>
+      </section>
+
+      {dashboard.paymentRequiredInvoice ? (
+        <section className="mb-16">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
+            <div>
+              <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.paymentRequired")}</h2>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                {t("dashboard.renter.paymentRequiredDescription")}
+              </p>
+            </div>
+            <span className="text-body-sm font-body-sm text-outline">
+              {t("dashboard.renter.invoiceDue")}
+            </span>
+          </div>
+
+          <article className="rounded-lg border border-[#EBEBE8] bg-surface-container-lowest p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+              <div className="space-y-3">
+                <p className="font-label-caps text-label-caps text-outline uppercase tracking-widest">
+                  {dashboard.paymentRequiredInvoice.invoiceNumber}
+                </p>
+                <div>
+                  <h3 className="font-h3 text-h3 text-primary">
+                    {dashboard.paymentRequiredInvoice.bookingTitle}
+                  </h3>
+                  <p className="text-body-sm font-body-sm text-on-surface-variant">
+                    {dashboard.paymentRequiredInvoice.bookingAddress},{" "}
+                    {dashboard.paymentRequiredInvoice.bookingCity}
+                  </p>
+                </div>
+                <p className="text-body-sm font-body-sm text-on-surface-variant">
+                  {t("invoices.booking")}: {dashboard.paymentRequiredInvoice.bookingNumber}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-4">
+                <span
+                  className={`inline-flex items-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest ${getInvoiceStatusClass(dashboard.paymentRequiredInvoice.status)}`}
+                >
+                  {getInvoiceStatusLabel(dashboard.paymentRequiredInvoice.status, locale)}
+                </span>
+
+                <div className="text-left sm:text-right lg:text-right">
+                  <p className="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-1">
+                    {t("dashboard.renter.outstanding")}
+                  </p>
+                  <p className="font-h3 text-h3 text-primary">
+                    {formatCurrency(dashboard.paymentRequiredInvoice.totalAmount, "EUR")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-[#EBEBE8] pt-6">
+              <div className="space-y-1">
+                <p className="text-body-sm font-body-sm text-on-surface-variant">
+                  {t("invoiceDetail.dueAt")}:{" "}
+                  {formatFullDate(dashboard.paymentRequiredInvoice.dueAt, locale)}
+                </p>
+                <p className="text-body-sm font-body-sm text-on-surface-variant">
+                  {t("dashboard.renter.invoiceReady")}
+                </p>
+              </div>
+
+              <Link
+                className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-label-caps font-label-caps text-on-primary"
+                href={`/invoices/${dashboard.paymentRequiredInvoice.id}`}
+              >
+                {t("dashboard.renter.openInvoice")}
+              </Link>
+            </div>
+          </article>
+        </section>
+      ) : null}
+
+      <section className="mb-16">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
+          <div>
+            <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.pendingRequests")}</h2>
+            <p className="text-body-sm font-body-sm text-on-surface-variant">
+              {dashboard.pendingBookingsCount === 0
+                ? t("dashboard.renter.noBookingRequests")
+                : t("dashboard.renter.pendingRequests")}
+            </p>
+          </div>
+          <span className="text-body-sm font-body-sm text-outline">
+            {dashboard.pendingBookingsCount} {t("dashboard.renter.waitingForApproval")}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {dashboard.pendingBookings.length ? (
+            dashboard.pendingBookings.map((booking) => (
+              <article
+                className="group bg-surface-container-lowest rounded-lg overflow-hidden shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8] transition-all hover:translate-y-[-4px]"
+                key={booking.id}
+              >
+                <div className="h-56 sm:h-64 relative overflow-hidden">
+                  <img
+                    alt={booking.listing.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    src={booking.listing.imageUrl ?? "/placeholder-listing.svg"}
+                  />
+                  <span className="absolute top-4 left-4 bg-[#F4E6C8] text-[#5A3A00] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    {t(`status.booking.${booking.status}`)}
+                  </span>
+                </div>
+
+                <div className="p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
+                    <div>
+                      <h3 className="font-h3 text-h3 text-primary mb-1">{booking.listing.title}</h3>
+                      <p className="font-body-sm text-body-sm text-outline">{booking.listing.address}</p>
+                      <p className="font-body-sm text-body-sm text-outline">
+                        {formatDateRange(booking.startDate, booking.endDate, locale)}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-h3 text-h3 text-primary">
+                        {formatCurrency(booking.totalMonthlyAmount, "EUR")}
+                      </p>
+                      <p className="font-body-sm text-body-sm text-outline">{t("listing.monthly")}</p>
+                    </div>
+                  </div>
+
+                  <RenterBookingActions
+                    bookingId={booking.id}
+                    listingId={booking.listing.id}
+                    manageLabel={t("dashboard.renter.manageUnit")}
+                    receiptHref={invoiceHrefByBookingId.get(booking.id) ?? null}
+                    status={booking.status}
+                  />
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="lg:col-span-2 rounded-lg border border-[#EBEBE8] bg-surface-container-lowest p-8 text-body-sm text-on-surface-variant">
+              {t("dashboard.renter.noBookingRequests")}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mb-16">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
+          <div>
+            <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.rejectedRequests")}</h2>
+            <p className="text-body-sm font-body-sm text-on-surface-variant">
+              {dashboard.rejectedBookings.length
+                ? t("dashboard.renter.rejectedRequests")
+                : t("dashboard.renter.noBookingRequests")}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {dashboard.rejectedBookings.length ? (
+            dashboard.rejectedBookings.map((booking) => (
+              <div
+                className="flex flex-col md:flex-row md:items-center justify-between p-5 sm:p-6 bg-surface-container-lowest rounded-lg border border-[#EBEBE8] gap-4"
+                key={booking.id}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0">
+                    <img
+                      alt={booking.listing.title}
+                      className="w-full h-full object-cover"
+                      src={booking.listing.imageUrl ?? "/placeholder-listing.svg"}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-body-lg text-body-lg text-primary font-bold">
+                      {booking.listing.title}
+                    </h4>
+                    <p className="font-body-sm text-body-sm text-outline">
+                      {formatDateRange(booking.startDate, booking.endDate, locale)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:justify-end gap-4 sm:gap-12">
+                  <div className="text-right">
+                    <p className="font-label-caps text-label-caps text-secondary mb-1 uppercase tracking-widest">
+                      {t(`status.booking.${booking.status}`)}
+                    </p>
+                    <p className="font-body-md text-body-md text-primary font-semibold">
+                      {formatCurrency(booking.totalMonthlyAmount, "EUR")}
+                    </p>
+                  </div>
+                  <RenterBookingActions
+                    bookingId={booking.id}
+                    listingId={booking.listing.id}
+                    manageLabel={t("dashboard.renter.manageUnit")}
+                    receiptHref={invoiceHrefByBookingId.get(booking.id) ?? null}
+                    status={booking.status}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-lg border border-[#EBEBE8] bg-surface-container-lowest p-6 text-body-sm text-on-surface-variant">
+              {t("dashboard.renter.noBookingRequests")}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useTranslation } from "react-i18next";
 
 import {
   createListingMarkerIcon,
@@ -23,13 +24,14 @@ export default function ListingMap({
   latitude,
   longitude,
 }: Props) {
+  const { t } = useTranslation();
   if (!isValidCoordinatePair(latitude, longitude)) {
     return (
       <div className="flex h-[360px] items-center justify-center rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-6 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
         <div className="max-w-md space-y-2">
-          <p className="font-h3 text-h3 text-primary">Location map</p>
+          <p className="font-h3 text-h3 text-primary">{t("maps.title")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
-            This listing does not have coordinates yet.
+            {t("maps.noCoordinates")}
           </p>
         </div>
       </div>
@@ -58,7 +60,7 @@ export default function ListingMap({
               <p className="font-semibold text-primary">{title}</p>
               <p className="text-sm text-on-surface-variant">
                 {city}
-                {address ? ` · ${address}` : ""}
+                {address ? ` ? ${address}` : ""}
               </p>
             </div>
           </Popup>

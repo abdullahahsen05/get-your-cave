@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Project uses <img> for user-uploaded images intentionally.
+      "@next/next/no-img-element": "off",
+      // App Router doesn't use pages/_document.js — this rule is a false positive.
+      "@next/next/no-page-custom-font": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

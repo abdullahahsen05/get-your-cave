@@ -27,8 +27,6 @@ export default function OwnerListingArchiveButton({ listingId, archived }: Props
         },
       });
 
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-
       if (!response.ok) {
         throw new Error(t("errors.unableToArchiveListing"));
       }

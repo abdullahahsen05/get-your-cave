@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   getDashboardPath,
@@ -22,6 +23,7 @@ const initialState: LoginFormState = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [nextPath] = useState<string | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -41,7 +43,7 @@ export default function LoginPage() {
 
     const parsed = loginSchema.safeParse(formState);
     if (!parsed.success) {
-      setErrorMessage(parsed.error.issues[0]?.message ?? "Please check the form fields.");
+      setErrorMessage(parsed.error.issues[0]?.message ?? t("auth.formError"));
       return;
     }
 
@@ -63,7 +65,7 @@ export default function LoginPage() {
       };
 
       if (!response.ok || !data.user?.role) {
-        setErrorMessage(data.error ?? "Unable to log in right now.");
+        setErrorMessage(t("auth.loginError"));
         return;
       }
 
@@ -73,7 +75,7 @@ export default function LoginPage() {
       router.replace(destination);
       router.refresh();
     } catch {
-      setErrorMessage("Unable to log in right now.");
+      setErrorMessage(t("auth.loginError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -94,7 +96,7 @@ export default function LoginPage() {
 
             <div className="relative z-10">
               <h1 className="font-h2 text-h2 text-primary mb-12">
-                Welcome back
+                {t("auth.welcomeBack")}
               </h1>
 
               <div className="space-y-10">
@@ -106,10 +108,10 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary text-body-md">
-                      Secure Access
+                      {t("auth.secureAccess")}
                     </p>
                     <p className="text-stone-500 text-body-sm">
-                      Sign in with your encrypted session.
+                      {t("auth.secureAccessDescription")}
                     </p>
                   </div>
                 </div>
@@ -122,10 +124,10 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary text-body-md">
-                      Role Routing
+                      {t("auth.roleRouting")}
                     </p>
                     <p className="text-stone-500 text-body-sm">
-                      You&apos;ll land on the right dashboard instantly.
+                      {t("auth.roleRoutingDescription")}
                     </p>
                   </div>
                 </div>
@@ -138,10 +140,10 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary text-body-md">
-                      Protected Session
+                      {t("auth.protectedSession")}
                     </p>
                     <p className="text-stone-500 text-body-sm">
-                      HTTP-only cookies keep the session private.
+                      {t("auth.protectedSessionDescription")}
                     </p>
                   </div>
                 </div>
@@ -150,7 +152,7 @@ export default function LoginPage() {
 
             <div className="relative z-10 pt-8">
               <p className="text-xs text-secondary italic opacity-75">
-                Access your cave, contracts, and messages securely.
+                {t("auth.loginHint")}
               </p>
             </div>
           </aside>
@@ -161,10 +163,10 @@ export default function LoginPage() {
                 <section>
                   <div className="mb-10">
                     <h3 className="font-h1 text-h1 text-primary mb-2">
-                      Log in
+                      {t("auth.login")}
                     </h3>
                     <p className="font-body-md text-body-md text-stone-500">
-                      Continue to your owner, renter, or admin dashboard.
+                      {t("auth.loginDescription")}
                     </p>
                   </div>
 
@@ -173,8 +175,8 @@ export default function LoginPage() {
                       <label
                         className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                         htmlFor="email"
-                      >
-                        EMAIL ADDRESS
+                        >
+                        {t("auth.email")}
                       </label>
                       <input
                         autoComplete="email"
@@ -186,7 +188,7 @@ export default function LoginPage() {
                             email: event.target.value,
                           }))
                         }
-                        placeholder="name@luxury.com"
+                        placeholder={t("auth.emailPlaceholder")}
                         type="email"
                         value={formState.email}
                       />
@@ -196,8 +198,8 @@ export default function LoginPage() {
                       <label
                         className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                         htmlFor="password"
-                      >
-                        PASSWORD
+                        >
+                        {t("auth.password")}
                       </label>
                       <input
                         autoComplete="current-password"
@@ -231,7 +233,7 @@ export default function LoginPage() {
                     <span className="material-symbols-outlined text-sm">
                       arrow_back
                     </span>
-                    Sign up
+                    {t("auth.signUp")}
                   </Link>
 
                   <button
@@ -239,7 +241,7 @@ export default function LoginPage() {
                     disabled={isSubmitting}
                     type="submit"
                   >
-                    {isSubmitting ? "Signing in..." : "Log in"}
+                    {isSubmitting ? t("auth.signingIn") : t("auth.login")}
                     <span className="material-symbols-outlined text-sm">
                       arrow_forward
                     </span>

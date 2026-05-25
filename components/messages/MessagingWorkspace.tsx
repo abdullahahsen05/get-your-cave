@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { SafeUser } from "@/lib/auth";
+import { normalizeLocale } from "@/lib/i18n";
 import {
   getMessagingSocket,
   SOCKET_EVENTS,
@@ -67,20 +69,20 @@ type MessagingWorkspaceProps = {
   initialConversationId: string | null;
 };
 
-function formatTime(value: string | null) {
+function formatTime(value: string | null, locale: string) {
   if (!value) {
     return "";
   }
 
-  return new Date(value).toLocaleTimeString("en-US", {
+  return new Date(value).toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "2-digit",
   });
 }
 
-function formatDateLabel(value: string | null) {
+function formatDateLabel(value: string | null, locale: string) {
   if (!value) {
-    return "Just now";
+    return locale.startsWith("fr") ? "À l’instant" : "Just now";
   }
 
   const date = new Date(value);
@@ -91,39 +93,42 @@ function formatDateLabel(value: string | null) {
     date.getDate() === now.getDate();
 
   if (isSameDay) {
-    return formatTime(value);
+    return formatTime(value, locale);
   }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
   });
 }
 
-function buildPreview(conversation: ConversationListItem) {
+function buildPreview(conversation: ConversationListItem, t: (key: string, options?: Record<string, unknown>) => string) {
   if (conversation.lastMessageText) {
     return conversation.lastMessageText;
   }
 
   if (conversation.booking) {
-    return `Booking ${conversation.booking.bookingNumber}`;
+    return t("messaging.bookingPreview", { number: conversation.booking.bookingNumber });
   }
 
   if (conversation.listing) {
     return conversation.listing.title;
   }
 
-  return "No messages yet";
+  return t("messaging.noMessagesYet");
 }
 
-function getRoleLabel(role: string) {
-  if (role === "OWNER") return "Owner";
-  if (role === "RENTER") return "Renter";
-  return "Admin";
+function getRoleLabel(role: string, t: (key: string) => string) {
+  if (role === "OWNER") return t("common.owner");
+  if (role === "RENTER") return t("common.renter");
+  return t("common.admin");
 }
 
-function formatConversationTitle(conversation: ConversationListItem) {
-  return `${conversation.otherParticipant.fullName} (${getRoleLabel(conversation.otherParticipant.role)})`;
+function formatConversationTitle(
+  conversation: ConversationListItem,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  return `${conversation.otherParticipant.fullName} (${getRoleLabel(conversation.otherParticipant.role, t)})`;
 }
 
 function hasUnreadIncomingMessages(
@@ -140,6 +145,8 @@ export default function MessagingWorkspace({
   initialConversationId,
 }: MessagingWorkspaceProps) {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const canAccessMessaging =
     currentUser.role === "OWNER" || currentUser.role === "RENTER";
   const socketRef = useRef<ReturnType<typeof getMessagingSocket> | null>(null);
@@ -219,7 +226,7 @@ export default function MessagingWorkspace({
       };
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Unable to load conversations.");
+        throw new Error(data.error ?? t("messaging.unableToLoadConversations"));
       }
 
       const nextConversations = data.conversations ?? [];
@@ -230,13 +237,13 @@ export default function MessagingWorkspace({
       }
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to load conversations.",
+        error instanceof Error ? error.message : t("messaging.unableToLoadConversations"),
       );
       setConversations([]);
     } finally {
       setListLoading(false);
     }
-  }, [canAccessMessaging, selectedConversationId]);
+  }, [canAccessMessaging, selectedConversationId, t]);
 
   const fetchConversationDetail = useCallback(async function fetchConversationDetail(
     conversationId: string,
@@ -258,7 +265,7 @@ export default function MessagingWorkspace({
       };
 
       if (!response.ok || !data.conversation) {
-        throw new Error(data.error ?? "Unable to load messages.");
+        throw new Error(data.error ?? t("messaging.unableToLoadMessages"));
       }
 
       setSelectedConversation(data.conversation);
@@ -273,12 +280,12 @@ export default function MessagingWorkspace({
     } catch (error) {
       setSelectedConversation(null);
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to load messages.",
+        error instanceof Error ? error.message : t("messaging.unableToLoadMessages"),
       );
     } finally {
       setDetailLoading(false);
     }
-  }, [canAccessMessaging, currentUser.id]);
+  }, [canAccessMessaging, currentUser.id, t]);
 
   useEffect(() => {
     loadListRef.current = fetchConversationList;
@@ -459,7 +466,7 @@ export default function MessagingWorkspace({
       { conversationId: selectedConversationId },
       (response: { ok: boolean; error?: string }) => {
         if (!response.ok) {
-          setErrorMessage(response.error ?? "Unable to join conversation.");
+          setErrorMessage(response.error ?? t("messaging.unableToJoinConversation"));
           return;
         }
 
@@ -470,7 +477,7 @@ export default function MessagingWorkspace({
     if (previousConversationId !== selectedConversationId) {
       router.replace(`/messaging?conversation=${selectedConversationId}`);
     }
-  }, [canAccessMessaging, router, selectedConversationId]);
+  }, [canAccessMessaging, router, selectedConversationId, t]);
 
   useEffect(() => {
     if (!canAccessMessaging || !selectedConversationId) {
@@ -517,12 +524,12 @@ export default function MessagingWorkspace({
   function handleSendMessage() {
     const body = draftMessage.trim();
     if (!body) {
-      setErrorMessage("Message cannot be empty.");
+      setErrorMessage(t("messaging.emptyMessage"));
       return;
     }
 
     if (!selectedConversationId) {
-      setErrorMessage("Select a conversation first.");
+      setErrorMessage(t("messaging.selectConversationFirst"));
       return;
     }
 
@@ -546,7 +553,7 @@ export default function MessagingWorkspace({
           };
 
           if (!response.ok || !data.message) {
-            throw new Error(data.error ?? "Unable to send message.");
+            throw new Error(data.error ?? t("messaging.unableToSendMessage"));
           }
 
           const savedMessage = data.message;
@@ -573,7 +580,7 @@ export default function MessagingWorkspace({
         })
         .catch((error) => {
           setErrorMessage(
-            error instanceof Error ? error.message : "Unable to send message.",
+            error instanceof Error ? error.message : t("messaging.unableToSendMessage"),
           );
         });
       return;
@@ -588,7 +595,7 @@ export default function MessagingWorkspace({
       },
       (response: { ok: boolean; message?: ConversationMessage; error?: string }) => {
         if (!response.ok || !response.message) {
-          setErrorMessage(response.error ?? "Unable to send message.");
+          setErrorMessage(response.error ?? t("messaging.unableToSendMessage"));
           return;
         }
 
@@ -625,9 +632,9 @@ export default function MessagingWorkspace({
         <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-gutter mt-24 lg:mt-[140px]">
           <div className="flex items-center justify-center min-h-[680px] bg-white rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
             <div className="text-center max-w-md px-6">
-              <h2 className="font-h2 text-h2 text-primary mb-3">Messaging unavailable</h2>
+              <h2 className="font-h2 text-h2 text-primary mb-3">{t("messaging.unavailableTitle")}</h2>
               <p className="font-body-md text-body-md text-on-surface-variant">
-                This account cannot access the messaging workspace.
+                {t("messaging.unavailableDescription")}
               </p>
             </div>
           </div>
@@ -639,10 +646,10 @@ export default function MessagingWorkspace({
   const selectedMessages = selectedConversation?.messages ?? [];
   const activeTypingLabel =
     typingStatus && typingStatus.conversationId === selectedConversationId
-      ? `${typingStatus.userName} is typing...`
+      ? t("messaging.typing", { name: typingStatus.userName })
       : socketConnected
-        ? "Active now"
-        : "Connecting...";
+        ? t("common.activeNow")
+        : t("common.connecting");
 
   return (
     <div className="bg-[#F7F7F5] text-on-surface min-h-screen overflow-x-hidden">
@@ -650,7 +657,7 @@ export default function MessagingWorkspace({
         <div className="flex flex-col md:flex-row min-h-[560px] md:min-h-[680px] md:h-[750px] bg-white rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8] overflow-hidden">
           <aside className="w-full md:w-1/3 border-r-0 md:border-r border-b md:border-b-0 border-[#EBEBE8] flex flex-col bg-surface max-h-[42vh] md:max-h-none">
             <div className="h-20 px-4 sm:px-lg flex items-center border-b border-[#EBEBE8] shrink-0">
-              <h2 className="font-h2 text-h2 text-primary">Messages</h2>
+              <h2 className="font-h2 text-h2 text-primary">{t("messaging.title")}</h2>
             </div>
 
             <div className="px-4 sm:px-lg pb-md mt-4">
@@ -660,7 +667,7 @@ export default function MessagingWorkspace({
                 </span>
                 <input
                   className="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm font-manrope placeholder-stone-400 focus:ring-1 focus:ring-primary"
-                  placeholder="Search messages..."
+                  placeholder={t("messaging.searchPlaceholder")}
                   type="text"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
@@ -671,7 +678,7 @@ export default function MessagingWorkspace({
             <div className="flex-1 overflow-y-auto">
               {listLoading ? (
                 <div className="px-4 sm:px-lg py-6 text-sm text-stone-500">
-                  Loading conversations...
+                  {t("messaging.loadingConversations")}
                 </div>
               ) : filteredConversations.length ? (
                 filteredConversations.map((conversation, index) => {
@@ -703,14 +710,14 @@ export default function MessagingWorkspace({
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-1">
                           <span className="font-h3 text-body-md text-primary truncate">
-                            {formatConversationTitle(conversation)}
+                          {formatConversationTitle(conversation, t)}
                           </span>
                           <span className="text-label-caps text-stone-400">
-                            {formatDateLabel(conversation.lastMessageAt ?? conversation.updatedAt)}
+                            {formatDateLabel(conversation.lastMessageAt ?? conversation.updatedAt, locale)}
                           </span>
                         </div>
                         <p className="text-body-sm text-on-surface-variant truncate font-medium">
-                          {buildPreview(conversation)}
+                          {buildPreview(conversation, t)}
                         </p>
                       </div>
                       {conversation.unreadCount > 0 ? (
@@ -723,7 +730,7 @@ export default function MessagingWorkspace({
                 })
               ) : (
                 <div className="px-4 sm:px-lg py-10 text-center text-stone-500">
-                  No conversations found.
+                  {t("messaging.noConversations")}
                 </div>
               )}
             </div>
@@ -746,8 +753,8 @@ export default function MessagingWorkspace({
                 <div className="min-w-0">
                   <h3 className="font-h3 text-body-md text-primary leading-tight truncate">
                     {activeConversation
-                      ? formatConversationTitle(activeConversation)
-                      : "Select a conversation"}
+                      ? formatConversationTitle(activeConversation, t)
+                      : t("messaging.selectConversation")}
                   </h3>
                   <div className="flex items-center gap-xs">
                     <div className="w-2 h-2 rounded-full bg-secondary"></div>
@@ -768,13 +775,13 @@ export default function MessagingWorkspace({
                   }
                 }}
               >
-                View Listing
+                {t("messaging.viewListing")}
               </button>
             </header>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-lg flex flex-col gap-lg bg-[#FCF9F8]">
               {detailLoading ? (
-                <div className="text-sm text-stone-500">Loading messages...</div>
+                <div className="text-sm text-stone-500">{t("messaging.loadingMessages")}</div>
               ) : selectedMessages.length ? (
                 selectedMessages.map((message) => {
                   const isOutgoing = message.senderId === currentUser.id;
@@ -807,18 +814,18 @@ export default function MessagingWorkspace({
                         )}
                       </div>
                       <span className="text-label-caps text-stone-400 px-sm">
-                        {formatTime(message.createdAt)}
+                        {formatTime(message.createdAt, locale)}
                       </span>
                     </div>
                   );
                 })
               ) : selectedConversationId ? (
                 <div className="rounded-lg border border-[#EBEBE8] bg-white p-8 text-on-surface-variant">
-                  No messages yet.
+                  {t("messaging.noMessagesYet")}
                 </div>
               ) : (
                 <div className="rounded-lg border border-[#EBEBE8] bg-white p-8 text-on-surface-variant">
-                  Select a conversation to start messaging.
+                  {t("messaging.selectConversationToStart")}
                 </div>
               )}
 
@@ -840,7 +847,7 @@ export default function MessagingWorkspace({
                 </button>
                 <input
                   className="min-w-0 flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder-stone-400 text-on-surface py-2"
-                  placeholder="Type your message..."
+                  placeholder={t("messaging.typeMessagePlaceholder")}
                   type="text"
                   value={draftMessage}
                   onChange={(event) => setDraftMessage(event.target.value)}

@@ -316,7 +316,7 @@ export default function ListYourCavePage() {
     return () => {
       cancelled = true;
     };
-  }, [listingIdFromUrl]);
+  }, [listingIdFromUrl, t]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setErrorMessage(null);

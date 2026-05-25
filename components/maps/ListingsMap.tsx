@@ -1,13 +1,8 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import {
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-} from "react-leaflet";
+import { useTranslation } from "react-i18next";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { LatLngBoundsExpression } from "leaflet";
 
 import {
@@ -53,6 +48,7 @@ function FitBounds({ points }: { points: Array<[number, number]> }) {
 }
 
 export default function ListingsMap({ listings }: Props) {
+  const { t } = useTranslation();
   const points = useMemo(
     () =>
       listings.filter((listing) => isValidCoordinatePair(listing.latitude, listing.longitude)),
@@ -72,9 +68,9 @@ export default function ListingsMap({ listings }: Props) {
     return (
       <div className="flex h-[420px] items-center justify-center rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-6 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
         <div className="max-w-md space-y-2">
-          <p className="font-h3 text-h3 text-primary">Map preview</p>
+          <p className="font-h3 text-h3 text-primary">{t("maps.title")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
-            No approved listings with coordinates are available yet.
+            {t("maps.noApprovedListings")}
           </p>
         </div>
       </div>
@@ -112,7 +108,7 @@ export default function ListingsMap({ listings }: Props) {
                     {listing.address ? ` · ${listing.address}` : ""}
                   </p>
                   <p className="text-sm font-semibold text-primary">
-                    €{listing.pricePerMonth} / month
+                    €{listing.pricePerMonth} {t("maps.perMonth")}
                   </p>
                 </div>
               </Popup>

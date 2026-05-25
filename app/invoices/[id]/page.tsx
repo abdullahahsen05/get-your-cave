@@ -4,6 +4,8 @@ import InvoiceDetailPage from "@/components/invoices/InvoiceDetailPage";
 import { getCurrentUser } from "@/lib/auth";
 import { getInvoiceForViewer } from "@/lib/invoices/generateInvoice";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ id: string }>;
 };

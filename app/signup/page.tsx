@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   getDashboardPath,
@@ -16,15 +17,15 @@ type FormState = SignupInput & {
 };
 
 type SignupStep = {
-  label: string;
+  labelKey: string;
   icon: string;
 };
 
 const steps: SignupStep[] = [
-  { label: "Account", icon: "info" },
-  { label: "Profile", icon: "person" },
-  { label: "Verify", icon: "description" },
-  { label: "Finish", icon: "check_circle" },
+  { labelKey: "auth.signupStepAccount", icon: "info" },
+  { labelKey: "auth.signupStepProfile", icon: "person" },
+  { labelKey: "auth.signupStepVerify", icon: "description" },
+  { labelKey: "auth.signupStepFinish", icon: "check_circle" },
 ];
 
 const initialState: FormState = {
@@ -37,6 +38,7 @@ const initialState: FormState = {
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [nextPath] = useState<string | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -64,7 +66,7 @@ export default function SignUpPage() {
 
       if (!parsed.success) {
         return (
-          parsed.error.issues[0]?.message ?? "Please check the form fields."
+          parsed.error.issues[0]?.message ?? t("auth.formError")
         );
       }
 
@@ -73,11 +75,11 @@ export default function SignUpPage() {
 
     if (currentStepIndex === 1) {
       if (formState.password.length < 8) {
-        return "Password must be at least 8 characters long.";
+        return t("auth.passwordTooShort");
       }
 
       if (formState.password !== formState.confirmPassword) {
-        return "Passwords do not match.";
+        return t("auth.passwordMismatch");
       }
 
       return null;
@@ -90,7 +92,7 @@ export default function SignUpPage() {
 
       if (!parsed.success) {
         return (
-          parsed.error.issues[0]?.message ?? "Please choose an account type."
+          parsed.error.issues[0]?.message ?? t("auth.chooseAccountType")
         );
       }
 
@@ -105,11 +107,11 @@ export default function SignUpPage() {
     });
 
     if (!parsed.success) {
-      return parsed.error.issues[0]?.message ?? "Please check the form fields.";
+      return parsed.error.issues[0]?.message ?? t("auth.formError");
     }
 
     if (formState.password !== formState.confirmPassword) {
-      return "Passwords do not match.";
+      return t("auth.passwordMismatch");
     }
 
     return null;
@@ -184,7 +186,7 @@ export default function SignUpPage() {
       };
 
       if (!response.ok || !data.user?.role) {
-        setErrorMessage(data.error ?? "Unable to create account right now.");
+        setErrorMessage(t("auth.signupError"));
         return;
       }
 
@@ -194,7 +196,7 @@ export default function SignUpPage() {
       router.replace(destination);
       router.refresh();
     } catch {
-      setErrorMessage("Unable to create account right now.");
+      setErrorMessage(t("auth.signupError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -207,10 +209,14 @@ export default function SignUpPage() {
           <div className="flex flex-col gap-4 mb-4 px-1">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <span className="font-label-caps text-label-caps text-primary uppercase">
-                Step {step + 1} of {steps.length}: {currentStep.label}
+                {t("auth.stepIndicator", {
+                  current: step + 1,
+                  total: steps.length,
+                  label: t(currentStep.labelKey),
+                })}
               </span>
               <span className="font-label-caps text-label-caps text-secondary">
-                {Math.round(progress)}% Complete
+                {t("auth.percentComplete", { value: Math.round(progress) })}
               </span>
             </div>
 
@@ -223,7 +229,7 @@ export default function SignUpPage() {
                   <button
                     className="flex flex-col sm:flex-row items-center justify-center gap-1 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 py-2 text-center transition-all hover:border-primary disabled:cursor-default"
                     disabled={index > step || isSubmitting}
-                    key={item.label}
+                    key={item.labelKey}
                     onClick={() => goToStep(index)}
                     type="button"
                   >
@@ -243,7 +249,7 @@ export default function SignUpPage() {
                           : "text-on-surface-variant/50"
                       }`}
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                     </span>
                   </button>
                 );
@@ -271,7 +277,7 @@ export default function SignUpPage() {
 
             <div className="relative z-10">
               <h1 className="font-h2 text-h2 text-primary mb-12">
-                Earn from your unused space
+                {t("auth.earnFromUnusedSpace")}
               </h1>
 
               <div className="space-y-10">
@@ -283,10 +289,10 @@ export default function SignUpPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary text-body-md">
-                      Verified Owners
+                      {t("auth.verifiedOwnersTitle")}
                     </p>
                     <p className="text-stone-500 text-body-sm">
-                      Trust-first community protocols.
+                      {t("auth.verifiedOwnersDescription")}
                     </p>
                   </div>
                 </div>
@@ -299,10 +305,10 @@ export default function SignUpPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary text-body-md">
-                      Secure Payments
+                      {t("auth.securePaymentsTitle")}
                     </p>
                     <p className="text-stone-500 text-body-sm">
-                      Automated monthly distributions.
+                      {t("auth.securePaymentsDescription")}
                     </p>
                   </div>
                 </div>
@@ -315,10 +321,10 @@ export default function SignUpPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary text-body-md">
-                      Easy Contracts
+                      {t("auth.easyContractsTitle")}
                     </p>
                     <p className="text-stone-500 text-body-sm">
-                      Legally binding, simple terms.
+                      {t("auth.easyContractsDescription")}
                     </p>
                   </div>
                 </div>
@@ -327,7 +333,7 @@ export default function SignUpPage() {
 
             <div className="relative z-10 pt-8">
               <p className="text-xs text-secondary italic opacity-75">
-                Join 5,000+ hosts securing assets globally.
+                {t("auth.joinHosts")}
               </p>
             </div>
           </aside>
@@ -338,17 +344,13 @@ export default function SignUpPage() {
                 <section>
                   <div className="mb-10">
                     <h3 className="font-h1 text-h1 text-primary mb-2">
-                      Join the Collective
+                      {t("auth.joinTitle")}
                     </h3>
                     <p className="font-body-md text-body-md text-stone-500">
-                      {step === 0 &&
-                        "Start with your account details so we can identify you."}
-                      {step === 1 &&
-                        "Create a secure password for your new account."}
-                      {step === 2 &&
-                        "Choose the account type that matches how you'll use the platform."}
-                      {step === 3 &&
-                        "Review everything, then create your account."}
+                      {step === 0 && t("auth.joinDescriptionAccount")}
+                      {step === 1 && t("auth.joinDescriptionPassword")}
+                      {step === 2 && t("auth.joinDescriptionRole")}
+                      {step === 3 && t("auth.joinDescriptionReview")}
                     </p>
                   </div>
 
@@ -360,7 +362,7 @@ export default function SignUpPage() {
                             className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                             htmlFor="full-name"
                           >
-                            FULL NAME
+                            {t("auth.fullNameLabel")}
                           </label>
                           <input
                             autoComplete="name"
@@ -372,7 +374,7 @@ export default function SignUpPage() {
                                 fullName: event.target.value,
                               }))
                             }
-                            placeholder="Your full name"
+                            placeholder={t("auth.fullNamePlaceholder")}
                             type="text"
                             value={formState.fullName}
                           />
@@ -383,7 +385,7 @@ export default function SignUpPage() {
                             className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                             htmlFor="email"
                           >
-                            EMAIL ADDRESS
+                            {t("auth.emailAddressLabel")}
                           </label>
                           <input
                             autoComplete="email"
@@ -395,7 +397,7 @@ export default function SignUpPage() {
                                 email: event.target.value,
                               }))
                             }
-                            placeholder="name@luxury.com"
+                            placeholder={t("auth.emailPlaceholder")}
                             type="email"
                             value={formState.email}
                           />
@@ -410,7 +412,7 @@ export default function SignUpPage() {
                             className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                             htmlFor="password"
                           >
-                            PASSWORD
+                            {t("auth.passwordLabel")}
                           </label>
                           <input
                             autoComplete="new-password"
@@ -433,7 +435,7 @@ export default function SignUpPage() {
                             className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                             htmlFor="confirm-password"
                           >
-                            CONFIRM PASSWORD
+                            {t("auth.confirmPasswordLabel")}
                           </label>
                           <input
                             autoComplete="new-password"
@@ -460,7 +462,7 @@ export default function SignUpPage() {
                             className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
                             htmlFor="role"
                           >
-                            ACCOUNT TYPE
+                            {t("auth.accountTypeLabel")}
                           </label>
                           <select
                             className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
@@ -477,7 +479,7 @@ export default function SignUpPage() {
                               .filter((role) => role !== "ADMIN")
                               .map((role) => (
                                 <option key={role} value={role}>
-                                  {role === "OWNER" ? "Owner" : "Renter"}
+                                  {role === "OWNER" ? t("auth.owner") : t("auth.renter")}
                                 </option>
                               ))}
                           </select>
@@ -485,11 +487,10 @@ export default function SignUpPage() {
 
                         <div className="rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-5 py-4">
                           <p className="font-label-caps text-[10px] uppercase tracking-[0.18em] text-on-tertiary-fixed-variant mb-2">
-                            Why this matters
+                            {t("auth.whyThisMatters")}
                           </p>
                           <p className="text-body-sm text-stone-500">
-                            Owners can list space and manage bookings. Renters
-                            can reserve storage and manage their own rentals.
+                            {t("auth.whyThisMattersDescription")}
                           </p>
                         </div>
                       </>
@@ -500,36 +501,36 @@ export default function SignUpPage() {
                         <div className="rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-5 py-4 space-y-3">
                           <div className="flex items-center justify-between gap-4">
                             <span className="font-label-caps text-[10px] uppercase tracking-[0.18em] text-on-tertiary-fixed-variant">
-                              Review
+                              {t("auth.review")}
                             </span>
                             <span className="text-xs text-secondary">
-                              Everything looks ready
+                              {t("auth.everythingLooksReady")}
                             </span>
                           </div>
 
                           <div className="space-y-2 text-body-sm text-stone-600">
                             <div className="flex items-center justify-between gap-4">
                               <span className="text-on-tertiary-fixed-variant">
-                                Full name
+                                {t("auth.fullNameLabel")}
                               </span>
                               <span className="font-semibold text-primary">
-                                {formState.fullName || "Not added yet"}
+                                {formState.fullName || t("auth.notAddedYet")}
                               </span>
                             </div>
                             <div className="flex items-center justify-between gap-4">
                               <span className="text-on-tertiary-fixed-variant">
-                                Email
+                                {t("auth.emailAddressLabel")}
                               </span>
                               <span className="font-semibold text-primary">
-                                {formState.email || "Not added yet"}
+                                {formState.email || t("auth.notAddedYet")}
                               </span>
                             </div>
                             <div className="flex items-center justify-between gap-4">
                               <span className="text-on-tertiary-fixed-variant">
-                                Account type
+                                {t("auth.accountTypeLabel")}
                               </span>
                               <span className="font-semibold text-primary">
-                                {formState.role === "OWNER" ? "Owner" : "Renter"}
+                                {formState.role === "OWNER" ? t("auth.owner") : t("auth.renter")}
                               </span>
                             </div>
                           </div>
@@ -544,7 +545,7 @@ export default function SignUpPage() {
                             className="w-5 h-5"
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdEhsntc5vjig4w7WeMCyVcxWJRhdfs8cA1tzBPR-yD02LbeRo4LNKwd5__u5oOd-dOufYAluR4AiON_W3fBKoWUYtByIF26S06tbeVzKLBvFRietmTamoueAsw57ysu57iUiZxNoRSn7UYCtGhWpubYdVs7xED1jDdXfPrPvt74enUUPjkDRDZfyXXinK1QzEKyZcipaYxb4nhRx1Nli7s-TO_ngZbQfxMluvyUoXaSVDZoHMU0ah7AzVYUxmIpkQsLdx8D07Z7Q"
                           />
-                          Continue with Google
+                          {t("auth.continueWithGoogle")}
                         </button>
                       </>
                     )}
@@ -567,7 +568,7 @@ export default function SignUpPage() {
                     <span className="material-symbols-outlined text-sm">
                       arrow_back
                     </span>
-                    Back
+                    {t("auth.back")}
                   </button>
 
                   <button
@@ -576,10 +577,10 @@ export default function SignUpPage() {
                     type="submit"
                   >
                     {isSubmitting
-                      ? "Creating..."
+                      ? t("auth.creating")
                       : isLastStep
-                        ? "Create Account"
-                        : "Next Step"}
+                        ? t("auth.createAccount")
+                        : t("auth.nextStep")}
                     <span className="material-symbols-outlined text-sm">
                       arrow_forward
                     </span>
@@ -589,12 +590,12 @@ export default function SignUpPage() {
 
               <div className="mt-10 text-center">
                 <p className="text-body-sm text-stone-500">
-                  Already have an account?{" "}
+                  {t("auth.alreadyHaveAccount")}{" "}
                   <Link
                     className="text-[#0F3D3E] font-bold hover:underline decoration-[#A7C4A0] underline-offset-4"
                     href="/login"
                   >
-                    Log in
+                    {t("auth.logIn")}
                   </Link>
                 </p>
               </div>

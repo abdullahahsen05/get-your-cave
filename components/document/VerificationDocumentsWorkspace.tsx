@@ -135,6 +135,8 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
   useEffect(() => {
     void loadVerificationDocuments();
+    // loadVerificationDocuments is intentionally called once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function openUploadDialog(type: VerificationDocumentType) {
@@ -215,10 +217,10 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         headers: { Accept: "application/json" },
       });
 
-      const data = (await response.json()) as { error?: string };
+      const deleteResult = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(t("verification.deleteError"));
+        throw new Error(deleteResult.error ?? t("verification.deleteError"));
       }
 
       setActionMessage(t("verification.documentDeleted"));

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { StorageType } from "@prisma/client";
 
@@ -51,6 +52,7 @@ function formatStorageType(value: StorageType) {
 }
 
 export default function BrowseStoragePage() {
+  const { t } = useTranslation();
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("");
   const [storageType, setStorageType] = useState<StorageType | "">("");
@@ -59,6 +61,7 @@ export default function BrowseStoragePage() {
   const [showMap, setShowMap] = useState(true);
   const [data, setData] = useState<ListingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -91,6 +94,7 @@ export default function BrowseStoragePage() {
 
     async function loadListings() {
       setLoading(true);
+      setError(null);
 
       try {
         const response = await fetch(`/api/listings?${queryString}`, {
@@ -100,15 +104,16 @@ export default function BrowseStoragePage() {
         const json = (await response.json()) as ListingsResponse & { error?: string };
 
         if (!response.ok) {
-          throw new Error(json.error ?? "Unable to load listings.");
+          throw new Error(json.error ?? t("errors.unableToLoadListings"));
         }
 
         if (!cancelled) {
           setData(json);
         }
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
           setData({ listings: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 1 } });
+          setError(loadError instanceof Error ? loadError.message : t("errors.unableToLoadListings"));
         }
       } finally {
         if (!cancelled) {
@@ -122,9 +127,9 @@ export default function BrowseStoragePage() {
     return () => {
       cancelled = true;
     };
-  }, [queryString]);
+  }, [queryString, t]);
 
-  const listings = data?.listings ?? [];
+  const listings = useMemo(() => data?.listings ?? [], [data]);
   const total = data?.pagination.total ?? 0;
   const totalPages = data?.pagination.totalPages ?? 1;
   const mapListings = useMemo(
@@ -145,7 +150,7 @@ export default function BrowseStoragePage() {
             </span>
             <input
               className="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-on-surface-variant/50"
-              placeholder="Where do you need storage?"
+              placeholder={t("storage.searchPlaceholder")}
               type="text"
               value={location}
               onChange={(event) => {
@@ -171,10 +176,10 @@ export default function BrowseStoragePage() {
                 setSizePreset(event.target.value);
               }}
             >
-              <option value="">Any Size</option>
-              <option value="SMALL">Small (5x5 ft)</option>
-              <option value="MEDIUM">Medium (10x10 ft)</option>
-              <option value="LARGE">Large (20x20 ft)</option>
+              <option value="">{t("storage.anySize")}</option>
+              <option value="SMALL">{t("storage.sizeSmall")}</option>
+              <option value="MEDIUM">{t("storage.sizeMedium")}</option>
+              <option value="LARGE">{t("storage.sizeLarge")}</option>
             </select>
           </div>
           <div className="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
@@ -187,7 +192,7 @@ export default function BrowseStoragePage() {
             </span>
             <input
               className="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-on-surface-variant/50"
-              placeholder="Move-in date"
+              placeholder={t("storage.moveInDate")}
               type="text"
             />
           </div>
@@ -199,17 +204,25 @@ export default function BrowseStoragePage() {
             <span className="material-symbols-outlined" data-icon="search">
               search
             </span>
-            <span className="font-bold">Search</span>
+            <span className="font-bold">{t("common.search")}</span>
           </button>
         </div>
       </section>
 
+      {error ? (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="rounded-lg border border-error/20 bg-error-container/20 px-4 py-3 text-sm text-error">
+            {error}
+          </div>
+        </section>
+      ) : null}
+
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-outline-variant/20 pb-6">
         <div>
           <h2 className="font-h1 text-h2 text-primary-container flex items-center gap-3">
-            {loading ? "Loading..." : `${total} Storage Caves`}
+            {loading ? t("common.loading") : t("storage.storageCavesWithCount", { count: total })}
             <span className="text-body-sm font-normal text-on-surface-variant px-3 py-1 bg-surface-container rounded-full italic-emphasis">
-              {location || city || "Greater San Francisco Area"}
+              {location || city || t("storage.region")}
             </span>
           </h2>
         </div>
@@ -222,16 +235,14 @@ export default function BrowseStoragePage() {
             <span className="material-symbols-outlined text-[20px]" data-icon="map">
               map
             </span>
-            {showMap ? "Hide Map" : "Show Map"}
+            {showMap ? t("common.hideMap") : t("common.showMap")}
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-label-caps text-on-surface-variant">
-              Sort by:
-            </span>
+            <span className="text-label-caps text-on-surface-variant">{t("common.sortBy")}</span>
             <select className="bg-transparent border-none focus:ring-0 font-bold text-body-sm text-primary appearance-none cursor-pointer pr-4">
-              <option>Recommended</option>
-              <option>Price: Low to High</option>
-              <option>Size: Largest</option>
+              <option>{t("storage.sortRecommended")}</option>
+              <option>{t("storage.sortPriceLowHigh")}</option>
+              <option>{t("storage.sortSizeLargest")}</option>
             </select>
           </div>
         </div>
@@ -241,9 +252,9 @@ export default function BrowseStoragePage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
-              <h3 className="font-h3 text-h3 text-primary">Map view</h3>
+              <h3 className="font-h3 text-h3 text-primary">{t("storage.mapView")}</h3>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
-                Approved listings with coordinates are shown below.
+                {t("storage.approvedListings")}
               </p>
             </div>
             <button
@@ -251,7 +262,7 @@ export default function BrowseStoragePage() {
               type="button"
               onClick={() => setShowMap(false)}
             >
-              Collapse
+              {t("common.collapse")}
             </button>
           </div>
           <ListingsMap listings={mapListings} />
@@ -262,12 +273,12 @@ export default function BrowseStoragePage() {
         <aside className="w-full lg:w-[280px] flex-shrink-0 space-y-10">
           <div className="bg-surface-container-low/40 p-6 rounded-lg border border-outline-variant/20 lg:sticky lg:top-24">
             <h3 className="font-label-caps text-label-caps text-primary mb-6 tracking-widest uppercase">
-              Refine Search
+              {t("storage.refineSearch")}
             </h3>
 
             <div className="mb-8 pb-8 border-b border-outline-variant/20">
               <label className="font-bold text-[13px] text-on-surface mb-5 block">
-                Price Range (Monthly)
+                {t("storage.priceRange")}
               </label>
               <div className="relative w-full h-1 bg-surface-container-high rounded-full mt-4 mb-3">
                 <div className="absolute h-full w-2/3 bg-secondary rounded-full left-1/4"></div>
@@ -275,20 +286,20 @@ export default function BrowseStoragePage() {
                 <div className="absolute -top-1.5 left-[91%] w-4 h-4 bg-primary rounded-full shadow-md border-2 border-white"></div>
               </div>
               <div className="flex justify-between text-[13px] font-semibold text-on-surface-variant">
-                <span>$50</span>
-                <span>$1,200+</span>
+                <span>{t("storage.priceRangeMin")}</span>
+                <span>{t("storage.priceRangeMax")}</span>
               </div>
             </div>
 
             <div className="mb-8 pb-8 border-b border-outline-variant/20">
               <label className="font-bold text-[13px] text-on-surface mb-5 block">
-                Unit Size
+                {t("storage.unitSize")}
               </label>
               <div className="space-y-4">
                 {[
-                  ["SMALL", "Small (up to 50 sq ft)"],
-                  ["MEDIUM", "Medium (50 - 150 sq ft)"],
-                  ["LARGE", "Large (150 - 300 sq ft)"],
+                  ["SMALL", t("storage.rangeSmall")],
+                  ["MEDIUM", t("storage.rangeMedium")],
+                  ["LARGE", t("storage.rangeLarge")],
                 ].map(([value, label]) => (
                   <label className="flex items-center gap-3 cursor-pointer group" key={value}>
                     <input
@@ -310,14 +321,14 @@ export default function BrowseStoragePage() {
 
             <div className="mb-8 pb-8 border-b border-outline-variant/20">
               <label className="font-bold text-[13px] text-on-surface mb-5 block">
-                Storage Type
+                {t("storage.storageType")}
               </label>
               <div className="flex flex-wrap gap-2">
                 {[
-                  [StorageType.GARAGE, "Garage"],
-                  [StorageType.ROOM, "Loft"],
-                  [StorageType.WAREHOUSE, "Warehouse"],
-                  [StorageType.BASEMENT, "Basement"],
+                  [StorageType.GARAGE, t("storage.typeGarage")],
+                  [StorageType.ROOM, t("storage.typeRoom")],
+                  [StorageType.WAREHOUSE, t("storage.typeWarehouse")],
+                  [StorageType.BASEMENT, t("storage.typeBasement")],
                 ].map(([value, label]) => (
                   <button
                     className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wider transition-all ${
@@ -340,18 +351,25 @@ export default function BrowseStoragePage() {
 
             <div className="mb-4">
               <label className="font-bold text-[13px] text-on-surface mb-5 block">
-                Distance
+                {t("storage.distance")}
               </label>
               <select className="w-full bg-white border border-outline-variant/30 rounded-lg p-2.5 text-body-sm focus:border-primary focus:ring-0">
-                <option>Within 5 miles</option>
-                <option value="Within 10 miles">Within 10 miles</option>
-                <option>Within 25 miles</option>
+                <option>{t("storage.within5")}</option>
+                <option value="Within 10 miles">{t("storage.within10")}</option>
+                <option>{t("storage.within25")}</option>
               </select>
             </div>
           </div>
         </aside>
 
         <div className="flex-1 min-w-0">
+          {!loading && !error && listings.length === 0 ? (
+            <div className="mb-6 rounded-lg border border-outline-variant/20 bg-white px-6 py-8 text-center text-on-surface-variant">
+              <p className="font-semibold text-primary">{t("storage.noResultsTitle")}</p>
+              <p className="mt-2 text-sm">{t("storage.noResultsDescription")}</p>
+            </div>
+          ) : null}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((listing) => (
               <Link
@@ -397,20 +415,20 @@ export default function BrowseStoragePage() {
                       <span className="material-symbols-outlined text-[18px] text-primary">
                         square_foot
                       </span>
-                      {listing.sizeSqFt ?? "—"} sq ft
+                      {listing.sizeSqFt ?? "—"} {t("storage.sqFt")}
                     </div>
                     <div className="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
                       <span className="material-symbols-outlined text-[18px] text-primary">
                         verified
                       </span>
-                      {listing.amenityNames[0] ?? "Verified"}
+                      {listing.amenityNames[0] ?? t("storage.verified")}
                     </div>
                     <div className="ml-auto text-right">
                       <span className="font-extrabold text-primary text-body-lg">
                         ${listing.pricePerMonth}
                       </span>
                       <span className="text-on-surface-variant font-medium text-xs">
-                        /mo
+                        {t("listing.monthly")}
                       </span>
                     </div>
                   </div>
@@ -474,7 +492,7 @@ export default function BrowseStoragePage() {
             search
           </span>
           <span className="text-[10px] uppercase tracking-widest font-bold">
-            Explore
+            {t("storage.mobileExplore")}
           </span>
         </a>
         <a
@@ -485,7 +503,7 @@ export default function BrowseStoragePage() {
             favorite
           </span>
           <span className="text-[10px] uppercase tracking-widest font-bold">
-            Saved
+            {t("common.save")}
           </span>
         </a>
         <a
@@ -496,7 +514,7 @@ export default function BrowseStoragePage() {
             person
           </span>
           <span className="text-[10px] uppercase tracking-widest font-bold">
-            Profile
+            {t("nav.dashboard")}
           </span>
         </a>
       </nav>
