@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import OwnerActiveBookingActions from "@/components/owner/OwnerActiveBookingActions";
 import OwnerBookingActions from "@/components/owner/OwnerBookingActions";
 import OwnerBookingDetails from "@/components/owner/OwnerBookingDetails";
 import OwnerListingArchiveButton from "@/components/owner/OwnerListingArchiveButton";
@@ -337,6 +338,80 @@ export default async function OwnerDashboardPage() {
             ) : (
               <div className="rounded-lg border border-outline-variant/20 bg-white p-6 text-body-sm text-on-surface-variant">
                 {t("dashboard.owner.noBookingRequests")}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-4" id="active-bookings">
+          <div>
+            <h2 className="text-h2 font-h2 text-primary">{t("dashboard.owner.activeBookings")}</h2>
+            <p className="text-body-sm font-body-sm text-on-surface-variant">
+              {t("dashboard.owner.activeBookingsDescription")}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {dashboard.activeBookings.length ? (
+              dashboard.activeBookings.map((booking) => (
+                <article
+                  className="rounded-lg border border-outline-variant/20 bg-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,61,62,0.04)]"
+                  key={booking.id}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="space-y-2">
+                      <p className="text-label-caps font-label-caps text-on-surface-variant">
+                        {booking.renter.fullName}
+                      </p>
+                      <h3 className="text-h3 font-h3 text-primary">{booking.listing.title}</h3>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {booking.listing.address} • {booking.listing.city}
+                      </p>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {formatDateRange(booking.startDate, booking.endDate, locale)}
+                        {booking.durationMonths ? (
+                          <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-secondary">
+                            {booking.durationMonths}{" "}
+                            {booking.durationMonths === 1
+                              ? t("dashboard.owner.month")
+                              : t("dashboard.owner.months")}
+                          </span>
+                        ) : null}
+                      </p>
+                      <OwnerBookingDetails
+                        durationMonths={booking.durationMonths}
+                        monthlyPrice={booking.monthlyPrice}
+                        totalMonthlyAmount={booking.totalMonthlyAmount}
+                        renterNote={booking.renterNote}
+                      />
+                      <OwnerActiveBookingActions bookingId={booking.id} />
+                    </div>
+
+                    <div className="flex flex-col items-start lg:items-end gap-3">
+                      <div className="text-left lg:text-right">
+                        <p className="text-label-caps font-label-caps text-on-surface-variant">
+                          {t("dashboard.owner.statusLabel")}
+                        </p>
+                        <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                          {t(`status.booking.${booking.status}`)}
+                        </span>
+                      </div>
+
+                      <div className="text-left lg:text-right">
+                        <p className="text-label-caps font-label-caps text-on-surface-variant">
+                          {t("dashboard.owner.monthlyRevenue")}
+                        </p>
+                        <p className="text-h3 font-h3 text-primary">
+                          {formatCurrency(booking.totalMonthlyAmount, "EUR")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-lg border border-outline-variant/20 bg-white p-6 text-body-sm text-on-surface-variant">
+                {t("dashboard.owner.noActiveBookings")}
               </div>
             )}
           </div>

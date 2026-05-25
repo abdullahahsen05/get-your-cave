@@ -20,6 +20,7 @@ export type OwnerDashboardSnapshot = {
   ownerListings: OwnerListing[];
   ownerBookings: OwnerBooking[];
   pendingBookings: OwnerBooking[];
+  activeBookings: OwnerBooking[];
   recentInvoices: SafeInvoice[];
   totalEarnings: string;
   earningsGrowthPercent: number;
@@ -94,6 +95,9 @@ export async function getOwnerDashboardSnapshot(ownerProfileId: string) {
   const pendingBookings = ownerBookings.filter(
     (booking) => booking.status === "PENDING",
   );
+  const activeBookings = ownerBookings.filter(
+    (booking) => booking.status === "ACTIVE",
+  );
 
   const revenueSeries = buildMonthlyRevenueSeries(payments, 6, new Date());
   const revenuePaths = buildRevenuePaths(revenueSeries, {
@@ -123,6 +127,7 @@ export async function getOwnerDashboardSnapshot(ownerProfileId: string) {
     ownerListings,
     ownerBookings,
     pendingBookings,
+    activeBookings,
     recentInvoices: invoicesResult.invoices.slice(0, 3),
     totalEarnings: formatMoneyAmount(new Prisma.Decimal(totalEarnings)),
     earningsGrowthPercent: getRevenueGrowthPercentage(revenueSeries),
