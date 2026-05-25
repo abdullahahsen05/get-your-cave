@@ -11,40 +11,41 @@ import {
   type RefObject,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 import { listingPublishSchema } from "@/lib/validations/listing";
 import { StorageType } from "@prisma/client";
 
 const steps = [
-  { label: "Basic Details", icon: "info" },
-  { label: "Photos", icon: "image" },
-  { label: "Pricing", icon: "payments" },
-  { label: "Location", icon: "location_on" },
-  { label: "Amenities", icon: "verified_user" },
+  { labelKey: "createListing.steps.basicDetails", icon: "info" },
+  { labelKey: "createListing.steps.photos", icon: "image" },
+  { labelKey: "createListing.steps.pricing", icon: "payments" },
+  { labelKey: "createListing.steps.location", icon: "location_on" },
+  { labelKey: "createListing.steps.amenities", icon: "verified_user" },
 ];
 
 const storageTypes = [
-  { value: StorageType.GARAGE, label: "Garage", icon: "garage" },
-  { value: StorageType.BASEMENT, label: "Basement", icon: "house_siding" },
-  { value: StorageType.ROOM, label: "Room", icon: "meeting_room" },
-  { value: StorageType.WAREHOUSE, label: "Warehouse", icon: "warehouse" },
+  { value: StorageType.GARAGE, labelKey: "createListing.storageTypes.garage", icon: "garage" },
+  { value: StorageType.BASEMENT, labelKey: "createListing.storageTypes.basement", icon: "house_siding" },
+  { value: StorageType.ROOM, labelKey: "createListing.storageTypes.room", icon: "meeting_room" },
+  { value: StorageType.WAREHOUSE, labelKey: "createListing.storageTypes.warehouse", icon: "warehouse" },
 ] as const;
 
 const amenityOptions = [
-  { icon: "videocam", label: "Security Camera" },
-  { icon: "schedule", label: "24/7 Access" },
-  { icon: "ac_unit", label: "Climate Control" },
-  { icon: "key", label: "Private Entry" },
-  { icon: "fence", label: "Gated" },
-  { icon: "local_shipping", label: "Loading Dock" },
+  { icon: "videocam", label: "createListing.amenities.securityCamera" },
+  { icon: "schedule", label: "createListing.amenities.access247" },
+  { icon: "ac_unit", label: "createListing.amenities.climateControl" },
+  { icon: "key", label: "createListing.amenities.privateEntry" },
+  { icon: "fence", label: "createListing.amenities.gated" },
+  { icon: "local_shipping", label: "createListing.amenities.loadingDock" },
 ];
 
-const LocationPreviewMap = dynamic(
-  () => import("@/components/maps/LocationPreviewMap"),
+const LocationPickerMap = dynamic(
+  () => import("@/components/maps/LocationPickerMap"),
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-48 md:h-full min-h-[200px] bg-surface-container rounded-lg animate-pulse border border-outline-variant/30" />
+      <div className="w-full h-full min-h-[280px] bg-surface-container rounded-lg animate-pulse border border-outline-variant/30" />
     ),
   },
 );
@@ -71,6 +72,30 @@ type FormState = {
   primaryImageIndex: number;
 };
 
+type GeocodeResponse = {
+  latitude: number;
+  longitude: number;
+  displayName: string;
+  address: string;
+  city: string | null;
+};
+
+function isGeocodeResponse(value: unknown): value is GeocodeResponse {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<GeocodeResponse>;
+
+  return (
+    typeof candidate.latitude === "number" &&
+    typeof candidate.longitude === "number" &&
+    typeof candidate.displayName === "string" &&
+    typeof candidate.address === "string" &&
+    (typeof candidate.city === "string" || candidate.city === null)
+  );
+}
+
 const initialState: FormState = {
   title: "",
   description: "",
@@ -87,7 +112,7 @@ const initialState: FormState = {
   primaryImageIndex: 0,
 };
 
-function toDataUrl(file: File) {
+function toDataUrl(file: File, readErrorMessage: string) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -96,9 +121,9 @@ function toDataUrl(file: File) {
         return;
       }
 
-      reject(new Error("Unable to read file."));
+      reject(new Error(readErrorMessage));
     };
-    reader.onerror = () => reject(new Error("Unable to read file."));
+    reader.onerror = () => reject(new Error(readErrorMessage));
     reader.readAsDataURL(file);
   });
 }
@@ -123,12 +148,16 @@ function parseCoordinateInput(value: string) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function validateCoordinatePair(latitude: string, longitude: string) {
+function validateCoordinatePair(
+  latitude: string,
+  longitude: string,
+  translate: (key: string) => string,
+) {
   const hasLatitude = latitude.trim().length > 0;
   const hasLongitude = longitude.trim().length > 0;
 
   if (hasLatitude !== hasLongitude) {
-    return "Please enter both latitude and longitude.";
+    return translate("createListing.errors.bothCoordinates");
   }
 
   if (!hasLatitude) {
@@ -139,14 +168,29 @@ function validateCoordinatePair(latitude: string, longitude: string) {
   const parsedLongitude = Number(longitude);
 
   if (!Number.isFinite(parsedLatitude) || parsedLatitude < -90 || parsedLatitude > 90) {
-    return "Latitude must be between -90 and 90.";
+    return translate("createListing.errors.latitudeRange");
   }
 
   if (!Number.isFinite(parsedLongitude) || parsedLongitude < -180 || parsedLongitude > 180) {
-    return "Longitude must be between -180 and 180.";
+    return translate("createListing.errors.longitudeRange");
   }
 
   return null;
+}
+
+function formatGeocodeQuery(formState: {
+  address: string;
+  city: string;
+  postalCode: string;
+}) {
+  return [formState.address, formState.city, formState.postalCode]
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .join(", ");
+}
+
+function isGeolocationSupported() {
+  return typeof navigator !== "undefined" && "geolocation" in navigator;
 }
 
 function parseListingToState(listing: {
@@ -187,6 +231,7 @@ function parseListingToState(listing: {
 
 export default function ListYourCavePage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [listingIdFromUrl] = useState<string | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -202,6 +247,11 @@ export default function ListYourCavePage() {
   const [isLoadingExisting, setIsLoadingExisting] = useState(Boolean(listingIdFromUrl));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [locationStatusMessage, setLocationStatusMessage] = useState<string | null>(null);
+  const [locationErrorMessage, setLocationErrorMessage] = useState<string | null>(null);
+  const [isFindingLocation, setIsFindingLocation] = useState(false);
+  const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(false);
+  const [showManualCoordinates, setShowManualCoordinates] = useState(false);
 
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isFirstStep = step === 0;
@@ -252,7 +302,7 @@ export default function ListYourCavePage() {
         }
       } catch {
         if (!cancelled) {
-          setErrorMessage("Unable to load your draft listing right now.");
+          setErrorMessage(t("createListing.errors.loadDraft"));
         }
       } finally {
         if (!cancelled) {
@@ -276,6 +326,136 @@ export default function ListYourCavePage() {
     }));
   }
 
+  function setLocationCoordinates(
+    latitude: number,
+    longitude: number,
+    message?: string,
+  ) {
+    setLocationErrorMessage(null);
+    setLocationStatusMessage(message ?? null);
+    setFormState((current) => ({
+      ...current,
+      latitude: latitude.toFixed(6),
+      longitude: longitude.toFixed(6),
+    }));
+  }
+
+  function applyGeocodeResponse(response: GeocodeResponse) {
+    setLocationErrorMessage(null);
+      setLocationStatusMessage(t("createListing.location.foundLocation", { name: response.displayName }));
+    setFormState((current) => ({
+      ...current,
+      address: current.address.trim() ? current.address : response.address,
+      city: current.city.trim() ? current.city : response.city ?? current.city,
+      latitude: response.latitude.toFixed(6),
+      longitude: response.longitude.toFixed(6),
+    }));
+  }
+
+  async function geocodeLocation() {
+    const query = formatGeocodeQuery(formState);
+
+    if (!query) {
+      setLocationErrorMessage(t("createListing.location.enterQuery"));
+      setLocationStatusMessage(null);
+      return;
+    }
+
+    setIsFindingLocation(true);
+    setLocationErrorMessage(null);
+    setLocationStatusMessage(t("createListing.location.searching"));
+
+    try {
+      const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`, {
+        headers: { Accept: "application/json" },
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !isGeocodeResponse(data)) {
+        throw new Error(
+          data && typeof data === "object" && "error" in data
+            ? String(data.error ?? t("createListing.location.noResults"))
+            : t("createListing.location.noResults"),
+        );
+      }
+
+      applyGeocodeResponse(data);
+    } catch (error) {
+      setLocationErrorMessage(
+        error instanceof Error ? error.message : t("createListing.location.noResults"),
+      );
+      setLocationStatusMessage(null);
+    } finally {
+      setIsFindingLocation(false);
+    }
+  }
+
+  async function handleUseCurrentLocation() {
+    setLocationErrorMessage(null);
+    setLocationStatusMessage(null);
+
+    if (!isGeolocationSupported()) {
+      setLocationErrorMessage(
+        t("createListing.location.geoUnsupported"),
+      );
+      return;
+    }
+
+    setIsUsingCurrentLocation(true);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          maximumAge: 60_000,
+          timeout: 10_000,
+        });
+      });
+
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      setLocationCoordinates(latitude, longitude, t("createListing.location.currentCaptured"));
+
+      try {
+        const reverseResponse = await fetch(
+          `/api/geocode?lat=${encodeURIComponent(String(latitude))}&lon=${encodeURIComponent(String(longitude))}`,
+          {
+            headers: { Accept: "application/json" },
+          },
+        );
+
+        const reverseData = await reverseResponse.json().catch(() => null);
+
+        if (reverseResponse.ok && isGeocodeResponse(reverseData)) {
+          setFormState((current) => ({
+            ...current,
+            address: current.address.trim() ? current.address : reverseData.address,
+            city: current.city.trim() ? current.city : reverseData.city ?? current.city,
+          }));
+          setLocationStatusMessage(
+            t("createListing.location.currentCapturedNear", { name: reverseData.displayName }),
+          );
+        }
+      } catch {
+        setLocationStatusMessage(t("createListing.location.currentCaptured"));
+      }
+    } catch (error) {
+      const geolocationError = error as { code?: number; message?: string } | null;
+      const isPermissionDenied = geolocationError?.code === 1;
+      const message = isPermissionDenied
+        ? t("createListing.location.permissionDenied")
+        : error instanceof Error
+          ? error.message
+          : t("createListing.location.locationUnavailable");
+
+      setLocationErrorMessage(message);
+      setLocationStatusMessage(null);
+    } finally {
+      setIsUsingCurrentLocation(false);
+    }
+  }
+
   function toggleAmenity(label: string) {
     setErrorMessage(null);
     setFormState((current) => {
@@ -297,7 +477,9 @@ export default function ListYourCavePage() {
       return;
     }
 
-    const urls = await Promise.all(files.map((file) => toDataUrl(file)));
+    const urls = await Promise.all(
+      files.map((file) => toDataUrl(file, t("createListing.errors.unableToReadFile"))),
+    );
 
     setErrorMessage(null);
     setFormState((current) => ({
@@ -310,35 +492,35 @@ export default function ListYourCavePage() {
   function validateCurrentStep(currentStep: number) {
     if (currentStep === 0) {
       if (!formState.title.trim()) {
-        return "Please add a listing title.";
+        return t("createListing.errors.title");
       }
 
       if (formState.description.trim().length < 20) {
-        return "Please add a longer description.";
+        return t("createListing.errors.description");
       }
 
       if (!formState.storageType) {
-        return "Please choose a storage type.";
+        return t("createListing.errors.storageType");
       }
     }
 
     if (currentStep === 2) {
       const price = Number(formState.pricePerMonth);
       if (!Number.isFinite(price) || price <= 0) {
-        return "Please add a monthly price.";
+        return t("createListing.errors.price");
       }
     }
 
     if (currentStep === 3) {
       if (!formState.address.trim()) {
-        return "Please add a street address.";
+        return t("createListing.errors.address");
       }
 
       if (!formState.city.trim()) {
-        return "Please add a city.";
+        return t("createListing.errors.city");
       }
 
-      const coordinateError = validateCoordinatePair(formState.latitude, formState.longitude);
+      const coordinateError = validateCoordinatePair(formState.latitude, formState.longitude, t);
       if (coordinateError) {
         return coordinateError;
       }
@@ -375,7 +557,7 @@ export default function ListYourCavePage() {
     if (status === "PENDING_APPROVAL") {
       const publishParsed = listingPublishSchema.safeParse(buildPayload(status));
       if (!publishParsed.success) {
-        setErrorMessage(publishParsed.error.issues[0]?.message ?? "Please check the form fields.");
+        setErrorMessage(publishParsed.error.issues[0]?.message ?? t("createListing.errors.checkFields"));
         return;
       }
     }
@@ -402,7 +584,7 @@ export default function ListYourCavePage() {
       };
 
       if (!response.ok || !data.listing?.id) {
-        setErrorMessage(data.error ?? "Unable to save this listing right now.");
+        setErrorMessage(data.error ?? t("createListing.errors.save"));
         return;
       }
 
@@ -420,7 +602,7 @@ export default function ListYourCavePage() {
         router.refresh();
       }
     } catch {
-      setErrorMessage("Unable to save this listing right now.");
+      setErrorMessage(t("createListing.errors.save"));
     } finally {
       setIsSubmitting(false);
     }
@@ -444,10 +626,14 @@ export default function ListYourCavePage() {
           <div className="flex flex-col gap-4 mb-4 px-1">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <span className="font-label-caps text-label-caps text-primary uppercase">
-                Step {step + 1} of {steps.length}: {steps[step].label}
+                {t("createListing.stepProgress", {
+                  current: step + 1,
+                  total: steps.length,
+                  label: t(steps[step].labelKey),
+                })}
               </span>
               <span className="font-label-caps text-label-caps text-secondary">
-                {Math.round(progress)}% Complete
+                {t("createListing.percentComplete", { value: Math.round(progress) })}
               </span>
             </div>
 
@@ -460,7 +646,7 @@ export default function ListYourCavePage() {
                   <button
                     className="flex flex-col sm:flex-row items-center justify-center gap-1 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 py-2 text-center transition-all hover:border-primary disabled:cursor-default min-h-[68px] sm:min-h-0"
                     disabled={index > step || isSubmitting}
-                    key={item.label}
+                    key={item.labelKey}
                     onClick={() => setStep(index)}
                     type="button"
                   >
@@ -480,7 +666,7 @@ export default function ListYourCavePage() {
                           : "text-on-surface-variant/50"
                       }`}
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                     </span>
                   </button>
                 );
@@ -558,6 +744,18 @@ export default function ListYourCavePage() {
                   onLongitudeChange={(value) => updateField("longitude", value)}
                   onPostalCodeChange={(value) => updateField("postalCode", value)}
                   onSizeChange={(value) => updateField("sizeSqFt", value)}
+                  onFindOnMap={() => {
+                    void geocodeLocation();
+                  }}
+                  onUseCurrentLocation={() => {
+                    void handleUseCurrentLocation();
+                  }}
+                  isFindingLocation={isFindingLocation}
+                  isUsingCurrentLocation={isUsingCurrentLocation}
+                  locationErrorMessage={locationErrorMessage}
+                  locationStatusMessage={locationStatusMessage}
+                  onToggleManualCoordinates={() => setShowManualCoordinates((current) => !current)}
+                  showManualCoordinates={showManualCoordinates}
                 />
               )}
               {step === 4 && (
@@ -584,7 +782,7 @@ export default function ListYourCavePage() {
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Back
+            {t("common.back")}
           </button>
 
           <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full md:w-auto">
@@ -594,7 +792,7 @@ export default function ListYourCavePage() {
               onClick={() => persistListing("DRAFT")}
               type="button"
             >
-              Save Draft
+              {t("common.saveDraft")}
             </button>
             <button
               className="flex-1 md:flex-none bg-primary text-white px-12 py-3 rounded-full font-label-caps text-label-caps hover:opacity-90 transition-all uppercase shadow-lg shadow-primary/10 disabled:opacity-60"
@@ -602,7 +800,11 @@ export default function ListYourCavePage() {
               type="submit"
               form="create-listing-form"
             >
-              {isSubmitting ? "Saving..." : isLastStep ? "Submit Listing" : "Next Step"}
+              {isSubmitting
+                ? t("createListing.saving")
+                : isLastStep
+                  ? t("common.submitListing")
+                  : t("createListing.nextStep")}
             </button>
           </div>
         </section>
@@ -624,25 +826,26 @@ function BasicDetailsStep({
   onDescriptionChange: (value: string) => void;
   onStorageTypeChange: (value: StorageType | "") => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <h2 className="font-h2 text-h2 text-primary">
-          Let&apos;s start with the basics
+          {t("createListing.basicDetails.title")}
         </h2>
         <p className="text-on-surface-variant font-body-md text-body-md">
-          Define your space and what makes it unique for asset storage.
+          {t("createListing.basicDetails.description")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <div className="flex flex-col gap-1">
           <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-            Cave Title
+            {t("createListing.basicDetails.titleLabel")}
           </label>
           <input
             className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 text-body-lg font-h3 transition-colors outline-none"
-            placeholder="e.g., Secure Garage in Downtown"
+            placeholder={t("createListing.basicDetails.titlePlaceholder")}
             type="text"
             value={formState.title}
             onChange={(event) => onTitleChange(event.target.value)}
@@ -651,11 +854,11 @@ function BasicDetailsStep({
 
         <div className="flex flex-col gap-1">
           <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-            Description
+            {t("createListing.basicDetails.descriptionLabel")}
           </label>
           <textarea
             className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 text-body-md transition-colors outline-none resize-none"
-            placeholder="Describe the serenity, security, and accessibility of your space..."
+            placeholder={t("createListing.basicDetails.descriptionPlaceholder")}
             rows={4}
             value={formState.description}
             onChange={(event) => onDescriptionChange(event.target.value)}
@@ -664,13 +867,13 @@ function BasicDetailsStep({
 
         <div className="flex flex-col gap-1">
           <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-            Storage Type
+            {t("createListing.basicDetails.storageTypeLabel")}
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {storageTypes.map((item) => (
               <StorageTypeOption
                 icon={item.icon}
-                label={item.label}
+                label={t(item.labelKey)}
                 key={item.value}
                 checked={formState.storageType === item.value}
                 onSelect={() => onStorageTypeChange(item.value)}
@@ -722,13 +925,13 @@ function VisualDocumentationStep({
   usingUploadedImages: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">Visual Documentation</h2>
+        <h2 className="font-h2 text-h2 text-primary">{t("createListing.visual.title")}</h2>
         <p className="text-on-surface-variant font-body-sm text-body-sm">
-          High-resolution imagery builds trust. Show off the floor quality,
-          lighting, and entry points.
+          {t("createListing.visual.description")}
         </p>
       </div>
 
@@ -749,10 +952,10 @@ function VisualDocumentationStep({
         </span>
         <div className="text-center">
           <p className="font-h3 text-h3 text-primary">
-            Upload Storage Photos (Min 3 required)
+            {t("createListing.visual.uploadTitle")}
           </p>
           <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Drag &amp; drop or click to browse
+            {t("createListing.visual.uploadHint")}
           </p>
         </div>
         <button
@@ -760,14 +963,14 @@ function VisualDocumentationStep({
           type="button"
           onClick={onFileClick}
         >
-          Browse Files
+          {t("createListing.visual.browseFiles")}
         </button>
       </div>
 
       <div className="flex items-center gap-1 px-1">
         <span className="material-symbols-outlined text-error text-[20px]">error</span>
         <p className="text-body-sm font-semibold text-error">
-          At least 3 images required
+          {t("createListing.visual.minImages")}
         </p>
       </div>
 
@@ -803,9 +1006,10 @@ function ImagePreview({
   onSetPrimary: () => void;
   disableActions?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="group relative aspect-video rounded-md overflow-hidden bg-surface-container border border-outline-variant">
-      <img alt="Storage preview" className="w-full h-full object-cover" src={src} />
+      <img alt={t("createListing.visual.previewAlt")} className="w-full h-full object-cover" src={src} />
       <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
         <div className="flex justify-between items-start">
           <span className="material-symbols-outlined text-white cursor-move">
@@ -826,7 +1030,7 @@ function ImagePreview({
           onClick={onSetPrimary}
         >
           <span className="material-symbols-outlined text-[14px]">star</span>
-          {primary ? "Primary" : "Set Primary"}
+          {primary ? t("createListing.visual.primary") : t("createListing.visual.setPrimary")}
         </button>
       </div>
     </div>
@@ -840,22 +1044,23 @@ function PricingStep({
   pricePerMonth: string;
   onPriceChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">Monthly Rate</h2>
+        <h2 className="font-h2 text-h2 text-primary">{t("createListing.pricing.title")}</h2>
         <p className="text-on-surface-variant font-body-sm text-body-sm">
-          Consistent income for your underutilized asset.
+          {t("createListing.pricing.description")}
         </p>
       </div>
 
       <div className="max-w-xs relative">
-        <span className="absolute left-4 top-[34px] -translate-y-1/2 text-h2 text-on-surface-variant font-light">
-          $
+          <span className="absolute left-4 top-[34px] -translate-y-1/2 text-h2 text-on-surface-variant font-light">
+          €
         </span>
         <input
           className="w-full bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 pl-10 pr-4 py-4 text-display font-display transition-colors outline-none appearance-none"
-          placeholder="0.00"
+          placeholder={t("createListing.pricing.placeholder")}
           type="number"
           value={pricePerMonth}
           onChange={(event) => onPriceChange(event.target.value)}
@@ -864,8 +1069,7 @@ function PricingStep({
         <div className="mt-4 flex items-start gap-2 p-4 bg-secondary-container/20 rounded-md">
           <span className="material-symbols-outlined text-secondary">info</span>
           <p className="text-body-sm text-on-secondary-container">
-            Spaces like yours in <strong>Downtown</strong> typically range from{" "}
-            <strong>$250 - $450</strong> per month.
+            {t("createListing.pricing.helper")}
           </p>
         </div>
       </div>
@@ -886,6 +1090,14 @@ function LocationStep({
   onLongitudeChange,
   onPostalCodeChange,
   onSizeChange,
+  onFindOnMap,
+  onUseCurrentLocation,
+  isFindingLocation,
+  isUsingCurrentLocation,
+  locationErrorMessage,
+  locationStatusMessage,
+  showManualCoordinates,
+  onToggleManualCoordinates,
 }: {
   address: string;
   city: string;
@@ -899,25 +1111,71 @@ function LocationStep({
   onLongitudeChange: (value: string) => void;
   onPostalCodeChange: (value: string) => void;
   onSizeChange: (value: string) => void;
+  onFindOnMap: () => void;
+  onUseCurrentLocation: () => void;
+  isFindingLocation: boolean;
+  isUsingCurrentLocation: boolean;
+  locationErrorMessage: string | null;
+  locationStatusMessage: string | null;
+  showManualCoordinates: boolean;
+  onToggleManualCoordinates: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">Location Details</h2>
+        <h2 className="font-h2 text-h2 text-primary">{t("createListing.location.title")}</h2>
         <p className="text-on-surface-variant font-body-sm text-body-sm">
-          Your exact address is only shared after a reservation is confirmed.
+          {t("createListing.location.description")}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="rounded-2xl border border-outline-variant/20 bg-white p-4 sm:p-5 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            disabled={isFindingLocation || isUsingCurrentLocation}
+            type="button"
+            onClick={onFindOnMap}
+          >
+            <span className="material-symbols-outlined text-sm">travel_explore</span>
+            {isFindingLocation ? t("createListing.location.finding") : t("createListing.location.findOnMap")}
+          </button>
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant px-5 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
+            disabled={isFindingLocation || isUsingCurrentLocation}
+            type="button"
+            onClick={onUseCurrentLocation}
+          >
+            <span className="material-symbols-outlined text-sm">my_location</span>
+            {isUsingCurrentLocation
+              ? t("createListing.location.usingLocation")
+              : t("createListing.location.useCurrentLocation")}
+          </button>
+        </div>
+
+        {locationStatusMessage ? (
+          <div className="rounded-lg border border-secondary/20 bg-secondary-container/20 px-4 py-3 text-sm text-primary">
+            {locationStatusMessage}
+          </div>
+        ) : null}
+
+        {locationErrorMessage ? (
+          <div className="rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+            {locationErrorMessage}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px] gap-6">
         <div className="space-y-6">
           <div className="flex flex-col gap-1">
             <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-              Street Address
+              {t("createListing.location.addressLabel")}
             </label>
             <input
               className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-              placeholder="123 Serenity Lane"
+              placeholder={t("createListing.location.addressPlaceholder")}
               type="text"
               value={address}
               onChange={(event) => onAddressChange(event.target.value)}
@@ -927,11 +1185,11 @@ function LocationStep({
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                City
+                {t("createListing.location.cityLabel")}
               </label>
               <input
                 className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                placeholder="San Francisco"
+                placeholder={t("createListing.location.cityPlaceholder")}
                 type="text"
                 value={city}
                 onChange={(event) => onCityChange(event.target.value)}
@@ -939,11 +1197,11 @@ function LocationStep({
             </div>
             <div className="flex flex-col gap-1">
               <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                Zip Code
+                {t("createListing.location.zipLabel")}
               </label>
               <input
                 className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                placeholder="94105"
+                placeholder={t("createListing.location.zipPlaceholder")}
                 type="text"
                 value={postalCode}
                 onChange={(event) => onPostalCodeChange(event.target.value)}
@@ -953,49 +1211,75 @@ function LocationStep({
 
           <div className="flex flex-col gap-1">
             <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-              Size (sq ft)
+              {t("createListing.location.sizeLabel")}
             </label>
             <input
               className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-              placeholder="120"
+              placeholder={t("createListing.location.sizePlaceholder")}
               type="number"
               value={sizeSqFt}
               onChange={(event) => onSizeChange(event.target.value)}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                Latitude
-              </label>
-              <input
-                className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                placeholder="48.8566"
-                step="any"
-                type="number"
-                value={latitude}
-                onChange={(event) => onLatitudeChange(event.target.value)}
-              />
+          <button
+            className="inline-flex items-center gap-2 text-sm font-bold text-primary underline underline-offset-4"
+            type="button"
+            onClick={onToggleManualCoordinates}
+          >
+            <span className="material-symbols-outlined text-sm">
+              {showManualCoordinates ? "expand_less" : "expand_more"}
+            </span>
+            {showManualCoordinates
+              ? t("createListing.location.hideManualCoordinates")
+              : t("createListing.location.showManualCoordinates")}
+          </button>
+
+          {showManualCoordinates ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+                  {t("createListing.location.latitudeLabel")}
+                </label>
+                <input
+                  className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
+                  placeholder={t("createListing.location.latitudePlaceholder")}
+                  step="any"
+                  type="number"
+                  value={latitude}
+                  onChange={(event) => onLatitudeChange(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+                  {t("createListing.location.longitudeLabel")}
+                </label>
+                <input
+                  className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
+                  placeholder={t("createListing.location.longitudePlaceholder")}
+                  step="any"
+                  type="number"
+                  value={longitude}
+                  onChange={(event) => onLongitudeChange(event.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                Longitude
-              </label>
-              <input
-                className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                placeholder="2.3522"
-                step="any"
-                type="number"
-                value={longitude}
-                onChange={(event) => onLongitudeChange(event.target.value)}
-              />
+          ) : (
+            <div className="rounded-lg border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+              {t("createListing.location.manualHint")}
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="w-full h-48 md:h-full min-h-[200px] rounded-lg overflow-hidden">
-          <LocationPreviewMap latitude={latitude} longitude={longitude} />
+        <div className="w-full h-full min-h-[320px] rounded-lg overflow-hidden">
+          <LocationPickerMap
+            address={address}
+            city={city}
+            latitude={latitude}
+            longitude={longitude}
+            onLatitudeChange={onLatitudeChange}
+            onLongitudeChange={onLongitudeChange}
+          />
         </div>
       </div>
     </section>
@@ -1009,15 +1293,15 @@ function AmenitiesStep({
   selectedAmenities: string[];
   onToggleAmenity: (label: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <h2 className="font-h2 text-h2 text-primary">
-          Amenities &amp; Features
+          {t("createListing.amenities.title")}
         </h2>
         <p className="text-on-surface-variant font-body-sm text-body-sm">
-          Highlight the security and accessibility features that define your
-          Cave.
+          {t("createListing.amenities.description")}
         </p>
       </div>
 
@@ -1025,7 +1309,7 @@ function AmenitiesStep({
         {amenityOptions.map((item) => (
           <AmenityOption
             icon={item.icon}
-            label={item.label}
+            label={t(item.label)}
             key={item.label}
             checked={selectedAmenities.includes(item.label)}
             onToggle={() => onToggleAmenity(item.label)}

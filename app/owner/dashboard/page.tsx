@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import OwnerBookingActions from "@/components/owner/OwnerBookingActions";
+import OwnerBookingDetails from "@/components/owner/OwnerBookingDetails";
+import OwnerListingArchiveButton from "@/components/owner/OwnerListingArchiveButton";
 import { getCurrentUser, getDashboardPath } from "@/lib/auth";
 import { getOwnerDashboardSnapshot } from "@/lib/dashboard/owner";
 import { formatCurrency } from "@/lib/invoices/formatCurrency";
@@ -14,18 +16,24 @@ import { getServerLocale } from "@/lib/i18n.server";
 
 export const dynamic = "force-dynamic";
 
-function formatGrowthPercent(value: number) {
+function formatGrowthPercent(value: number, t: ReturnType<typeof createTranslator>) {
   const rounded = Math.abs(value).toFixed(0);
 
   if (value > 0) {
-    return `+${rounded}% from last month`;
+    return `+${rounded}% ${t("dashboard.owner.monthlyGrowth")}`;
   }
 
   if (value < 0) {
-    return `-${rounded}% from last month`;
+    return `-${rounded}% ${t("dashboard.owner.monthlyGrowth")}`;
   }
 
-  return `0% from last month`;
+  return `0% ${t("dashboard.owner.monthlyGrowth")}`;
+}
+
+function getListingStatusLabel(status: string, t: ReturnType<typeof createTranslator>) {
+  const key = `status.listing.${status}`;
+  const translated = t(key);
+  return translated === key ? status : translated;
 }
 
 function getActivityIcon(status: string) {
@@ -48,6 +56,27 @@ function getActivityIcon(status: string) {
   return "mail";
 }
 
+function formatDateRange(startDate: string, endDate: string | null, locale: string) {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const start = formatter.format(new Date(startDate));
+  const end = formatter.format(new Date(endDate ?? startDate));
+
+  return `${start} - ${end}`;
+}
+
+function formatStorageTypeLabel(value: string, t: ReturnType<typeof createTranslator>) {
+  if (value === "GARAGE") return t("createListing.storageTypes.garage");
+  if (value === "BASEMENT") return t("createListing.storageTypes.basement");
+  if (value === "ROOM") return t("createListing.storageTypes.room");
+  if (value === "WAREHOUSE") return t("createListing.storageTypes.warehouse");
+  return value;
+}
+
 export default async function OwnerDashboardPage() {
   const locale = await getServerLocale();
   const t = createTranslator(locale);
@@ -66,9 +95,11 @@ export default async function OwnerDashboardPage() {
   }
 
   const dashboard = await getOwnerDashboardSnapshot(currentUser.ownerProfile.id);
-  const ownerName = currentUser.fullName ?? "Owner";
+  const ownerName = currentUser.fullName ?? t("common.owner");
   const latestInvoices = dashboard.recentInvoices;
-  const recentActivity = dashboard.ownerBookings.slice(0, 4);
+  const recentActivity = dashboard.ownerBookings
+    .filter((booking) => booking.status !== "PENDING")
+    .slice(0, 4);
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] text-on-surface max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-12 pt-28 sm:pt-32">
@@ -92,7 +123,7 @@ export default async function OwnerDashboardPage() {
           <div className="flex items-center gap-1 text-secondary mt-2">
             <span className="material-symbols-outlined text-sm">trending_up</span>
             <span className="text-body-sm font-body-sm">
-              {formatGrowthPercent(dashboard.earningsGrowthPercent)}
+              {formatGrowthPercent(dashboard.earningsGrowthPercent, t)}
             </span>
           </div>
         </div>
@@ -105,7 +136,7 @@ export default async function OwnerDashboardPage() {
             {dashboard.activeListingsCount}
           </span>
           <span className="text-body-sm font-body-sm text-on-surface-variant mt-2">
-            All units currently occupied
+            {t("dashboard.owner.activeListingsDescription")}
           </span>
         </div>
 
@@ -180,14 +211,14 @@ export default async function OwnerDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-surface-container-low p-6 sm:p-8 rounded-lg border border-outline-variant/30 flex flex-col justify-between">
             <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-              Pending Payouts
+              {t("dashboard.owner.pendingPayouts")}
             </span>
             <div className="mt-2">
               <span className="text-h2 font-h2 text-primary">
                 {formatCurrency(dashboard.pendingPayoutAmount, "EUR")}
               </span>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
-                Scheduled for release on{" "}
+                {t("dashboard.owner.scheduledForReleaseOn")}{" "}
                 {new Date(dashboard.pendingPayoutReleaseDate).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -199,10 +230,10 @@ export default async function OwnerDashboardPage() {
           <div className="bg-surface-container-low p-6 sm:p-8 rounded-lg border border-outline-variant/30 flex flex-col justify-between relative">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
               <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-                Unsigned Contracts
+                {t("dashboard.owner.unsignedContracts")}
               </span>
               <span className="bg-error text-on-error text-[10px] px-2 py-0.5 rounded-full font-bold w-fit">
-                ACTION REQUIRED
+                {t("common.actionRequired").toUpperCase()}
               </span>
             </div>
             <div className="mt-2">
@@ -210,7 +241,7 @@ export default async function OwnerDashboardPage() {
                 {dashboard.unsignedContractsCount}
               </span>
               <p className="text-body-sm font-body-sm text-error">
-                Review required for generated contracts
+                {t("dashboard.owner.contractReviewRequired")}
               </p>
             </div>
           </div>
@@ -220,17 +251,96 @@ export default async function OwnerDashboardPage() {
           <span className="material-symbols-outlined text-error">error</span>
           <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
             <p className="text-body-sm font-medium text-on-error-container">
-              You have {dashboard.tenantActivityCount} booking request
-              {dashboard.tenantActivityCount === 1 ? "" : "s"} waiting for approval
+              {t("dashboard.owner.bookingRequestsWaiting", {
+                count: dashboard.tenantActivityCount,
+              })}
             </p>
             <a
               className="text-body-sm font-bold text-error underline underline-offset-4 text-left md:text-right"
-              href="#recent-bookings"
+              href="#booking-requests"
             >
-              Review Requests
+              {t("dashboard.owner.reviewRequests")}
             </a>
           </div>
         </div>
+
+        <section className="space-y-6" id="booking-requests">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-h2 font-h2 text-primary">{t("dashboard.owner.bookingRequests")}</h2>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                {dashboard.tenantActivityCount === 0
+                  ? t("dashboard.owner.noBookingRequests")
+                  : t("dashboard.owner.bookingRequestsWaiting", {
+                      count: dashboard.tenantActivityCount,
+                    })}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {dashboard.pendingBookings.length ? (
+              dashboard.pendingBookings.map((booking) => (
+                <article
+                  className="rounded-lg border border-outline-variant/20 bg-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,61,62,0.04)]"
+                  key={booking.id}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="space-y-2">
+                      <p className="text-label-caps font-label-caps text-on-surface-variant">
+                        {booking.renter.fullName}
+                      </p>
+                      <h3 className="text-h3 font-h3 text-primary">{booking.listing.title}</h3>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {booking.listing.address} • {booking.listing.city}
+                      </p>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {formatDateRange(booking.startDate, booking.endDate, locale)}
+                        {booking.durationMonths ? (
+                          <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-secondary">
+                            {booking.durationMonths} {booking.durationMonths === 1 ? t("dashboard.owner.month") : t("dashboard.owner.months")}
+                          </span>
+                        ) : null}
+                      </p>
+                      <OwnerBookingDetails
+                        durationMonths={booking.durationMonths}
+                        monthlyPrice={booking.monthlyPrice}
+                        totalMonthlyAmount={booking.totalMonthlyAmount}
+                        renterNote={booking.renterNote}
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-start lg:items-end gap-3">
+                      <div className="text-left lg:text-right">
+                        <p className="text-label-caps font-label-caps text-on-surface-variant">
+                          {t("dashboard.owner.statusLabel")}
+                        </p>
+                        <span className="inline-flex rounded-full bg-secondary-container/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container">
+                          {t(`status.booking.${booking.status}`)}
+                        </span>
+                      </div>
+
+                      <div className="text-left lg:text-right">
+                        <p className="text-label-caps font-label-caps text-on-surface-variant">
+                          {t("dashboard.owner.monthlyRevenue")}
+                        </p>
+                        <p className="text-h3 font-h3 text-primary">
+                          {formatCurrency(booking.totalMonthlyAmount, "EUR")}
+                        </p>
+                      </div>
+
+                      <OwnerBookingActions bookingId={booking.id} status={booking.status} />
+                    </div>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-lg border border-outline-variant/20 bg-white p-6 text-body-sm text-on-surface-variant">
+                {t("dashboard.owner.noBookingRequests")}
+              </div>
+            )}
+          </div>
+        </section>
 
         <div className="bg-white rounded-lg border border-outline-variant/20 overflow-hidden">
           <div className="overflow-x-auto">
@@ -238,16 +348,16 @@ export default async function OwnerDashboardPage() {
               <thead>
                 <tr className="bg-surface-container-low border-b border-outline-variant/10">
                   <th className="px-6 py-3 text-label-caps font-label-caps text-on-surface-variant">
-                    INVOICE #
+                    {t("dashboard.owner.invoiceNumber")}
                   </th>
                   <th className="px-6 py-3 text-label-caps font-label-caps text-on-surface-variant">
-                    BOOKING
+                    {t("dashboard.owner.bookingColumn")}
                   </th>
                   <th className="px-6 py-3 text-label-caps font-label-caps text-on-surface-variant">
-                    AMOUNT
+                    {t("dashboard.owner.amountColumn")}
                   </th>
                   <th className="px-6 py-3 text-label-caps font-label-caps text-on-surface-variant">
-                    STATUS
+                    {t("dashboard.owner.statusColumn")}
                   </th>
                 </tr>
               </thead>
@@ -272,7 +382,7 @@ export default async function OwnerDashboardPage() {
                 ) : (
                   <tr>
                     <td className="px-6 py-10 text-center text-on-surface-variant" colSpan={4}>
-                      No invoices found yet.
+                      {t("dashboard.owner.noInvoices")}
                     </td>
                   </tr>
                 )}
@@ -285,7 +395,7 @@ export default async function OwnerDashboardPage() {
               className="text-primary-container text-body-sm font-bold hover:underline"
               href="/invoices"
             >
-              View All Invoices
+              {t("dashboard.owner.viewAllInvoices")}
             </Link>
           </div>
         </div>
@@ -294,13 +404,21 @@ export default async function OwnerDashboardPage() {
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-h2 font-h2 text-primary">Your Listings</h2>
-            <Link
-              className="bg-primary text-on-primary rounded-full px-6 py-2 text-body-sm font-medium hover:opacity-90 transition-opacity w-fit"
-              href="/create-listing"
-            >
-              Add New Cave
-            </Link>
+                <h2 className="text-h2 font-h2 text-primary">{t("dashboard.owner.yourListings")}</h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                className="rounded-full border border-outline-variant px-6 py-2 text-body-sm font-medium text-primary hover:bg-surface-container transition-colors w-fit"
+                href="/messaging"
+              >
+                {t("nav.messages")}
+              </Link>
+              <Link
+                className="bg-primary text-on-primary rounded-full px-6 py-2 text-body-sm font-medium hover:opacity-90 transition-opacity w-fit"
+                href="/create-listing"
+              >
+                {t("dashboard.owner.addNewCave")}
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -317,7 +435,7 @@ export default async function OwnerDashboardPage() {
                       src={listing.imageUrl ?? "/placeholder-listing.svg"}
                     />
                     <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
-                      {listing.status}
+                      {getListingStatusLabel(listing.status, t)}
                     </span>
                   </div>
 
@@ -325,42 +443,46 @@ export default async function OwnerDashboardPage() {
                     <div>
                       <h3 className="text-h3 font-h3 text-primary">{listing.title}</h3>
                       <p className="text-body-sm font-body-sm text-on-surface-variant">
-                        {listing.storageType} • {listing.sizeSqFt ?? 0} sq ft
+                        {formatStorageTypeLabel(listing.storageType, t)} • {listing.sizeSqFt ?? 0} {t("listingDetail.sqFt")}
                       </p>
                     </div>
 
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-t border-outline-variant/10 pt-4 gap-4">
                       <div className="flex flex-col">
                         <span className="text-label-caps font-label-caps text-on-surface-variant">
-                          MONTHLY REVENUE
+                          {t("dashboard.owner.monthlyRevenue")}
                         </span>
                         <span className="text-h3 font-h3 text-primary">
-                          ${listing.pricePerMonth}
+                          {formatCurrency(listing.pricePerMonth, "EUR")}
                         </span>
                       </div>
                       <Link
                         className="text-primary-container font-semibold flex items-center gap-1 group/btn"
                         href={`/create-listing?listingId=${listing.id}`}
                       >
-                        <span className="text-body-sm font-body-sm">Manage</span>
+                        <span className="text-body-sm font-body-sm">{t("common.manage")}</span>
                         <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">
                           arrow_forward
                         </span>
                       </Link>
+                      <OwnerListingArchiveButton
+                        archived={listing.status === "ARCHIVED"}
+                        listingId={listing.id}
+                      />
                     </div>
                   </div>
                 </article>
               ))
             ) : (
               <div className="rounded-lg border border-outline-variant/20 bg-white p-6 text-body-sm text-on-surface-variant">
-                No listings yet. Create your first cave to get started.
+                {t("dashboard.owner.noListings")}
               </div>
             )}
           </div>
         </div>
 
         <aside className="space-y-6" id="recent-bookings">
-          <h2 className="text-h2 font-h2 text-primary">Recent Activity</h2>
+          <h2 className="text-h2 font-h2 text-primary">{t("dashboard.owner.recentActivity")}</h2>
 
           <div className="bg-surface-container-low rounded-lg p-6 space-y-6 border border-outline-variant/30">
             {recentActivity.length ? (
@@ -373,12 +495,13 @@ export default async function OwnerDashboardPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-body-sm font-body-sm text-on-surface">
-                      <span className="font-bold">{booking.renter.fullName}</span> requested{" "}
+                      <span className="font-bold">{booking.renter.fullName}</span>{" "}
+                      {t("dashboard.owner.requested")}{" "}
                       <span className="font-bold">{booking.listing.title}</span>
                     </p>
                     <p className="text-label-caps font-label-caps text-on-surface-variant">
-                      {booking.status} •{" "}
-                      {new Date(booking.createdAt).toLocaleDateString("en-US", {
+                      {t(`status.booking.${booking.status}`)} •{" "}
+                      {new Date(booking.createdAt).toLocaleDateString(locale, {
                         month: "short",
                         day: "numeric",
                       })}
@@ -389,7 +512,7 @@ export default async function OwnerDashboardPage() {
               ))
             ) : (
               <div className="rounded-lg border border-outline-variant/20 bg-white p-4 text-body-sm text-on-surface-variant">
-                No recent activity yet.
+                {t("dashboard.owner.noRecentActivity")}
               </div>
             )}
           </div>
