@@ -284,6 +284,30 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         </p>
       </header>
 
+      {currentUser.status !== "ACTIVE" ? (
+        <section className="mb-12 rounded-[28px] border border-secondary-fixed-dim/30 bg-secondary-container/25 p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-secondary-fixed-variant">
+                {t("verification.bannerLabel")}
+              </p>
+              <h2 className="font-h2 text-h2 text-primary">
+                {t("verification.bannerTitle")}
+              </h2>
+              <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+                {currentUser.role === "OWNER"
+                  ? t("verification.bannerOwnerDescription")
+                  : t("verification.bannerRenterDescription")}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm">
+              <span className="material-symbols-outlined text-base">upload_file</span>
+              <span>{t("verification.bannerAction")}</span>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-12">
           <section className="bg-surface-container-lowest border border-surface-variant p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -483,7 +507,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         </div>
 
         <aside className="space-y-12">
-          <section className="bg-primary-container text-on-primary p-6 sm:p-8 lg:p-12 rounded-lg shadow-xl lg:sticky lg:top-[120px]">
+          <section className="bg-primary-container text-on-primary p-6 sm:p-8 lg:p-12 rounded-lg shadow-xl lg:top-[120px]">
             <h3 className="font-h3 text-h3 mb-4">{t("verification.readyTitle")}</h3>
             <p className="font-body-md text-body-md mb-12 opacity-80">
               {t("verification.readyDescription")}
@@ -491,7 +515,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
             <button
               className="w-full bg-white text-primary font-bold py-4 px-6 sm:px-12 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-4 disabled:opacity-70"
-              disabled={isSubmitting || loading}
+              disabled={isSubmitting || loading || !verification.canSubmit}
               type="button"
               onClick={() => {
                 void handleSubmitForReview();

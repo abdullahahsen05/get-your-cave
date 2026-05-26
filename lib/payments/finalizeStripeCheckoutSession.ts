@@ -91,9 +91,13 @@ function toDecimal(value: Prisma.Decimal | number | string) {
   return value instanceof Prisma.Decimal ? value : new Prisma.Decimal(value);
 }
 
-function calculatePaymentSplit(amount: Prisma.Decimal | number | string) {
-  const decimalAmount = toDecimal(amount).toDecimalPlaces(2);
-  const platformCommission = decimalAmount.mul(0.2).toDecimalPlaces(2);
+function calculatePaymentSplit(params: {
+  grossAmount: Prisma.Decimal | number | string;
+  commissionBaseAmount: Prisma.Decimal | number | string;
+}) {
+  const decimalAmount = toDecimal(params.grossAmount).toDecimalPlaces(2);
+  const commissionBaseAmount = toDecimal(params.commissionBaseAmount).toDecimalPlaces(2);
+  const platformCommission = commissionBaseAmount.mul(0.12).toDecimalPlaces(2);
   const ownerAmount = decimalAmount.sub(platformCommission).toDecimalPlaces(2);
 
   return {
@@ -245,7 +249,12 @@ async function findOrCreatePayment(params: {
     return existing;
   }
 
-  const split = calculatePaymentSplit(params.invoice.totalAmount);
+  const months = Math.max(1, params.booking.durationMonths ?? 1);
+  const commissionBaseAmount = params.booking.monthlyPrice.mul(months).toDecimalPlaces(2);
+  const split = calculatePaymentSplit({
+    grossAmount: params.invoice.totalAmount,
+    commissionBaseAmount,
+  });
 
   return prisma.payment.create({
     data: {
@@ -303,9 +312,12 @@ export async function finalizeStripeCheckoutSession(params: {
     } as const;
   }
 
+  const booking = loaded.booking;
+  const invoice = loaded.invoice;
+
   const payment = await findOrCreatePayment({
-    booking: loaded.booking,
-    invoice: loaded.invoice,
+    booking,
+    invoice,
     metadata,
     session: params.session,
     paymentIntentId,
@@ -313,7 +325,11 @@ export async function finalizeStripeCheckoutSession(params: {
   });
 
   const now = new Date();
-  const paymentSplit = calculatePaymentSplit(loaded.invoice.totalAmount);
+  const invoiceMonths = Math.max(1, booking.durationMonths ?? 1);
+  const paymentSplit = calculatePaymentSplit({
+    grossAmount: invoice.totalAmount,
+    commissionBaseAmount: booking.monthlyPrice.mul(invoiceMonths).toDecimalPlaces(2),
+  });
   let ownerCredited = false;
 
   try {
@@ -332,7 +348,7 @@ export async function finalizeStripeCheckoutSession(params: {
           },
           data: {
             amount: paymentSplit.amount,
-            currency: loaded.invoice.currency,
+            currency: invoice.currency,
             platformCommission: paymentSplit.platformCommission,
             ownerAmount: paymentSplit.ownerAmount,
             status: PaymentStatus.PAID,
@@ -352,7 +368,7 @@ export async function finalizeStripeCheckoutSession(params: {
         if (transition.count > 0) {
           await transaction.ownerProfile.update({
             where: {
-              id: loaded.booking.ownerId,
+              id: booking.ownerId,
             },
             data: {
               walletBalance: {
@@ -372,24 +388,24 @@ export async function finalizeStripeCheckoutSession(params: {
       }
 
       await transaction.invoice.update({
-        where: { id: loaded.invoice.id },
+        where: { id: invoice.id },
         data: {
           paymentId: payment.id,
           status: InvoiceStatus.PAID,
-          paidAt: loaded.invoice.paidAt ?? now,
-          timeline: buildPaidTimeline(loaded.invoice.timeline, now),
+          paidAt: invoice.paidAt ?? now,
+          timeline: buildPaidTimeline(invoice.timeline, now),
         },
       });
 
       if (
-        loaded.booking.status === BookingStatus.PENDING ||
-        loaded.booking.status === BookingStatus.APPROVED
+        booking.status === BookingStatus.PENDING ||
+        booking.status === BookingStatus.APPROVED
       ) {
         await transaction.booking.update({
-          where: { id: loaded.booking.id },
+          where: { id: booking.id },
           data: {
             status: BookingStatus.ACTIVE,
-            approvedAt: loaded.booking.approvedAt ?? now,
+            approvedAt: booking.approvedAt ?? now,
           },
         });
       }
@@ -397,8 +413,8 @@ export async function finalizeStripeCheckoutSession(params: {
   } catch {
     return {
       applied: false,
-      bookingId: loaded.booking.id,
-      invoiceId: loaded.invoice.id,
+      bookingId: booking.id,
+      invoiceId: invoice.id,
       paymentId: payment.id,
       ownerCredited: false,
     } as const;
@@ -409,14 +425,14 @@ export async function finalizeStripeCheckoutSession(params: {
       revalidatePath(path);
     }
 
-    revalidatePath(`/invoices/${loaded.invoice.id}`);
+    revalidatePath(`/invoices/${invoice.id}`);
     revalidatePath("/storage");
   }
 
   return {
     applied: true,
-    bookingId: loaded.booking.id,
-    invoiceId: loaded.invoice.id,
+    bookingId: booking.id,
+    invoiceId: invoice.id,
     paymentId: payment.id,
     ownerCredited,
   } as const;

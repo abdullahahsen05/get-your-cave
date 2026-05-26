@@ -108,7 +108,7 @@ export default function ListingsMap({ listings }: Props) {
                     {listing.address ? ` · ${listing.address}` : ""}
                   </p>
                   <p className="text-sm font-semibold text-primary">
-                    €{listing.pricePerMonth} {t("maps.perMonth")}
+                    {t("components.maps.ListingsMap.text.text.c39b2add")}{listing.pricePerMonth} {t("maps.perMonth")}
                   </p>
                 </div>
               </Popup>

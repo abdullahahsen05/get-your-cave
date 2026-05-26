@@ -37,7 +37,7 @@ export function calculateInvoiceCharges(input: InvoiceChargeInput) {
   const totalTaxes     = taxes.mul(months).toDecimalPlaces(2);
 
   const subtotal   = totalRent.add(totalInsurance).add(securityDeposit).toDecimalPlaces(2);
-  const total      = subtotal.add(totalPlatform).add(totalTaxes).toDecimalPlaces(2);
+  const total      = subtotal.add(totalTaxes).toDecimalPlaces(2);
   const ownerAmount = totalRent.sub(totalPlatform).toDecimalPlaces(2);
 
   return {

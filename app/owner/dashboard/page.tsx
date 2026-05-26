@@ -5,6 +5,7 @@ import OwnerActiveBookingActions from "@/components/owner/OwnerActiveBookingActi
 import OwnerBookingActions from "@/components/owner/OwnerBookingActions";
 import OwnerBookingDetails from "@/components/owner/OwnerBookingDetails";
 import OwnerListingArchiveButton from "@/components/owner/OwnerListingArchiveButton";
+import OwnerListingTrashButton from "@/components/owner/OwnerListingTrashButton";
 import { getCurrentUser, getDashboardPath } from "@/lib/auth";
 import { getOwnerDashboardSnapshot } from "@/lib/dashboard/owner";
 import { formatCurrency } from "@/lib/invoices/formatCurrency";
@@ -220,7 +221,7 @@ export default async function OwnerDashboardPage() {
               </span>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
                 {t("dashboard.owner.scheduledForReleaseOn")}{" "}
-                {new Date(dashboard.pendingPayoutReleaseDate).toLocaleDateString("en-US", {
+                {new Date(dashboard.pendingPayoutReleaseDate).toLocaleDateString(locale, {
                   month: "short",
                   day: "numeric",
                 })}
@@ -504,14 +505,28 @@ export default async function OwnerDashboardPage() {
                   key={listing.id}
                 >
                   <div className="aspect-video w-full overflow-hidden relative">
+                    <OwnerListingTrashButton
+                      listingId={listing.id}
+                    />
                     <img
                       alt={listing.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       src={listing.imageUrl ?? "/placeholder-listing.svg"}
                     />
-                    <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
-                      {getListingStatusLabel(listing.status, t)}
-                    </span>
+                    {listing.status === "ARCHIVED" ? (
+                      <div className="absolute top-4 right-4">
+                        <OwnerListingArchiveButton
+                          archived
+                          label={getListingStatusLabel(listing.status, t)}
+                          listingId={listing.id}
+                          variant="badge"
+                        />
+                      </div>
+                    ) : (
+                      <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-fixed text-label-caps font-label-caps px-3 py-1 rounded-full">
+                        {getListingStatusLabel(listing.status, t)}
+                      </span>
+                    )}
                   </div>
 
                   <div className="p-5 sm:p-6 space-y-4">
@@ -542,6 +557,7 @@ export default async function OwnerDashboardPage() {
                       </Link>
                       <OwnerListingArchiveButton
                         archived={listing.status === "ARCHIVED"}
+                        label={listing.status === "ARCHIVED" ? t("common.unarchive") : t("common.archive")}
                         listingId={listing.id}
                       />
                     </div>

@@ -149,34 +149,34 @@ enum FavoriteType {
  */
 
 model User {
-  id                String        @id @default(uuid())
-  fullName          String
-  email             String        @unique
-  passwordHash      String?
-  phone             String?
-  avatarUrl         String?
-  role              UserRole
-  status            AccountStatus @default(PENDING_VERIFICATION)
+  id           String        @id @default(uuid())
+  fullName     String
+  email        String        @unique
+  passwordHash String?
+  phone        String?
+  avatarUrl    String?
+  role         UserRole
+  status       AccountStatus @default(PENDING_VERIFICATION)
 
-  emailVerified     Boolean       @default(false)
-  emailVerifiedAt   DateTime?
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  ownerProfile      OwnerProfile?
-  renterProfile     RenterProfile?
+  ownerProfile  OwnerProfile?
+  renterProfile RenterProfile?
 
-  sentMessages      Message[]     @relation("SentMessages")
-  ownedConversations Conversation[] @relation("OwnerConversations")
-  rentedConversations Conversation[] @relation("RenterConversations")
-  uploadedDocuments VerificationDocument[] @relation("UploadedDocuments")
-  reviews           Review[]      @relation("UserReviews")
-  favorites         FavoriteListing[]
-  notifications     Notification[]
+  sentMessages        Message[]              @relation("SentMessages")
+  ownedConversations  Conversation[]         @relation("OwnerConversations")
+  rentedConversations Conversation[]         @relation("RenterConversations")
+  uploadedDocuments   VerificationDocument[] @relation("UploadedDocuments")
+  reviews             Review[]               @relation("UserReviews")
+  favorites           FavoriteListing[]
+  notifications       Notification[]
 
-  adminLogs         AdminLog[]    @relation("AdminActor")
-  affectedAdminLogs AdminLog[]    @relation("AdminTargetUser")
+  adminLogs         AdminLog[] @relation("AdminActor")
+  affectedAdminLogs AdminLog[] @relation("AdminTargetUser")
 
   @@index([email])
   @@index([role])
@@ -184,55 +184,55 @@ model User {
 }
 
 model OwnerProfile {
-  id                  String             @id @default(uuid())
-  userId              String             @unique
+  id     String @id @default(uuid())
+  userId String @unique
 
-  bio                 String?
-  address             String?
-  city                String?
-  postalCode          String?
-  country             String             @default("France")
+  bio        String?
+  address    String?
+  city       String?
+  postalCode String?
+  country    String  @default("France")
 
-  iban                String?
-  stripeAccountId     String?
+  iban            String?
+  stripeAccountId String?
 
-  responseRate        Int?
-  verificationStatus  VerificationStatus @default(NOT_SUBMITTED)
+  responseRate       Int?
+  verificationStatus VerificationStatus @default(NOT_SUBMITTED)
 
-  walletBalance       Decimal            @default(0) @db.Decimal(10, 2)
-  pendingPayout       Decimal            @default(0) @db.Decimal(10, 2)
-  totalEarnings       Decimal            @default(0) @db.Decimal(10, 2)
+  walletBalance Decimal @default(0) @db.Decimal(10, 2)
+  pendingPayout Decimal @default(0) @db.Decimal(10, 2)
+  totalEarnings Decimal @default(0) @db.Decimal(10, 2)
 
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listings            Listing[]
-  ownerBookings       Booking[]          @relation("OwnerBookings")
-  ownerContracts      Contract[]         @relation("OwnerContracts")
-  ownerInvoices       Invoice[]          @relation("OwnerInvoices")
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings       Listing[]
+  ownerBookings  Booking[]  @relation("OwnerBookings")
+  ownerContracts Contract[] @relation("OwnerContracts")
+  ownerInvoices  Invoice[]  @relation("OwnerInvoices")
 
   @@index([verificationStatus])
 }
 
 model RenterProfile {
-  id                  String             @id @default(uuid())
-  userId              String             @unique
+  id     String @id @default(uuid())
+  userId String @unique
 
-  address             String?
-  city                String?
-  postalCode          String?
-  country             String             @default("France")
+  address    String?
+  city       String?
+  postalCode String?
+  country    String  @default("France")
 
-  verificationStatus  VerificationStatus @default(NOT_SUBMITTED)
+  verificationStatus VerificationStatus @default(NOT_SUBMITTED)
 
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  renterBookings      Booking[]          @relation("RenterBookings")
-  renterContracts     Contract[]         @relation("RenterContracts")
-  renterInvoices      Invoice[]          @relation("RenterInvoices")
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  renterBookings  Booking[]  @relation("RenterBookings")
+  renterContracts Contract[] @relation("RenterContracts")
+  renterInvoices  Invoice[]  @relation("RenterInvoices")
 
   @@index([verificationStatus])
 }
@@ -244,50 +244,51 @@ model RenterProfile {
  */
 
 model Listing {
-  id                  String              @id @default(uuid())
-  ownerId             String
+  id      String @id @default(uuid())
+  ownerId String
 
-  title               String
-  slug                String?             @unique
-  description         String
+  title       String
+  slug        String? @unique
+  description String
 
-  storageType         StorageType         @default(OTHER)
-  status              ListingStatus       @default(DRAFT)
-  availability        ListingAvailability @default(AVAILABLE)
+  storageType        StorageType         @default(OTHER)
+  status             ListingStatus       @default(DRAFT)
+  archivedFromStatus ListingStatus?
+  availability       ListingAvailability @default(AVAILABLE)
 
-  address             String
-  city                String
-  postalCode          String?
-  country             String              @default("France")
-  latitude            Float?
-  longitude           Float?
+  address    String
+  city       String
+  postalCode String?
+  country    String  @default("France")
+  latitude   Float?
+  longitude  Float?
 
-  sizeM2              Float?
-  sizeSqFt            Float?
-  width               Float?
-  length              Float?
-  height              Float?
+  sizeM2   Float?
+  sizeSqFt Float?
+  width    Float?
+  length   Float?
+  height   Float?
 
-  pricePerMonth       Decimal             @db.Decimal(10, 2)
-  securityDeposit     Decimal             @default(0) @db.Decimal(10, 2)
-  insuranceFee        Decimal             @default(0) @db.Decimal(10, 2)
+  pricePerMonth   Decimal @db.Decimal(10, 2)
+  securityDeposit Decimal @default(0) @db.Decimal(10, 2)
+  insuranceFee    Decimal @default(0) @db.Decimal(10, 2)
 
-  ratingAverage       Float               @default(0)
-  ratingCount         Int                 @default(0)
+  ratingAverage Float @default(0)
+  ratingCount   Int   @default(0)
 
-  isFeatured          Boolean             @default(false)
-  isPublished         Boolean             @default(false)
+  isFeatured  Boolean @default(false)
+  isPublished Boolean @default(false)
 
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  owner               OwnerProfile        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  images              ListingImage[]
-  amenities           ListingAmenity[]
-  bookings            Booking[]
-  reviews             Review[]
-  conversations       Conversation[]
-  favoriteListings    FavoriteListing[]
+  owner            OwnerProfile      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images           ListingImage[]
+  amenities        ListingAmenity[]
+  bookings         Booking[]
+  reviews          Review[]
+  conversations    Conversation[]
+  favoriteListings FavoriteListing[]
 
   @@index([ownerId])
   @@index([city])
@@ -299,39 +300,39 @@ model Listing {
 }
 
 model ListingImage {
-  id            String   @id @default(uuid())
-  listingId     String
+  id        String @id @default(uuid())
+  listingId String
 
-  url           String
-  fileName      String?
-  altText       String?
-  sortOrder     Int      @default(0)
-  isPrimary     Boolean  @default(false)
+  url       String
+  fileName  String?
+  altText   String?
+  sortOrder Int     @default(0)
+  isPrimary Boolean @default(false)
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([listingId])
   @@index([isPrimary])
 }
 
 model Amenity {
-  id        String           @id @default(uuid())
-  name      String           @unique
+  id        String   @id @default(uuid())
+  name      String   @unique
   icon      String?
-  createdAt DateTime         @default(now())
+  createdAt DateTime @default(now())
 
-  listings  ListingAmenity[]
+  listings ListingAmenity[]
 }
 
 model ListingAmenity {
-  id         String   @id @default(uuid())
-  listingId  String
-  amenityId  String
+  id        String @id @default(uuid())
+  listingId String
+  amenityId String
 
-  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
 
   @@unique([listingId, amenityId])
   @@index([listingId])
@@ -339,17 +340,17 @@ model ListingAmenity {
 }
 
 model Review {
-  id          String   @id @default(uuid())
-  listingId   String
-  userId      String
+  id        String @id @default(uuid())
+  listingId String
+  userId    String
 
-  rating      Int
-  comment     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  user        User     @relation("UserReviews", fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user    User    @relation("UserReviews", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([listingId])
   @@index([userId])
@@ -357,15 +358,15 @@ model Review {
 }
 
 model FavoriteListing {
-  id          String       @id @default(uuid())
-  userId      String
-  listingId   String
-  type        FavoriteType @default(LISTING)
+  id        String       @id @default(uuid())
+  userId    String
+  listingId String
+  type      FavoriteType @default(LISTING)
 
-  createdAt   DateTime     @default(now())
+  createdAt DateTime @default(now())
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing     Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
   @@index([userId])
@@ -379,46 +380,46 @@ model FavoriteListing {
  */
 
 model Booking {
-  id                    String        @id @default(uuid())
-  bookingNumber          String        @unique
+  id            String @id @default(uuid())
+  bookingNumber String @unique
 
-  listingId              String
-  ownerId                String
-  renterId               String
+  listingId String
+  ownerId   String
+  renterId  String
 
-  startDate              DateTime
-  endDate                DateTime?
-  durationMonths          Int?
+  startDate      DateTime
+  endDate        DateTime?
+  durationMonths Int?
 
-  monthlyPrice           Decimal       @db.Decimal(10, 2)
-  securityDeposit         Decimal       @default(0) @db.Decimal(10, 2)
-  insuranceFee            Decimal       @default(0) @db.Decimal(10, 2)
-  platformCommission      Decimal       @default(0) @db.Decimal(10, 2)
-  ownerAmount             Decimal       @default(0) @db.Decimal(10, 2)
-  totalMonthlyAmount      Decimal       @default(0) @db.Decimal(10, 2)
+  monthlyPrice       Decimal @db.Decimal(10, 2)
+  securityDeposit    Decimal @default(0) @db.Decimal(10, 2)
+  insuranceFee       Decimal @default(0) @db.Decimal(10, 2)
+  platformCommission Decimal @default(0) @db.Decimal(10, 2)
+  ownerAmount        Decimal @default(0) @db.Decimal(10, 2)
+  totalMonthlyAmount Decimal @default(0) @db.Decimal(10, 2)
 
-  renterNote              String?
-  ownerNote               String?
+  renterNote String?
+  ownerNote  String?
 
-  status                 BookingStatus @default(PENDING)
+  status BookingStatus @default(PENDING)
 
-  approvedAt              DateTime?
-  rejectedAt              DateTime?
-  cancelledAt             DateTime?
-  completedAt             DateTime?
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  cancelledAt DateTime?
+  completedAt DateTime?
 
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  listing                 Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  owner                   OwnerProfile  @relation("OwnerBookings", fields: [ownerId], references: [id], onDelete: Cascade)
-  renter                  RenterProfile @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Cascade)
+  listing Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  owner   OwnerProfile  @relation("OwnerBookings", fields: [ownerId], references: [id], onDelete: Cascade)
+  renter  RenterProfile @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Cascade)
 
-  generatedContract       GeneratedContract?
-  contracts               Contract[]
-  payments                Payment[]
-  invoices                Invoice[]
-  conversations           Conversation[]
+  generatedContract GeneratedContract?
+  contracts         Contract[]
+  payments          Payment[]
+  invoices          Invoice[]
+  conversations     Conversation[]
 
   @@index([listingId])
   @@index([ownerId])
@@ -433,16 +434,16 @@ model Conversation {
   bookingId       String?
   ownerUserId     String
   renterUserId    String
-  lastMessageText  String?
-  lastMessageAt    DateTime?
+  lastMessageText String?
+  lastMessageAt   DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  listing         Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
-  booking         Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  owner           User      @relation("OwnerConversations", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  renter          User      @relation("RenterConversations", fields: [renterUserId], references: [id], onDelete: Cascade)
-  messages        Message[]
+  listing  Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  booking  Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  owner    User      @relation("OwnerConversations", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  renter   User      @relation("RenterConversations", fields: [renterUserId], references: [id], onDelete: Cascade)
+  messages Message[]
 
   @@index([ownerUserId])
   @@index([renterUserId])
@@ -452,18 +453,18 @@ model Conversation {
 }
 
 model Message {
-  id              String      @id @default(uuid())
-  conversationId  String
-  senderId        String
-  type            MessageType @default(TEXT)
-  body            String
-  fileUrl         String?
-  fileName        String?
-  readAt          DateTime?
-  createdAt       DateTime    @default(now())
+  id             String      @id @default(uuid())
+  conversationId String
+  senderId       String
+  type           MessageType @default(TEXT)
+  body           String
+  fileUrl        String?
+  fileName       String?
+  readAt         DateTime?
+  createdAt      DateTime    @default(now())
 
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender          User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
   @@index([senderId])
@@ -477,47 +478,47 @@ model Message {
  */
 
 model ContractTemplate {
-  id                String       @id @default(uuid())
+  id String @id @default(uuid())
 
-  name              String
-  type              ContractType @unique
-  description       String?
-  templateFileUrl   String?
-  templateBody      String?
-  variables         Json?
+  name            String
+  type            ContractType @unique
+  description     String?
+  templateFileUrl String?
+  templateBody    String?
+  variables       Json?
 
-  isActive          Boolean      @default(true)
+  isActive Boolean @default(true)
 
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   generatedContracts GeneratedContract[]
-  contracts         Contract[]
+  contracts          Contract[]
 
   @@index([type])
   @@index([isActive])
 }
 
 model GeneratedContract {
-  id                String         @id @default(uuid())
-  contractNumber    String         @unique
+  id             String @id @default(uuid())
+  contractNumber String @unique
 
-  bookingId         String         @unique
-  templateId        String
+  bookingId  String @unique
+  templateId String
 
-  contractType      ContractType
-  status            ContractStatus @default(GENERATED)
+  contractType ContractType
+  status       ContractStatus @default(GENERATED)
 
   generatedFilePath String
   generatedFileName String
 
-  contractData      Json?
+  contractData Json?
 
-  generatedAt       DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  booking           Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  template          ContractTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  booking  Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  template ContractTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
 
   @@index([templateId])
   @@index([contractType])
@@ -526,38 +527,38 @@ model GeneratedContract {
 }
 
 model Contract {
-  id                String         @id @default(uuid())
-  contractNumber    String         @unique
+  id             String @id @default(uuid())
+  contractNumber String @unique
 
-  bookingId          String
-  templateId         String
+  bookingId  String
+  templateId String
 
-  ownerId            String
-  renterId           String
+  ownerId  String
+  renterId String
 
-  type               ContractType
-  status             ContractStatus @default(DRAFT)
+  type   ContractType
+  status ContractStatus @default(DRAFT)
 
-  generatedPdfUrl    String?
-  signedPdfUrl       String?
+  generatedPdfUrl String?
+  signedPdfUrl    String?
 
-  contractData       Json?
-  timeline           Json?
+  contractData Json?
+  timeline     Json?
 
-  sentAt             DateTime?
-  ownerSignedAt      DateTime?
-  renterSignedAt     DateTime?
-  fullySignedAt      DateTime?
-  cancelledAt        DateTime?
+  sentAt         DateTime?
+  ownerSignedAt  DateTime?
+  renterSignedAt DateTime?
+  fullySignedAt  DateTime?
+  cancelledAt    DateTime?
 
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  booking            Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  template           ContractTemplate @relation(fields: [templateId], references: [id])
-  owner              OwnerProfile   @relation("OwnerContracts", fields: [ownerId], references: [id], onDelete: Cascade)
-  renter             RenterProfile  @relation("RenterContracts", fields: [renterId], references: [id], onDelete: Cascade)
-  signatures         ContractSignature[]
+  booking    Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  template   ContractTemplate    @relation(fields: [templateId], references: [id])
+  owner      OwnerProfile        @relation("OwnerContracts", fields: [ownerId], references: [id], onDelete: Cascade)
+  renter     RenterProfile       @relation("RenterContracts", fields: [renterId], references: [id], onDelete: Cascade)
+  signatures ContractSignature[]
 
   @@index([bookingId])
   @@index([ownerId])
@@ -567,19 +568,19 @@ model Contract {
 }
 
 model ContractSignature {
-  id             String          @id @default(uuid())
-  contractId     String
+  id         String @id @default(uuid())
+  contractId String
 
-  signerUserId   String
-  party           SignatureParty
-  signatureText   String?
+  signerUserId      String
+  party             SignatureParty
+  signatureText     String?
   signatureImageUrl String?
-  ipAddress       String?
-  userAgent       String?
+  ipAddress         String?
+  userAgent         String?
 
-  signedAt        DateTime        @default(now())
+  signedAt DateTime @default(now())
 
-  contract        Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 
   @@index([contractId])
   @@index([signerUserId])
@@ -593,31 +594,31 @@ model ContractSignature {
  */
 
 model Payment {
-  id                       String        @id @default(uuid())
-  bookingId                 String
+  id        String @id @default(uuid())
+  bookingId String
 
-  stripePaymentIntentId     String?       @unique
-  stripeCheckoutSessionId   String?       @unique
-  stripeCustomerId          String?
-  stripeChargeId            String?
+  stripePaymentIntentId   String? @unique
+  stripeCheckoutSessionId String? @unique
+  stripeCustomerId        String?
+  stripeChargeId          String?
 
-  amount                    Decimal       @db.Decimal(10, 2)
-  currency                  String        @default("eur")
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("eur")
 
-  platformCommission        Decimal       @default(0) @db.Decimal(10, 2)
-  ownerAmount               Decimal       @default(0) @db.Decimal(10, 2)
+  platformCommission Decimal @default(0) @db.Decimal(10, 2)
+  ownerAmount        Decimal @default(0) @db.Decimal(10, 2)
 
-  status                    PaymentStatus @default(PENDING)
+  status PaymentStatus @default(PENDING)
 
-  paidAt                    DateTime?
-  failedAt                  DateTime?
-  refundedAt                DateTime?
+  paidAt     DateTime?
+  failedAt   DateTime?
+  refundedAt DateTime?
 
-  createdAt                 DateTime      @default(now())
-  updatedAt                 DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  booking                   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  invoice                   Invoice?
+  booking Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  invoice Invoice?
 
   @@index([bookingId])
   @@index([status])
@@ -625,40 +626,40 @@ model Payment {
 }
 
 model Invoice {
-  id              String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  invoiceNumber   String        @unique
-  bookingId       String
-  paymentId       String?       @unique
+  invoiceNumber String  @unique
+  bookingId     String
+  paymentId     String? @unique
 
-  ownerId         String?
-  renterId        String?
+  ownerId  String?
+  renterId String?
 
-  subtotal        Decimal       @default(0) @db.Decimal(10, 2)
-  platformFee     Decimal       @default(0) @db.Decimal(10, 2)
-  taxAmount       Decimal       @default(0) @db.Decimal(10, 2)
-  totalAmount     Decimal       @db.Decimal(10, 2)
-  currency        String        @default("eur")
+  subtotal    Decimal @default(0) @db.Decimal(10, 2)
+  platformFee Decimal @default(0) @db.Decimal(10, 2)
+  taxAmount   Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount Decimal @db.Decimal(10, 2)
+  currency    String  @default("eur")
 
-  status          InvoiceStatus @default(DRAFT)
-  pdfUrl          String?
-  generatedFile   String?
-  timeline        Json?
+  status        InvoiceStatus @default(DRAFT)
+  pdfUrl        String?
+  generatedFile String?
+  timeline      Json?
 
-  issuedAt        DateTime?
-  dueAt           DateTime?
-  paidAt          DateTime?
-  cancelledAt     DateTime?
+  issuedAt    DateTime?
+  dueAt       DateTime?
+  paidAt      DateTime?
+  cancelledAt DateTime?
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  payment         Payment?      @relation(fields: [paymentId], references: [id])
-  owner           OwnerProfile? @relation("OwnerInvoices", fields: [ownerId], references: [id], onDelete: SetNull)
-  renter          RenterProfile? @relation("RenterInvoices", fields: [renterId], references: [id], onDelete: SetNull)
+  booking Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payment Payment?       @relation(fields: [paymentId], references: [id])
+  owner   OwnerProfile?  @relation("OwnerInvoices", fields: [ownerId], references: [id], onDelete: SetNull)
+  renter  RenterProfile? @relation("RenterInvoices", fields: [renterId], references: [id], onDelete: SetNull)
 
-  items           InvoiceItem[]
+  items InvoiceItem[]
 
   @@index([bookingId])
   @@index([ownerId])
@@ -668,17 +669,17 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id          String   @id @default(uuid())
-  invoiceId   String
+  id        String @id @default(uuid())
+  invoiceId String
 
   description String
-  quantity    Int      @default(1)
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  total       Decimal  @db.Decimal(10, 2)
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
 }
@@ -690,25 +691,25 @@ model InvoiceItem {
  */
 
 model VerificationDocument {
-  id              String             @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId          String
+  userId String
 
-  type            DocumentType
-  fileUrl         String
-  fileName        String?
-  mimeType        String?
-  sizeBytes       Int?
+  type      DocumentType
+  fileUrl   String
+  fileName  String?
+  mimeType  String?
+  sizeBytes Int?
 
   status          VerificationStatus @default(PENDING)
   rejectionReason String?
   reviewedById    String?
   reviewedAt      DateTime?
 
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user            User               @relation("UploadedDocuments", fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation("UploadedDocuments", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -723,30 +724,30 @@ model VerificationDocument {
  */
 
 model FAQ {
-  id          String   @id @default(uuid())
-  question    String
-  answer      String
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
+  id        String  @id @default(uuid())
+  question  String
+  answer    String
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
   @@index([sortOrder])
 }
 
 model PlatformMetric {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  label       String
-  value       String
-  note        String?
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
+  id        String  @id @default(uuid())
+  key       String  @unique
+  label     String
+  value     String
+  note      String?
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
 }
@@ -758,17 +759,17 @@ model PlatformMetric {
  */
 
 model Notification {
-  id          String   @id @default(uuid())
-  userId      String
+  id     String @id @default(uuid())
+  userId String
 
-  title       String
-  body        String?
-  linkUrl     String?
-  readAt      DateTime?
+  title   String
+  body    String?
+  linkUrl String?
+  readAt  DateTime?
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([readAt])
@@ -776,19 +777,19 @@ model Notification {
 }
 
 model AdminLog {
-  id              String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  adminId          String
-  targetUserId     String?
-  entityType       AdminEntityType
-  entityId         String?
-  action           String
-  details          Json?
+  adminId      String
+  targetUserId String?
+  entityType   AdminEntityType
+  entityId     String?
+  action       String
+  details      Json?
 
-  createdAt        DateTime        @default(now())
+  createdAt DateTime @default(now())
 
-  admin            User            @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
-  targetUser       User?           @relation("AdminTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  admin      User  @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+  targetUser User? @relation("AdminTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
 
   @@index([adminId])
   @@index([targetUserId])

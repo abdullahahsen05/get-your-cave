@@ -365,10 +365,7 @@ export function calculateBookingCharges(params: {
   const insuranceFee = toDecimal(params.insuranceFee ?? 0);
   const platformCommission = monthlyPrice.mul(0.12).toDecimalPlaces(2);
   const ownerAmount = monthlyPrice.sub(platformCommission).toDecimalPlaces(2);
-  const totalMonthlyAmount = monthlyPrice
-    .add(insuranceFee)
-    .add(platformCommission)
-    .toDecimalPlaces(2);
+  const totalMonthlyAmount = monthlyPrice.toDecimalPlaces(2);
 
   return {
     monthlyPrice: monthlyPrice.toDecimalPlaces(2),

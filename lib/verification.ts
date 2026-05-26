@@ -139,6 +139,39 @@ export async function listUserVerificationState(user: SafeUser) {
   };
 }
 
+export async function ensureVerificationProfileForUser(
+  tx: Prisma.TransactionClient,
+  user: Pick<SafeUser, "id" | "role">,
+  verificationStatus: VerificationStatus,
+) {
+  if (user.role === "OWNER") {
+    await tx.ownerProfile.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        verificationStatus,
+      },
+      update: {
+        verificationStatus,
+      },
+    });
+    return;
+  }
+
+  if (user.role === "RENTER") {
+    await tx.renterProfile.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        verificationStatus,
+      },
+      update: {
+        verificationStatus,
+      },
+    });
+  }
+}
+
 export async function createVerificationDocument(input: {
   userId: string;
   type: DocumentType;
@@ -220,30 +253,14 @@ export async function submitVerificationForUser(user: SafeUser) {
   }
 
   await prisma.$transaction(async (tx) => {
+    await ensureVerificationProfileForUser(tx, user, VerificationStatus.PENDING);
+
     await tx.user.update({
       where: { id: user.id },
       data: {
         status: AccountStatus.PENDING_VERIFICATION,
       },
     });
-
-    if (user.ownerProfile) {
-      await tx.ownerProfile.update({
-        where: { id: user.ownerProfile.id },
-        data: {
-          verificationStatus: VerificationStatus.PENDING,
-        },
-      });
-    }
-
-    if (user.renterProfile) {
-      await tx.renterProfile.update({
-        where: { id: user.renterProfile.id },
-        data: {
-          verificationStatus: VerificationStatus.PENDING,
-        },
-      });
-    }
   });
 
   return {

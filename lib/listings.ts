@@ -595,6 +595,7 @@ function buildUpdateData(
     length: number | null;
     height: number | null;
     status: ListingStatus;
+    archivedFromStatus: ListingStatus | null;
     isFeatured: boolean;
     isPublished: boolean;
   },
@@ -634,6 +635,7 @@ function buildUpdateData(
     height,
     status,
     isFeatured: input.isFeatured ?? existing.isFeatured,
+    archivedFromStatus: status === ListingStatus.ARCHIVED ? existing.archivedFromStatus : null,
     isPublished: status === ListingStatus.APPROVED ? true : false,
   };
 }
@@ -777,6 +779,27 @@ export async function updateOwnerListing(params: {
       id: params.listingId,
       ownerId: params.ownerProfileId,
     },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      storageType: true,
+      address: true,
+      city: true,
+      postalCode: true,
+      latitude: true,
+      longitude: true,
+      pricePerMonth: true,
+      sizeSqFt: true,
+      sizeM2: true,
+      width: true,
+      length: true,
+      height: true,
+      status: true,
+      archivedFromStatus: true,
+      isFeatured: true,
+      isPublished: true,
+    },
   });
 
   if (!existing) {
@@ -804,7 +827,7 @@ export async function updateOwnerListing(params: {
   return refreshed ? serializeListingDetail(refreshed) : null;
 }
 
-export async function archiveOwnerListing(params: {
+export async function toggleOwnerListingArchive(params: {
   listingId: string;
   ownerProfileId: string;
 }) {
@@ -813,22 +836,61 @@ export async function archiveOwnerListing(params: {
       id: params.listingId,
       ownerId: params.ownerProfileId,
     },
+    select: {
+      id: true,
+      status: true,
+      archivedFromStatus: true,
+    },
   });
 
   if (!existing) {
     return null;
   }
 
-  const archived = await prisma.listing.update({
+  const nextStatus =
+    existing.status === ListingStatus.ARCHIVED
+      ? existing.archivedFromStatus ?? ListingStatus.APPROVED
+      : ListingStatus.ARCHIVED;
+
+  const listing = await prisma.listing.update({
     where: { id: existing.id },
     data: {
-      status: ListingStatus.ARCHIVED,
-      isPublished: false,
+      status: nextStatus,
+      archivedFromStatus:
+        nextStatus === ListingStatus.ARCHIVED ? existing.status : null,
+      isPublished: nextStatus === ListingStatus.APPROVED,
     },
     include: listingDetailInclude,
   });
 
-  return serializeListingDetail(archived);
+  return serializeListingDetail(listing);
+}
+
+export async function removeOwnerListing(params: {
+  listingId: string;
+  ownerProfileId: string;
+}) {
+  const existing = await prisma.listing.findFirst({
+    where: {
+      id: params.listingId,
+      ownerId: params.ownerProfileId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existing) {
+    return false;
+  }
+
+  await prisma.listing.delete({
+    where: {
+      id: existing.id,
+    },
+  });
+
+  return true;
 }
 
 export function normalizeListingFilters(searchParams: URLSearchParams): ListingListFilters {

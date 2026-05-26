@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import VerificationDocumentsWorkspace from "@/components/document/VerificationDocumentsWorkspace";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getDashboardPath } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +12,9 @@ export default async function VerificationDocumentsPage() {
     redirect("/login?next=/document");
   }
 
+  if (currentUser.role === "ADMIN") {
+    redirect(getDashboardPath(currentUser.role));
+  }
+
   return <VerificationDocumentsWorkspace currentUser={currentUser} />;
 }
-

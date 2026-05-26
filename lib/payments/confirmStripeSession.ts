@@ -19,6 +19,10 @@ export async function confirmStripeSessionIfPaid(sessionId: string): Promise<boo
     return false;
   }
 
+  if (session.mode === "subscription") {
+    return true;
+  }
+
   const result = await finalizeStripeCheckoutSession({
     stripe,
     session,

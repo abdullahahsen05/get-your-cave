@@ -22,6 +22,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "archive": "Archive",
+    "unarchive": "Unarchive",
     "approve": "Approve",
     "reject": "Reject",
     "open": "Open",
@@ -35,6 +36,7 @@
     "viewContract": "View Contract",
     "viewMessage": "View Message",
     "viewAll": "View all",
+    "deleteListingConfirmation": "Permanently delete this listing? This cannot be undone.",
     "activeNow": "Active now",
     "connecting": "Connecting...",
     "justNow": "Just now",
@@ -104,6 +106,7 @@
     "ownerDashboard": "Owner Dashboard",
     "renterDashboard": "Renter Dashboard",
     "adminDashboard": "Admin Dashboard",
+    "completeVerification": "Complete verification",
     "ownerPitch": "Turn your unused space into a steady income.",
     "renterPitch": "Discover verified storage near you in a few clicks.",
     "adminPitch": "Track activity, reviews, and platform health from one place.",
@@ -179,6 +182,8 @@
     "unableToCreateBooking": "Unable to create booking right now.",
     "unableToStartConversation": "Unable to start a conversation right now.",
     "unableToArchiveListing": "Unable to archive listing.",
+    "unableToDeleteListing": "Unable to delete listing.",
+    "unableToToggleListingArchive": "Unable to update listing archive state.",
     "unableToUpdateBooking": "Unable to update booking.",
     "unableToOpenMessaging": "Unable to open messaging.",
     "unableToCancelBooking": "Unable to cancel booking.",
@@ -298,7 +303,9 @@
     "logIn": "Log in",
     "chooseAccountType": "Please choose an account type.",
     "passwordTooShort": "Password must be at least 8 characters long.",
-    "passwordMismatch": "Passwords do not match."
+    "passwordMismatch": "Passwords do not match.",
+    "back": "Back",
+    "passwordPlaceholder": "••••••••"
   },
   "home": {
     "eyebrow": "Secure storage solutions",
@@ -406,14 +413,17 @@
     "moveIn": "Move-in",
     "anytime": "Anytime",
     "duration": "Duration",
+    "durationMonths": "Number of months",
     "monthly": "Monthly",
     "unitSize": "Unit size",
     "moveInDate": "Move-in date",
+    "months": "months",
     "oneMonth": "1 month",
     "twoMonths": "2 months",
     "threeMonths": "3 months",
     "sixMonths": "6 months",
     "twelveMonths": "12 months",
+    "totalAmount": "Total amount for {{months}} months: {{total}}",
     "note": "Note",
     "notePlaceholder": "Add a note for the owner (optional)",
     "secureAccess": "Secure access",
@@ -426,7 +436,7 @@
     "loginToBook": "Log in to book",
     "signUpToBook": "Sign up to book",
     "noChargeYet": "No charge yet",
-    "monthlyRateX1": "Monthly rate Ã— 1",
+    "monthlyRateX1": "Monthly rate × 1",
     "platformCommission": "Platform commission",
     "securityDeposit": "Security deposit",
     "caveInsurance": "Cave insurance",
@@ -450,7 +460,8 @@
       "photos": "Photos",
       "pricing": "Pricing",
       "location": "Location",
-      "amenities": "Amenities"
+      "amenities": "Amenities",
+      "basicDetails": "Basic Details"
     },
     "saveDraft": "Save Draft",
     "submitListing": "Submit Listing",
@@ -467,7 +478,15 @@
     "longitudeRange": "Longitude must be between -180 and 180.",
     "onlyOneCoordinate": "Enter both latitude and longitude or leave both blank.",
     "photoUpload": "Upload photos",
-    "basicDetails": "Basic details",
+    "basicDetails": {
+      "title": "Basic details",
+      "description": "Tell renters what makes this space special.",
+      "titleLabel": "Listing title",
+      "titlePlaceholder": "e.g. Secure basement storage in downtown",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe access, safety, climate, and ideal use cases.",
+      "storageTypeLabel": "Storage type"
+    },
     "pricingDetails": "Pricing details",
     "locationDetails": "Location details",
     "amenityDetails": "Amenities",
@@ -491,11 +510,13 @@
       "warehouse": "Warehouse"
     },
     "amenities": {
-      "securityCamera": "Security cameras",
+      "title": "Amenities",
+      "description": "Highlight the features that make your space stand out.",
+      "securityCamera": "Security camera",
       "access247": "24/7 access",
       "climateControl": "Climate control",
       "privateEntry": "Private entry",
-      "gated": "Gated access",
+      "gated": "Gated",
       "loadingDock": "Loading dock"
     },
     "errors": {
@@ -512,15 +533,6 @@
       "save": "Unable to save listing.",
       "latitudeRange": "Latitude must be between -90 and 90.",
       "longitudeRange": "Longitude must be between -180 and 180."
-    },
-    "basicDetails": {
-      "title": "Basic details",
-      "description": "Tell renters what makes this space special.",
-      "titleLabel": "Listing title",
-      "titlePlaceholder": "e.g. Secure basement storage in downtown",
-      "descriptionLabel": "Description",
-      "descriptionPlaceholder": "Describe access, safety, climate, and ideal use cases.",
-      "storageTypeLabel": "Storage type"
     },
     "visual": {
       "title": "Photos",
@@ -560,11 +572,16 @@
       "latitudePlaceholder": "Latitude",
       "longitudeLabel": "Longitude",
       "longitudePlaceholder": "Longitude",
-      "manualHint": "You can always fine-tune the coordinates manually."
-    },
-    "amenities": {
-      "title": "Amenities",
-      "description": "Highlight the features that make your space stand out."
+      "manualHint": "You can always fine-tune the coordinates manually.",
+      "currentCaptured": "Current location captured.",
+      "currentCapturedNear": "Current location captured near {{name}}.",
+      "enterQuery": "Please enter a location or address.",
+      "foundLocation": "Location found: {{name}}.",
+      "geoUnsupported": "Geolocation is not supported by this browser.",
+      "locationUnavailable": "Unable to determine your current location.",
+      "noResults": "No results found.",
+      "permissionDenied": "Location permission was denied.",
+      "searching": "Searching..."
     }
   },
   "dashboard": {
@@ -587,6 +604,7 @@
       "grossRevenue": "Gross revenue",
       "earningsAndLegal": "Earnings and legal",
       "pendingPayout": "Pending payout",
+      "pendingPayouts": "Pending payouts",
       "releaseOn": "Scheduled for release on",
       "scheduledForReleaseOn": "Scheduled for release on",
       "unsignedContracts": "Unsigned contracts",
@@ -603,11 +621,10 @@
       "recentListings": "Recent listings",
       "addNewCave": "Add new cave",
       "monthlyRevenue": "Monthly revenue",
-      "noListings": "No listings yet. Create your first cave to get started.",
+      "noListings": "No listings yet.",
       "yourListings": "Your listings",
       "bookingRequests": "Booking requests",
       "noBookings": "No bookings yet.",
-      "noListings": "No listings yet.",
       "newBooking": "New booking",
       "recentActivity": "Recent activity",
       "requested": "requested",
@@ -626,7 +643,9 @@
       "revenueSubtitle": "Your dashboard highlights revenue, requests, and contract status at a glance.",
       "marketInsights": "Market insights",
       "marketInsightSentence": "{{label}} has {{value}}.",
-      "marketInsightFallback": "Market insights are not available right now."
+      "marketInsightFallback": "Market insights are not available right now.",
+      "viewIdCard": "View ID card",
+      "viewOwnershipProof": "View ownership proof"
     },
     "renter": {
       "title": "Renter dashboard",
@@ -661,20 +680,22 @@
       "verifiedCapacity": "Verified capacity",
       "noBookingRequests": "No booking requests yet.",
       "rejectedRequests": "Declined requests",
-      "waitingForApproval": "waiting for approval"
+      "waitingForApproval": "waiting for approval",
+      "invoiceNumber": "Invoice #",
+      "bookingColumn": "Booking",
+      "amountColumn": "Amount",
+      "statusColumn": "Status"
     },
     "admin": {
       "title": "Admin dashboard",
       "subtitle": "Monitor listings, verifications, revenue, and moderation queues.",
-      "revenueActivity": "Revenue performance",
+      "revenueActivity": "Revenue & activity",
       "platformOverview": "Platform overview",
       "range7d": "7 Days",
       "range30d": "30 Days",
-      "platformOverview": "Platform overview",
       "moderationQueue": "Moderation queue",
       "pendingListings": "Pending listings",
       "pendingVerifications": "Pending verifications",
-      "revenueActivity": "Revenue & activity",
       "week1": "Week 1",
       "week2": "Week 2",
       "week3": "Week 3",
@@ -704,12 +725,15 @@
       "loadingMetrics": "Loading metrics...",
       "loadingModeration": "Loading moderation queues...",
       "queuedCount": "{{count}} queued",
+      "role": "Role",
       "listing": "Listing",
       "owner": "Owner",
       "actions": "Actions",
       "document": "Document",
       "user": "User",
       "viewDocument": "View document",
+      "viewIdCard": "View ID card",
+      "viewOwnershipProof": "View ownership proof",
       "noPendingListings": "No pending listings.",
       "noPendingVerifications": "No pending verification documents.",
       "recentActivity": "Recent activity",
@@ -722,7 +746,8 @@
       "marketInsights": "Market insights",
       "marketInsightsFallback": "Market insights are not available right now.",
       "sampleCity1": "New York City",
-      "sampleCity2": "Los Angeles"
+      "sampleCity2": "Los Angeles",
+      "marketInsightSentence": "Market insight: {{label}} is {{value}}."
     }
   },
   "messages": {
@@ -817,9 +842,9 @@
       "PLATFORM_INTRODUCTION": "INTRODUCTION"
     }
   },
-    "invoices": {
-      "title": "Invoices",
-      "billingTitle": "Billing & invoices",
+  "invoices": {
+    "title": "Invoices",
+    "billingTitle": "Billing & invoices",
     "subtitle": "Track billing, payments, and outstanding balances.",
     "searchPlaceholder": "Invoice number, booking, renter, owner",
     "status": "Status",
@@ -867,10 +892,7 @@
     "quantity": "Qty",
     "amount": "Amount",
     "itemizedLine": "Itemized invoice line",
-    "subtotal": "Subtotal",
-    "platformFee": "Platform fee",
-    "taxes": "Taxes",
-    "securityDeposit": "Security deposit",
+    "totalAmount": "Total amount",
     "total": "Total",
     "people": "People",
     "renter": "Renter",
@@ -883,6 +905,11 @@
   "verification": {
     "title": "Verification documents",
     "subtitle": "Upload the documents needed to complete verification.",
+    "bannerLabel": "Almost there",
+    "bannerTitle": "Upload your documents to keep going",
+    "bannerOwnerDescription": "Owners need to upload an ID card and proof of ownership before the account can be reviewed.",
+    "bannerRenterDescription": "Renters need to upload an ID card before the account can be reviewed.",
+    "bannerAction": "Upload required documents",
     "upload": "Upload document",
     "submitForReview": "Submit for Review",
     "submitting": "Submitting...",
@@ -941,5 +968,238 @@
     "returnToInvoice": "Return to invoice",
     "viewInvoices": "View invoices",
     "goBack": "Go back"
+  },
+  "app": {
+    "create": {
+      "listing": {
+        "page": {
+          "text": {
+            "text": {
+              "d4925f55": "€"
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "metadata": {
+        "title": "GETYOURCAVE",
+        "description": "Architectural Serenity in Storage"
+      }
+    },
+    "login": {
+      "page": {
+        "alt": {
+          "a": {
+            "clean": {
+              "professionally": {
+                "organized": {
+                  "high": {
+                    "end": {
+                      "a735372d": "A clean, professionally organized high-end storage facility with architectural lighting and polished concrete floors."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "page": {
+      "text": {
+        "12": {
+          "000": {
+            "eec2a821": "12,000+"
+          }
+        },
+        "50": {
+          "caee27b0": "50+"
+        },
+        "56": {
+          "f03e77a2": "56+"
+        },
+        "85": {
+          "3c590424": "$85"
+        },
+        "99": {
+          "9": {
+            "e16badff": "99.9%"
+          }
+        },
+        "120": {
+          "85ee8a8e": "$120"
+        },
+        "196": {
+          "000": {
+            "35d964b2": "$196,000"
+          }
+        },
+        "210": {
+          "280b18c7": "$210"
+        },
+        "architectural": {
+          "digest": {
+            "8f4c4f21": "ARCHITECTURAL DIGEST"
+          }
+        },
+        "wired": {
+          "05625cc3": "WIRED"
+        },
+        "forbes": {
+          "67b27ed0": "FORBES"
+        },
+        "dwell": {
+          "3a89ab31": "DWELL"
+        },
+        "monocle": {
+          "3ec56edf": "MONOCLE"
+        }
+      }
+    },
+    "renter": {
+      "dashboard": {
+        "page": {
+          "text": {
+            "text": {
+              "3f2783f4": ", ",
+              "b339b1c4": ": "
+            },
+            "mo": {
+              "db706c4c": "/mo"
+            }
+          }
+        }
+      }
+    },
+    "signup": {
+      "page": {
+        "alt": {
+          "a": {
+            "clean": {
+              "professionally": {
+                "organized": {
+                  "high": {
+                    "end": {
+                      "83eb8cd8": "A clean, professionally organized high-end storage facility with architectural lighting and polished concrete floors."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "google": {
+            "logo": {
+              "2b6f80a5": "Google Logo"
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "page": {
+        "text": {
+          "text": {
+            "33403ca3": "$"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "admin": {
+      "AdminDashboardWorkspace": {
+        "alt": {
+          "a": {
+            "modern": {
+              "secure": {
+                "vault": {
+                  "interior": {
+                    "with": {
+                      "6e7393cf": "A modern secure vault interior with metallic shelving and warm lighting"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "text": {
+          "pending": {
+            "users": {
+              "bb62ad0b": "Pending Users"
+            }
+          },
+          "role": {
+            "fd5ee619": "Role"
+          }
+        }
+      }
+    },
+    "invoices": {
+      "InvoiceDetailPage": {
+        "text": {
+          "text": {
+            "b1a23455": "← ",
+            "a2338170": ", ",
+            "9d4500d5": ": "
+          }
+        }
+      }
+    },
+    "layout": {
+      "Footer": {
+        "text": {
+          "getyourcave": {
+            "823e3085": "GETYOURCAVE"
+          }
+        }
+      },
+      "LanguageSwitcher": {
+        "label": {
+          "en": "EN",
+          "fr": "FR"
+        }
+      },
+      "LogoutButton": {
+        "aria-label": {
+          "sign": {
+            "out": {
+              "9e8634c9": "Sign out"
+            }
+          }
+        }
+      },
+      "Navbar": {
+        "text": {
+          "get": {
+            "your": {
+              "cave": {
+                "5c627b86": "GETYOURCAVE"
+              }
+            }
+          }
+        }
+      }
+    },
+    "listings": {
+      "ListingDetailPage": {
+        "text": {
+          "text": {
+            "17e45d65": ", ",
+            "d4dc8bb5": "$"
+          }
+        }
+      }
+    },
+    "maps": {
+      "ListingsMap": {
+        "text": {
+          "text": {
+            "c39b2add": "€"
+          }
+        }
+      }
+    }
   }
 }

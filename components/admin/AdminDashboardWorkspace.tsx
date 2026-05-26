@@ -9,10 +9,7 @@ import type {
   AdminDashboardResponse,
   AdminRevenuePoint,
 } from "@/lib/admin-shared";
-import { normalizeLocale } from "@/lib/i18n";
 import {
-  getVerificationDocumentTypeLabel,
-  getVerificationStatusLabel as getVerificationStatusDisplayLabel,
   type VerificationDocumentType,
   type VerificationStatusValue,
 } from "@/lib/verification-types";
@@ -90,6 +87,17 @@ type PendingVerificationRow = {
     fullName: string;
     email: string;
     role: string;
+  };
+};
+
+type GroupedVerificationRow = {
+  userId: string;
+  fullName: string;
+  email: string;
+  role: string;
+  documents: {
+    idCard: PendingVerificationRow | null;
+    ownershipProof: PendingVerificationRow | null;
   };
 };
 
@@ -205,8 +213,7 @@ function getAdminActivityStatusLabel(
 }
 
 export default function AdminDashboardWorkspace() {
-  const { t, i18n } = useTranslation();
-  const locale = normalizeLocale(i18n.language);
+  const { t } = useTranslation();
   const [dashboard, setDashboard] = useState<AdminDashboardResponse | null>(null);
   const [activity, setActivity] = useState<AdminActivityPage | null>(null);
   const [range, setRange] = useState<"7d" | "30d" | "90d" | "12m">("30d");
@@ -225,6 +232,37 @@ export default function AdminDashboardWorkspace() {
     id: string;
     action: "approve" | "reject";
   } | null>(null);
+
+  const verificationRows = useMemo<GroupedVerificationRow[]>(() => {
+    const groups = new Map<string, GroupedVerificationRow>();
+
+    for (const document of pendingVerifications) {
+      const existing = groups.get(document.user.email);
+      const nextEntry =
+        existing ?? {
+          userId: document.user.email,
+          fullName: document.user.fullName,
+          email: document.user.email,
+          role: document.user.role,
+          documents: {
+            idCard: null,
+            ownershipProof: null,
+          },
+        };
+
+      if (document.type === "ID_CARD" || document.type === "PASSPORT") {
+        nextEntry.documents.idCard = nextEntry.documents.idCard ?? document;
+      }
+
+      if (document.type === "PROOF_OF_OWNERSHIP") {
+        nextEntry.documents.ownershipProof = nextEntry.documents.ownershipProof ?? document;
+      }
+
+      groups.set(document.user.email, nextEntry);
+    }
+
+    return Array.from(groups.values());
+  }, [pendingVerifications]);
 
   useEffect(() => {
     let cancelled = false;
@@ -680,7 +718,7 @@ export default function AdminDashboardWorkspace() {
             <div className="relative mt-6 h-32 overflow-hidden rounded-2xl">
               <Image
                 className="object-cover grayscale transition-all duration-500 hover:grayscale-0"
-                alt="A modern secure vault interior with metallic shelving and warm lighting"
+                alt={t("components.admin.AdminDashboardWorkspace.alt.a.modern.secure.vault.interior.with.6e7393cf")}
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_YtGckwCAF5jPF35RYc4KOHUT0z2d6ulxPxdkA7_4u-RwluFdcBHRvJXFFJoC3j8i721euohBmLX1Kac40KRFUsldZvxCa01FCJ_XsoF06Y7uJcybYMWE_nj4qY47fACUgkQH29gm7sOw-44q7pt5nBuBvYwdbdgr_jKVoTHHFYDZKirOgo6FbmmSLnodjHP2fbQ4nNFZ8owi0wxa2ZrqkQqPWMlab5aCLZS26Tub55gQr5PM3FK8bo4u70iUYqgjJ7T4A_Sw5_Q"
                 fill
                 unoptimized
@@ -809,102 +847,95 @@ export default function AdminDashboardWorkspace() {
                 {t("dashboard.admin.pendingVerifications")}
               </h3>
               <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
-                {t("dashboard.admin.queuedCount", { count: pendingVerifications.length })}
+                {t("dashboard.admin.queuedCount", { count: verificationRows.length })}
               </span>
             </div>
 
             {moderationLoading ? (
               <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
-            ) : pendingVerifications.length ? (
+            ) : verificationRows.length ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-left">
+                <table className="w-full min-w-[760px] text-left">
                   <thead className="border-b border-[#EBEBE8]">
                     <tr>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        {t("dashboard.admin.document")}
-                      </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
                         {t("dashboard.admin.user")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        {t("dashboard.admin.status")}
+                        {t("dashboard.admin.role")}
+                      </th>
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                        {t("dashboard.admin.documents")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
-                        {t("dashboard.admin.actions")}
+                        {t("dashboard.admin.status")}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EBEBE8]">
-                    {pendingVerifications.map((document) => (
-                      <tr key={document.id}>
+                    {verificationRows.map((row) => (
+                      <tr key={row.userId}>
                         <td className="py-4 pr-4">
                           <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
-                            {document.fileName ?? getVerificationDocumentTypeLabel(document.type, locale)}
+                            {row.fullName}
                           </p>
-                          <p className="text-xs leading-[1.5] text-[#404848]">
-                            {getVerificationDocumentTypeLabel(document.type, locale)}
-                          </p>
-                          <a
-                            className="text-xs font-semibold text-[#4b6547] hover:underline"
-                            href={`/api/verification-documents/${document.id}`}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            {t("dashboard.admin.viewDocument")}
-                          </a>
+                          <p className="text-xs leading-[1.5] text-[#404848]">{row.email}</p>
                         </td>
                         <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-[#0f3d3e]">
-                              {document.user.fullName}
-                            </span>
-                            <span>{document.user.email}</span>
-                          </div>
+                          {row.role}
                         </td>
                         <td className="py-4 pr-4">
-                          <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
-                            {getVerificationStatusDisplayLabel(document.status, locale)}
-                          </span>
+                          <div className="grid gap-2 sm:min-w-[360px] sm:grid-cols-2">
+                            <a
+                              className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                row.documents.idCard
+                                  ? "bg-[#0f3d3e] text-white hover:opacity-90"
+                                  : "cursor-not-allowed border border-outline-variant text-primary opacity-60"
+                              }`}
+                              href={row.documents.idCard ? `/api/verification-documents/${row.documents.idCard.id}` : "#"}
+                              rel="noreferrer"
+                              target="_blank"
+                              onClick={(event) => {
+                                if (!row.documents.idCard) {
+                                  event.preventDefault();
+                                }
+                              }}
+                            >
+                              {t("dashboard.admin.viewIdCard")}
+                            </a>
+                            {row.role === "OWNER" ? (
+                              <a
+                                className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                  row.documents.ownershipProof
+                                    ? "border border-outline-variant text-primary hover:bg-white"
+                                    : "cursor-not-allowed border border-outline-variant text-primary opacity-60"
+                                }`}
+                                href={
+                                  row.documents.ownershipProof
+                                    ? `/api/verification-documents/${row.documents.ownershipProof.id}`
+                                    : "#"
+                                }
+                                rel="noreferrer"
+                                target="_blank"
+                                onClick={(event) => {
+                                  if (!row.documents.ownershipProof) {
+                                    event.preventDefault();
+                                  }
+                                }}
+                              >
+                                {t("dashboard.admin.viewOwnershipProof")}
+                              </a>
+                            ) : (
+                              <span className="inline-flex w-full items-center justify-center rounded-full border border-dashed border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                                {t("verification.notRequiredForRenters")}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              className="rounded-full bg-[#0f3d3e] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                              disabled={
-                                busyAction?.kind === "verification" &&
-                                busyAction.id === document.id &&
-                                busyAction.action === "approve"
-                              }
-                              type="button"
-                              onClick={() => {
-                                void handleModerationAction("verification", document.id, "approve");
-                              }}
-                            >
-                              {busyAction?.kind === "verification" &&
-                              busyAction.id === document.id &&
-                              busyAction.action === "approve"
-                                ? t("common.loading")
-                                : t("common.approve")}
-                            </button>
-                            <button
-                              className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-white disabled:opacity-60"
-                              disabled={
-                                busyAction?.kind === "verification" &&
-                                busyAction.id === document.id &&
-                                busyAction.action === "reject"
-                              }
-                              type="button"
-                              onClick={() => {
-                                void handleModerationAction("verification", document.id, "reject");
-                              }}
-                            >
-                              {busyAction?.kind === "verification" &&
-                              busyAction.id === document.id &&
-                              busyAction.action === "reject"
-                                ? t("common.loading")
-                                : t("common.reject")}
-                            </button>
-                          </div>
+                          <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                            {t("status.account.PENDING_VERIFICATION")}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -923,7 +954,7 @@ export default function AdminDashboardWorkspace() {
           <section className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
-                Pending Users
+                {t("components.admin.AdminDashboardWorkspace.text.pending.users.bb62ad0b")}
               </h3>
               <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
                 {t("dashboard.admin.queuedCount", { count: pendingUsers.length })}
@@ -947,7 +978,7 @@ export default function AdminDashboardWorkspace() {
                         {t("dashboard.admin.user")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
-                        Role
+                        {t("dashboard.admin.role")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
                         {t("dashboard.admin.status")}

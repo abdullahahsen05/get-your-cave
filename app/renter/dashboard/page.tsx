@@ -138,12 +138,12 @@ export default async function RenterDashboardPage() {
                     {dashboard.paymentRequiredInvoice.bookingTitle}
                   </h3>
                   <p className="text-body-sm font-body-sm text-on-surface-variant">
-                    {dashboard.paymentRequiredInvoice.bookingAddress},{" "}
+                    {dashboard.paymentRequiredInvoice.bookingAddress}{t("app.renter.dashboard.page.text.text.3f2783f4")}{" "}
                     {dashboard.paymentRequiredInvoice.bookingCity}
                   </p>
                 </div>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">
-                  {t("invoices.booking")}: {dashboard.paymentRequiredInvoice.bookingNumber}
+                  {t("invoices.booking")}{t("app.renter.dashboard.page.text.text.b339b1c4")} {dashboard.paymentRequiredInvoice.bookingNumber}
                 </p>
               </div>
 
@@ -168,7 +168,7 @@ export default async function RenterDashboardPage() {
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-[#EBEBE8] pt-6">
               <div className="space-y-1">
                 <p className="text-body-sm font-body-sm text-on-surface-variant">
-                  {t("invoiceDetail.dueAt")}:{" "}
+                  {t("invoiceDetail.dueAt")}{t("app.renter.dashboard.page.text.text.b339b1c4")}{" "}
                   {formatFullDate(dashboard.paymentRequiredInvoice.dueAt, locale)}
                 </p>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -508,7 +508,7 @@ export default async function RenterDashboardPage() {
                         {t(`status.booking.${booking.status}`)}
                       </p>
                       <p className="font-body-md text-body-md text-primary font-semibold">
-                        {formatCurrency(booking.monthlyPrice)}/mo
+                        {formatCurrency(booking.monthlyPrice)}{t("app.renter.dashboard.page.text.mo.db706c4c")}
                       </p>
                     </div>
                     <Link

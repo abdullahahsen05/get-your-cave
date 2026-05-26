@@ -60,17 +60,21 @@ export default function LoginPage() {
       });
 
       const data = (await response.json()) as {
-        user?: { role?: "ADMIN" | "OWNER" | "RENTER" };
+        user?: { role?: "ADMIN" | "OWNER" | "RENTER"; status?: string };
         error?: string;
       };
 
-      if (!response.ok || !data.user?.role) {
+      const user = data.user;
+
+      if (!response.ok || !user?.role) {
         setErrorMessage(t("auth.loginError"));
         return;
       }
 
       const destination =
-        nextPath ?? getDashboardPath(data.user.role) ?? "/renter/dashboard";
+        user.status !== "ACTIVE" && (user.role === "OWNER" || user.role === "RENTER")
+          ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
+          : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
 
       router.replace(destination);
       router.refresh();
@@ -88,7 +92,7 @@ export default function LoginPage() {
           <aside className="w-full md:w-[40%] bg-secondary-container/30 relative p-8 md:p-12 flex flex-col justify-between overflow-hidden">
             <div className="absolute inset-0 opacity-10 grayscale pointer-events-none">
               <img
-                alt="A clean, professionally organized high-end storage facility with architectural lighting and polished concrete floors."
+                alt={t("app.login.page.alt.a.clean.professionally.organized.high.end.a735372d")}
                 className="w-full h-full object-cover"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuABaZjB_-aytvUuKveqUINV1YI1WXjyMSJ3dYyiCqOq_D4utxkOrqErgjJmQKWQXrc4IIDv-6PR_mAEE-uZgPAQyHaFlzBj3Aoclm38lS9n9RboAo3gEU6cdOwMw9uUM966NJbfem2kElH7gebXA9hq5WM940SYJ-ewFe1YDSSTzMkbT_cfYWDtTTUy6sfzAyur0zhmOY8nrhc_qtFpHM6WndltIV-bL4_zl5aB9vlEk81-EQLJ2vRh10uqB2QnZ1AZgcZ4E_wnL7U"
               />
@@ -211,7 +215,7 @@ export default function LoginPage() {
                             password: event.target.value,
                           }))
                         }
-                        placeholder="••••••••"
+                        placeholder={t("auth.passwordPlaceholder")}
                         type="password"
                         value={formState.password}
                       />

@@ -16,6 +16,7 @@ import type { SafeUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   requiredDocumentTypesForRole,
+  ensureVerificationProfileForUser,
   serializeVerificationDocument,
   type VerificationDocumentView,
 } from "@/lib/verification";
@@ -892,6 +893,10 @@ export async function getAdminVerifications(params: {
     where.type = params.type;
   }
 
+  where.user = {
+    status: AccountStatus.PENDING_VERIFICATION,
+  };
+
   if (search) {
     where.OR = [
       { fileName: { contains: search, mode: "insensitive" } },
@@ -928,6 +933,7 @@ export async function getAdminVerifications(params: {
             fullName: true,
             email: true,
             role: true,
+            status: true,
             ownerProfile: {
               select: { verificationStatus: true },
             },
@@ -1345,19 +1351,7 @@ export async function activateUserForAdmin(userId: string, adminId: string) {
       data: { status: AccountStatus.ACTIVE },
     });
 
-    if (user.ownerProfile) {
-      await tx.ownerProfile.update({
-        where: { id: user.ownerProfile.id },
-        data: { verificationStatus: VerificationStatus.APPROVED },
-      });
-    }
-
-    if (user.renterProfile) {
-      await tx.renterProfile.update({
-        where: { id: user.renterProfile.id },
-        data: { verificationStatus: VerificationStatus.APPROVED },
-      });
-    }
+    await ensureVerificationProfileForUser(tx, user, VerificationStatus.APPROVED);
 
     await tx.adminLog.create({
       data: {

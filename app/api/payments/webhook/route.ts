@@ -1,11 +1,16 @@
-import { InvoiceStatus, PaymentStatus, Prisma } from "@prisma/client";
+import { BookingStatus, InvoiceStatus, PaymentStatus, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { finalizeStripeCheckoutSession } from "@/lib/payments/finalizeStripeCheckoutSession";
-import { getStripeClient, readStripeCheckoutMetadata } from "@/lib/stripe";
+import {
+  getStripeClient,
+  readStripeCheckoutMetadata,
+  readStripeSubscriptionMetadata,
+} from "@/lib/stripe";
+import { generateInvoiceNumber } from "@/lib/invoices/invoiceNumber";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -62,6 +67,25 @@ function buildPaymentWhere(params: {
   return or.length ? { OR: or } : null;
 }
 
+function calculateRecurringSplit(amount: Prisma.Decimal | number | string) {
+  const decimalAmount = amount instanceof Prisma.Decimal ? amount : new Prisma.Decimal(amount);
+  const normalized = decimalAmount.toDecimalPlaces(2);
+  const platformCommission = normalized.mul(0.12).toDecimalPlaces(2);
+  const ownerAmount = normalized.sub(platformCommission).toDecimalPlaces(2);
+
+  return {
+    amount: normalized,
+    platformCommission,
+    ownerAmount,
+  };
+}
+
+function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setUTCMonth(next.getUTCMonth() + months);
+  return next;
+}
+
 function logWebhookDebug(message: string, details?: Record<string, unknown>) {
   if (process.env.NODE_ENV === "production") {
     return;
@@ -73,6 +97,19 @@ function logWebhookDebug(message: string, details?: Record<string, unknown>) {
   }
 
   console.info(`[stripe-webhook] ${message}`);
+}
+
+function getStripeWebhookSecrets() {
+  const primary = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+  const fallbackList = process.env.STRIPE_WEBHOOK_SECRETS?.split(",") ?? [];
+
+  return Array.from(
+    new Set(
+      [primary, ...fallbackList]
+        .map((value) => value?.trim())
+        .filter((value): value is string => Boolean(value && value.startsWith("whsec_"))),
+    ),
+  );
 }
 
 function buildRefundedTimeline(
@@ -113,17 +150,673 @@ function revalidatePaymentPaths(invoiceId: string) {
   revalidatePath("/storage");
 }
 
+type RecurringBookingSnapshot = {
+  id: string;
+  ownerId: string;
+  renterId: string;
+  status: BookingStatus;
+  durationMonths: number | null;
+  monthlyPrice: Prisma.Decimal;
+  approvedAt: Date | null;
+};
+
+async function loadBookingForRecurringSubscription(stripe: Stripe, subscriptionId: string) {
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const metadata = readStripeSubscriptionMetadata(subscription.metadata);
+
+  if (!metadata) {
+    return null;
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: metadata.bookingId },
+    include: {
+      owner: {
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      },
+      renter: {
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          city: true,
+          address: true,
+          storageType: true,
+          pricePerMonth: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    if (metadata.invoiceId) {
+      const invoice = await prisma.invoice.findUnique({
+        where: { id: metadata.invoiceId },
+        select: {
+          bookingId: true,
+        },
+      });
+
+      if (invoice) {
+        const bookingByInvoice = await prisma.booking.findUnique({
+          where: { id: invoice.bookingId },
+          include: {
+            owner: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    email: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+            renter: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    email: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+            listing: {
+              select: {
+                id: true,
+                title: true,
+                city: true,
+                address: true,
+                storageType: true,
+                pricePerMonth: true,
+              },
+            },
+          },
+        });
+
+        if (bookingByInvoice) {
+          return {
+            booking: bookingByInvoice,
+            metadata,
+            subscription,
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  return {
+    booking,
+    metadata,
+    subscription,
+  };
+}
+
+async function syncRecurringInvoiceFromStripe(params: {
+  stripe: Stripe;
+  invoice: Stripe.Invoice;
+  invoiceStatus: InvoiceStatus;
+  paymentStatus: PaymentStatus;
+  booking?: RecurringBookingSnapshot | null;
+}) {
+  const invoice = params.invoice as Stripe.Invoice & {
+    subscription?: string | Stripe.Subscription | null;
+    payment_intent?: string | Stripe.PaymentIntent | null;
+    customer?: string | Stripe.Customer | null;
+    amount_paid?: number | null;
+    amount_due?: number | null;
+    total?: number | null;
+    created?: number | null;
+  };
+  const subscriptionId =
+    typeof invoice.subscription === "string"
+      ? invoice.subscription
+      : invoice.subscription?.id ?? null;
+
+  if (!subscriptionId) {
+    return {
+      applied: false,
+      bookingId: null,
+      invoiceId: null,
+      paymentId: null,
+      ownerCredited: false,
+    } as const;
+  }
+
+  const loaded = params.booking
+    ? ({
+        booking: params.booking,
+        metadata: null,
+        subscription: null,
+      } as const)
+    : await loadBookingForRecurringSubscription(params.stripe, subscriptionId);
+  if (!loaded) {
+    return {
+      applied: false,
+      bookingId: null,
+      invoiceId: null,
+      paymentId: null,
+      ownerCredited: false,
+    } as const;
+  }
+
+  const paymentIntentId =
+    typeof invoice.payment_intent === "string"
+      ? invoice.payment_intent
+      : invoice.payment_intent?.id ?? null;
+
+  if (!paymentIntentId) {
+    return {
+      applied: false,
+      bookingId: loaded.booking.id,
+      invoiceId: null,
+      paymentId: null,
+      ownerCredited: false,
+    } as const;
+  }
+
+  const amountSource =
+    params.paymentStatus === PaymentStatus.PAID
+      ? invoice.amount_paid
+      : invoice.amount_due || invoice.total || invoice.amount_paid;
+  const amount = new Prisma.Decimal(amountSource ?? 0).div(100).toDecimalPlaces(2);
+  const split = calculateRecurringSplit(amount);
+  const now = new Date();
+  let invoiceRecordId: string | null = null;
+  let paymentRecordId: string | null = null;
+  let ownerCredited = false;
+
+  await prisma.$transaction(async (transaction) => {
+    const existingPayment = await transaction.payment.findUnique({
+      where: { stripePaymentIntentId: paymentIntentId },
+    });
+
+    let currentPayment = existingPayment;
+
+    if (existingPayment) {
+      const transition = await transaction.payment.updateMany({
+        where: {
+          id: existingPayment.id,
+          status: {
+            not: params.paymentStatus,
+          },
+        },
+        data: {
+          amount: split.amount,
+          currency: params.invoice.currency,
+          platformCommission: split.platformCommission,
+          ownerAmount: split.ownerAmount,
+          status: params.paymentStatus,
+          paidAt:
+            params.paymentStatus === PaymentStatus.PAID
+              ? existingPayment.paidAt ?? now
+              : null,
+          failedAt:
+            params.paymentStatus === PaymentStatus.FAILED ? now : null,
+          refundedAt: null,
+          stripePaymentIntentId: paymentIntentId,
+          stripeCustomerId:
+            typeof invoice.customer === "string"
+              ? invoice.customer
+              : invoice.customer?.id ?? null,
+        },
+      });
+
+      if (transition.count > 0) {
+        currentPayment = await transaction.payment.findUnique({
+          where: { id: existingPayment.id },
+        });
+
+        if (params.paymentStatus === PaymentStatus.PAID) {
+          await transaction.ownerProfile.update({
+            where: {
+              id: loaded.booking.ownerId,
+            },
+            data: {
+              walletBalance: {
+                increment: split.ownerAmount,
+              },
+              pendingPayout: {
+                increment: split.ownerAmount,
+              },
+              totalEarnings: {
+                increment: split.ownerAmount,
+              },
+            },
+          });
+
+          ownerCredited = true;
+        }
+      }
+    } else {
+      currentPayment = await transaction.payment.create({
+        data: {
+          bookingId: loaded.booking.id,
+          amount: split.amount,
+          currency: params.invoice.currency,
+          platformCommission: split.platformCommission,
+          ownerAmount: split.ownerAmount,
+          status: params.paymentStatus,
+          paidAt:
+            params.paymentStatus === PaymentStatus.PAID ? now : null,
+          failedAt:
+            params.paymentStatus === PaymentStatus.FAILED ? now : null,
+          stripePaymentIntentId: paymentIntentId,
+          stripeCustomerId:
+            typeof invoice.customer === "string"
+              ? invoice.customer
+              : invoice.customer?.id ?? null,
+        },
+      });
+
+      if (params.paymentStatus === PaymentStatus.PAID) {
+        await transaction.ownerProfile.update({
+          where: {
+            id: loaded.booking.ownerId,
+          },
+          data: {
+            walletBalance: {
+              increment: split.ownerAmount,
+            },
+            pendingPayout: {
+              increment: split.ownerAmount,
+            },
+            totalEarnings: {
+              increment: split.ownerAmount,
+            },
+          },
+        });
+
+        ownerCredited = true;
+      }
+    }
+
+    if (!currentPayment) {
+      return;
+    }
+
+    paymentRecordId = currentPayment.id;
+
+    const currentInvoice = await transaction.invoice.findFirst({
+      where: { paymentId: currentPayment.id },
+      include: {
+        payment: true,
+      },
+    });
+
+    const invoiceNumber = currentInvoice?.invoiceNumber ?? (await generateInvoiceNumber());
+    const issuedAt =
+      currentInvoice?.issuedAt ??
+      new Date((invoice.created ?? Math.floor(now.getTime() / 1000)) * 1000);
+    const dueAt =
+      currentInvoice?.dueAt ??
+      (params.paymentStatus === PaymentStatus.PAID ? issuedAt : null);
+
+    const invoicePayload = {
+      invoiceNumber,
+      bookingId: loaded.booking.id,
+      paymentId: currentPayment.id,
+      ownerId: loaded.booking.ownerId,
+      renterId: loaded.booking.renterId,
+      subtotal: split.amount,
+      platformFee: split.platformCommission,
+      taxAmount: new Prisma.Decimal(0),
+      totalAmount: split.amount,
+      currency: params.invoice.currency,
+      status: params.invoiceStatus,
+      issuedAt,
+      dueAt,
+      timeline:
+        params.invoiceStatus === InvoiceStatus.PAID
+          ? [
+              {
+                key: "generated",
+                label: "Generated",
+                at: issuedAt.toISOString(),
+                active: true,
+              },
+              {
+                key: "issued",
+                label: "Issued",
+                at: issuedAt.toISOString(),
+                active: true,
+              },
+              {
+                key: "due",
+                label: "Due",
+                at: dueAt?.toISOString() ?? null,
+                active: Boolean(dueAt),
+              },
+              {
+                key: "paid",
+                label: "Paid",
+                at: now.toISOString(),
+                active: true,
+              },
+            ]
+          : [
+              {
+                key: "generated",
+                label: "Generated",
+                at: issuedAt.toISOString(),
+                active: true,
+              },
+              {
+                key: "issued",
+                label: "Issued",
+                at: issuedAt.toISOString(),
+                active: true,
+              },
+              {
+                key: "due",
+                label: "Due",
+                at: dueAt?.toISOString() ?? null,
+                active: Boolean(dueAt),
+              },
+            ],
+    };
+
+    if (currentInvoice) {
+      const updatedInvoice = await transaction.invoice.update({
+        where: { id: currentInvoice.id },
+        data: invoicePayload,
+      });
+
+      await transaction.invoiceItem.deleteMany({
+        where: { invoiceId: updatedInvoice.id },
+      });
+
+      await transaction.invoiceItem.createMany({
+        data: [
+          {
+            invoiceId: updatedInvoice.id,
+            description: "Monthly rental charge",
+            quantity: 1,
+            unitPrice: split.amount,
+            total: split.amount,
+          },
+        ],
+      });
+
+      invoiceRecordId = updatedInvoice.id;
+    } else {
+      const createdInvoice = await transaction.invoice.create({
+        data: invoicePayload,
+      });
+
+      await transaction.invoiceItem.createMany({
+        data: [
+          {
+            invoiceId: createdInvoice.id,
+            description: "Monthly rental charge",
+            quantity: 1,
+            unitPrice: split.amount,
+            total: split.amount,
+          },
+        ],
+      });
+
+      invoiceRecordId = createdInvoice.id;
+    }
+
+    if (
+      params.paymentStatus === PaymentStatus.PAID &&
+      (loaded.booking.status === BookingStatus.PENDING ||
+        loaded.booking.status === BookingStatus.APPROVED)
+    ) {
+      await transaction.booking.update({
+        where: {
+          id: loaded.booking.id,
+        },
+        data: {
+          status: BookingStatus.ACTIVE,
+          approvedAt: loaded.booking.approvedAt ?? now,
+        },
+      });
+    }
+  });
+
+  if (invoiceRecordId) {
+    revalidatePaymentPaths(invoiceRecordId);
+  }
+
+  return {
+    applied: Boolean(invoiceRecordId),
+    bookingId: loaded.booking.id,
+    invoiceId: invoiceRecordId,
+    paymentId: paymentRecordId,
+    ownerCredited,
+  } as const;
+}
+
+async function applyRecurringCheckoutRecovery(params: {
+  booking: RecurringBookingSnapshot;
+  localInvoiceId: string;
+  stripeInvoice: Stripe.Invoice;
+  sessionId: string;
+}) {
+  const stripeInvoice = params.stripeInvoice as Stripe.Invoice & {
+    payment_intent?: string | Stripe.PaymentIntent | null;
+    customer?: string | Stripe.Customer | null;
+    amount_paid?: number | null;
+    amount_due?: number | null;
+    total?: number | null;
+  };
+
+  const amountSource =
+    stripeInvoice.amount_paid ??
+    stripeInvoice.amount_due ??
+    stripeInvoice.total ??
+    0;
+  const amount = new Prisma.Decimal(amountSource).div(100).toDecimalPlaces(2);
+  const split = calculateRecurringSplit(amount);
+  const now = new Date();
+
+  return prisma.$transaction(async (transaction) => {
+    const currentInvoice = await transaction.invoice.findUnique({
+      where: { id: params.localInvoiceId },
+      include: {
+        payment: true,
+      },
+    });
+
+    if (!currentInvoice) {
+      return {
+        applied: false,
+        bookingId: params.booking.id,
+        invoiceId: null,
+        paymentId: null,
+        ownerCredited: false,
+      } as const;
+    }
+
+    if (currentInvoice.status === InvoiceStatus.PAID) {
+      return {
+        applied: false,
+        bookingId: params.booking.id,
+        invoiceId: currentInvoice.id,
+        paymentId: currentInvoice.paymentId,
+        ownerCredited: false,
+      } as const;
+    }
+
+    const existingPayment = currentInvoice.paymentId
+      ? await transaction.payment.findUnique({
+          where: { id: currentInvoice.paymentId },
+        })
+      : await transaction.payment.findFirst({
+          where: { stripeCheckoutSessionId: params.sessionId },
+        });
+
+    const payment =
+      existingPayment ??
+      (await transaction.payment.create({
+        data: {
+          bookingId: params.booking.id,
+          amount: split.amount,
+          currency: params.stripeInvoice.currency,
+          platformCommission: split.platformCommission,
+          ownerAmount: split.ownerAmount,
+          status: PaymentStatus.PAID,
+          paidAt: now,
+          stripeCheckoutSessionId: params.sessionId,
+          stripePaymentIntentId:
+          typeof stripeInvoice.payment_intent === "string"
+              ? stripeInvoice.payment_intent
+              : stripeInvoice.payment_intent?.id ?? null,
+          stripeCustomerId:
+            typeof stripeInvoice.customer === "string"
+              ? stripeInvoice.customer
+              : stripeInvoice.customer?.id ?? null,
+        },
+      }));
+
+    await transaction.payment.updateMany({
+      where: {
+        id: payment.id,
+        status: {
+          not: PaymentStatus.PAID,
+        },
+      },
+      data: {
+        amount: split.amount,
+        currency: stripeInvoice.currency,
+        platformCommission: split.platformCommission,
+        ownerAmount: split.ownerAmount,
+        status: PaymentStatus.PAID,
+        paidAt: now,
+        stripeCheckoutSessionId: params.sessionId,
+        stripePaymentIntentId:
+          typeof stripeInvoice.payment_intent === "string"
+            ? stripeInvoice.payment_intent
+            : stripeInvoice.payment_intent?.id ?? null,
+        stripeCustomerId:
+          typeof stripeInvoice.customer === "string"
+            ? stripeInvoice.customer
+            : stripeInvoice.customer?.id ?? null,
+      },
+    });
+
+    const invoicePayload = {
+      paymentId: payment.id,
+      ownerId: params.booking.ownerId,
+      renterId: params.booking.renterId,
+      subtotal: split.amount,
+      platformFee: split.platformCommission,
+      taxAmount: new Prisma.Decimal(0),
+      totalAmount: split.amount,
+      currency: stripeInvoice.currency,
+      status: InvoiceStatus.PAID,
+      paidAt: now,
+      dueAt: currentInvoice.dueAt ?? currentInvoice.issuedAt ?? now,
+      timeline: [
+        {
+          key: "generated",
+          label: "Generated",
+          at: (currentInvoice.issuedAt ?? now).toISOString(),
+          active: true,
+        },
+        {
+          key: "issued",
+          label: "Issued",
+          at: (currentInvoice.issuedAt ?? now).toISOString(),
+          active: true,
+        },
+        {
+          key: "due",
+          label: "Due",
+          at: (currentInvoice.dueAt ?? currentInvoice.issuedAt ?? now).toISOString(),
+          active: true,
+        },
+        {
+          key: "paid",
+          label: "Paid",
+          at: now.toISOString(),
+          active: true,
+        },
+      ],
+    };
+
+    await transaction.invoice.update({
+      where: { id: currentInvoice.id },
+      data: invoicePayload,
+    });
+
+    await transaction.invoiceItem.deleteMany({
+      where: { invoiceId: currentInvoice.id },
+    });
+
+    await transaction.invoiceItem.createMany({
+      data: [
+        {
+          invoiceId: currentInvoice.id,
+          description: "Total amount",
+          quantity: 1,
+          unitPrice: split.amount,
+          total: split.amount,
+        },
+      ],
+    });
+
+    if (
+      params.booking.status === BookingStatus.PENDING ||
+      params.booking.status === BookingStatus.APPROVED
+    ) {
+      await transaction.booking.update({
+        where: { id: params.booking.id },
+        data: {
+          status: BookingStatus.ACTIVE,
+          approvedAt: params.booking.approvedAt ?? now,
+        },
+      });
+    }
+
+    await transaction.ownerProfile.update({
+      where: { id: params.booking.ownerId },
+      data: {
+        walletBalance: { increment: split.ownerAmount },
+        pendingPayout: { increment: split.ownerAmount },
+        totalEarnings: { increment: split.ownerAmount },
+      },
+    });
+
+    revalidatePaymentPaths(currentInvoice.id);
+
+    return {
+      applied: true,
+      bookingId: params.booking.id,
+      invoiceId: currentInvoice.id,
+      paymentId: payment.id,
+      ownerCredited: true,
+    } as const;
+  });
+}
+
 export async function POST(request: Request) {
   const stripe = getStripeClient();
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
   const signature = request.headers.get("stripe-signature");
-
-  if (!webhookSecret) {
-    return NextResponse.json(
-      { error: "STRIPE_WEBHOOK_SECRET is required." },
-      { status: 500 },
-    );
-  }
 
   if (!signature) {
     return NextResponse.json(
@@ -132,30 +825,142 @@ export async function POST(request: Request) {
     );
   }
 
-  const rawBody = await request.text();
+  const rawBody = Buffer.from(await request.arrayBuffer());
+  const webhookSecrets = getStripeWebhookSecrets();
 
-  let event: Stripe.Event;
+  let event: Stripe.Event | null = null;
 
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    if (webhookSecrets.length === 0) {
+      throw new Error("STRIPE_WEBHOOK_SECRET is required.");
+    }
+
+    let lastError: unknown = null;
+
+    for (const candidateSecret of webhookSecrets) {
+      try {
+        event = stripe.webhooks.constructEvent(rawBody, signature, candidateSecret);
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (!event) {
+      throw lastError ?? new Error("Invalid Stripe webhook.");
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid Stripe webhook.";
     logWebhookDebug("signature verification failed", {
       message,
+      candidateSecrets: webhookSecrets.length,
     });
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
+  const verifiedEvent = event;
   logWebhookDebug("event received", {
-    eventId: event.id,
-    eventType: event.type,
+    eventId: verifiedEvent.id,
+    eventType: verifiedEvent.type,
   });
 
   if (
-    event.type === "checkout.session.completed" ||
-    event.type === "checkout.session.async_payment_succeeded"
+    verifiedEvent.type === "checkout.session.completed" ||
+    verifiedEvent.type === "checkout.session.async_payment_succeeded"
   ) {
-    const session = event.data.object as Stripe.Checkout.Session;
+    const session = verifiedEvent.data.object as Stripe.Checkout.Session;
+
+    if (session.mode === "subscription") {
+      const subscriptionId =
+        typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription?.id ?? null;
+
+      if (subscriptionId) {
+        const loaded = await loadBookingForRecurringSubscription(stripe, subscriptionId);
+
+        if (loaded) {
+          const durationMonths = Math.max(
+            1,
+            Number(loaded.metadata.durationMonths) || loaded.booking.durationMonths || 1,
+          );
+          const cancelAt = Math.floor(addMonths(new Date(), durationMonths).getTime() / 1000);
+
+          await stripe.subscriptions.update(subscriptionId, {
+            cancel_at: cancelAt,
+            metadata: {
+              ...loaded.metadata,
+              subscriptionId,
+            },
+          });
+
+          const latestInvoices = await stripe.invoices.list({
+            subscription: subscriptionId,
+            limit: 1,
+          });
+          const latestInvoice = latestInvoices.data[0] ?? null;
+
+          if (latestInvoice) {
+            const initialInvoiceStatus =
+              latestInvoice.status === "paid"
+                ? InvoiceStatus.PAID
+                : InvoiceStatus.ISSUED;
+            const initialPaymentStatus =
+              latestInvoice.status === "paid"
+                ? PaymentStatus.PAID
+                : PaymentStatus.PENDING;
+
+          const initialResult = await syncRecurringInvoiceFromStripe({
+            stripe,
+            invoice: latestInvoice,
+            invoiceStatus: initialInvoiceStatus,
+            paymentStatus: initialPaymentStatus,
+            booking: loaded.booking,
+          });
+
+          logWebhookDebug("subscription checkout invoice synced", {
+            sessionId: session.id,
+            subscriptionId,
+            bookingId: initialResult.bookingId,
+            invoiceId: initialResult.invoiceId,
+            applied: initialResult.applied,
+            paymentId: initialResult.paymentId,
+            ownerCredited: initialResult.ownerCredited,
+          });
+
+          if (!initialResult.applied && loaded.metadata.invoiceId) {
+            const recoveryResult = await applyRecurringCheckoutRecovery({
+              booking: loaded.booking,
+              localInvoiceId: loaded.metadata.invoiceId,
+              stripeInvoice: latestInvoice,
+              sessionId: session.id,
+            });
+
+            logWebhookDebug("subscription checkout recovery applied", {
+              sessionId: session.id,
+              subscriptionId,
+              bookingId: recoveryResult.bookingId,
+              invoiceId: recoveryResult.invoiceId,
+              applied: recoveryResult.applied,
+              paymentId: recoveryResult.paymentId,
+              ownerCredited: recoveryResult.ownerCredited,
+            });
+          }
+        }
+
+          logWebhookDebug("subscription checkout completed", {
+            sessionId: session.id,
+            subscriptionId,
+            bookingId: loaded.booking.id,
+            cancelAt: new Date(cancelAt * 1000).toISOString(),
+          });
+        }
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
     const result = await finalizeStripeCheckoutSession({
       stripe,
       session,
@@ -174,8 +979,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  if (event.type === "checkout.session.expired") {
-    const session = event.data.object as Stripe.Checkout.Session;
+  if (verifiedEvent.type === "checkout.session.expired") {
+    const session = verifiedEvent.data.object as Stripe.Checkout.Session;
     const metadata = readStripeCheckoutMetadata(session.metadata);
     const paymentIntentId = getPaymentIntentId(session);
     const paymentWhere = buildPaymentWhere({
@@ -203,11 +1008,94 @@ export async function POST(request: Request) {
   }
 
   if (
-    event.type === "charge.refunded" ||
-    event.type === "refund.created" ||
-    event.type === "refund.updated"
+    verifiedEvent.type === "invoice.finalized" ||
+    verifiedEvent.type === "invoice.payment_action_required" ||
+    verifiedEvent.type === "invoice.payment_failed" ||
+    verifiedEvent.type === "invoice.payment_succeeded" ||
+    verifiedEvent.type === "invoice.paid"
   ) {
-    const refundObject = event.data.object as Stripe.Charge | Stripe.Refund;
+    const invoice = verifiedEvent.data.object as Stripe.Invoice;
+    const invoiceStatus =
+      verifiedEvent.type === "invoice.payment_failed"
+        ? InvoiceStatus.OVERDUE
+        : verifiedEvent.type === "invoice.finalized" ||
+            verifiedEvent.type === "invoice.payment_action_required"
+          ? InvoiceStatus.ISSUED
+          : InvoiceStatus.PAID;
+    const paymentStatus =
+      verifiedEvent.type === "invoice.payment_failed"
+        ? PaymentStatus.FAILED
+        : verifiedEvent.type === "invoice.finalized" ||
+            verifiedEvent.type === "invoice.payment_action_required"
+          ? PaymentStatus.PENDING
+          : PaymentStatus.PAID;
+
+    const result = await syncRecurringInvoiceFromStripe({
+      stripe,
+      invoice,
+      invoiceStatus,
+      paymentStatus,
+    });
+
+    logWebhookDebug("subscription invoice synced", {
+      eventType: verifiedEvent.type,
+      invoiceId: invoice.id,
+      bookingId: result.bookingId,
+      applied: result.applied,
+      paymentId: result.paymentId,
+      ownerCredited: result.ownerCredited,
+    });
+
+    return NextResponse.json({ received: true });
+  }
+
+  if (
+    verifiedEvent.type === "customer.subscription.created" ||
+    verifiedEvent.type === "customer.subscription.updated" ||
+    verifiedEvent.type === "customer.subscription.paused" ||
+    verifiedEvent.type === "customer.subscription.resumed" ||
+    verifiedEvent.type === "customer.subscription.trial_will_end"
+  ) {
+    const subscription = verifiedEvent.data.object as Stripe.Subscription;
+    logWebhookDebug("subscription lifecycle event", {
+      eventType: verifiedEvent.type,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+    });
+
+    return NextResponse.json({ received: true });
+  }
+
+  if (verifiedEvent.type === "customer.subscription.deleted") {
+    const subscription = verifiedEvent.data.object as Stripe.Subscription;
+    const metadata = readStripeSubscriptionMetadata(subscription.metadata);
+
+    if (metadata) {
+      await prisma.booking.updateMany({
+        where: {
+          id: metadata.bookingId,
+        },
+        data: {
+          status: BookingStatus.COMPLETED,
+          completedAt: new Date(),
+        },
+      });
+    }
+
+    logWebhookDebug("subscription deleted", {
+      subscriptionId: subscription.id,
+      bookingId: metadata?.bookingId ?? null,
+    });
+
+    return NextResponse.json({ received: true });
+  }
+
+  if (
+    verifiedEvent.type === "charge.refunded" ||
+    verifiedEvent.type === "refund.created" ||
+    verifiedEvent.type === "refund.updated"
+  ) {
+    const refundObject = verifiedEvent.data.object as Stripe.Charge | Stripe.Refund;
     const metadata = readStripeCheckoutMetadata(refundObject.metadata);
     const paymentIntentId = getPaymentIntentId(refundObject);
     const chargeId = getStripeObjectChargeId(refundObject);
@@ -380,8 +1268,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  if (event.type === "payment_intent.payment_failed") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+  if (verifiedEvent.type === "payment_intent.payment_failed") {
+    const paymentIntent = verifiedEvent.data.object as Stripe.PaymentIntent;
     const metadata = readStripeCheckoutMetadata(paymentIntent.metadata);
     const paymentWhere = buildPaymentWhere({
       metadata,
@@ -406,7 +1294,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  if (event.type === "refund.failed" || event.type === "charge.refund.updated") {
+  if (verifiedEvent.type === "refund.failed" || verifiedEvent.type === "charge.refund.updated") {
     return NextResponse.json({ received: true });
   }
 

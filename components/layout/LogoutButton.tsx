@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function LogoutButton() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -26,7 +28,7 @@ export default function LogoutButton() {
 
   return (
     <button
-      aria-label="Sign out"
+      aria-label={t("components.layout.LogoutButton.aria-label.sign.out.9e8634c9")}
       className="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-60"
       type="button"
       disabled={isSigningOut}

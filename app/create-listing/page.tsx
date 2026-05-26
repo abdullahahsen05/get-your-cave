@@ -1056,7 +1056,7 @@ function PricingStep({
 
       <div className="max-w-xs relative">
           <span className="absolute left-4 top-[34px] -translate-y-1/2 text-h2 text-on-surface-variant font-light">
-          €
+          {t("app.create.listing.page.text.text.d4925f55")}
         </span>
         <input
           className="w-full bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 pl-10 pr-4 py-4 text-display font-display transition-colors outline-none appearance-none"

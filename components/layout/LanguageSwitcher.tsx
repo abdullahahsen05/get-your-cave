@@ -10,13 +10,13 @@ import {
 } from "@/lib/i18n";
 
 const OPTIONS: Array<{ value: Locale; label: string }> = [
-  { value: "en", label: "EN" },
-  { value: "fr", label: "FR" },
+  { value: "en", label: "components.layout.LanguageSwitcher.label.en" },
+  { value: "fr", label: "components.layout.LanguageSwitcher.label.fr" },
 ];
 
 export default function LanguageSwitcher() {
   const router = useRouter();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const activeLocale = normalizeLocale(i18n.language);
 
   function handleChange(locale: Locale) {
@@ -46,7 +46,7 @@ export default function LanguageSwitcher() {
             type="button"
             onClick={() => handleChange(option.value)}
           >
-            {option.label}
+            {t(option.label)}
           </button>
         );
       })}

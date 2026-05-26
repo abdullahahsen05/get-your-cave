@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import {
-  archiveOwnerListing,
   getListingByIdForViewer,
+  toggleOwnerListingArchive,
   updateOwnerListing,
 } from "@/lib/listings";
 import {
@@ -134,7 +134,7 @@ export async function DELETE(
     );
   }
 
-  const listing = await archiveOwnerListing({
+  const listing = await toggleOwnerListingArchive({
     listingId: id,
     ownerProfileId,
   });

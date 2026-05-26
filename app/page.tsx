@@ -58,7 +58,7 @@ export default async function HomeLandingPageScalableExact() {
                   </span>
                   <div>
                     <div className="text-[40px] sm:text-[52px] font-bold text-[#0F3D3E] leading-none mb-1">
-                      56+
+                      {t("app.page.text.56.f03e77a2")}
                     </div>
                     <div className="text-stone-600 font-semibold tracking-wide uppercase text-sm">
                       {t("home.featuredTitle")}
@@ -99,7 +99,7 @@ export default async function HomeLandingPageScalableExact() {
                     </svg>
                   </div>
                   <div>
-                    <div className="text-[32px] sm:text-[40px] font-bold leading-none mb-1">$196,000</div>
+                    <div className="text-[32px] sm:text-[40px] font-bold leading-none mb-1">{t("app.page.text.196.000.35d964b2")}</div>
                     <div className="text-white/60 font-semibold tracking-wide uppercase text-sm">
                       {t("home.statsTitle")}
                     </div>
@@ -117,11 +117,11 @@ export default async function HomeLandingPageScalableExact() {
             {t("home.featuredTitle")}
           </p>
           <div className="flex flex-wrap justify-center items-center gap-16 grayscale opacity-40">
-            <span className="font-display text-h3 font-bold tracking-tighter">ARCHITECTURAL DIGEST</span>
-            <span className="font-display text-h3 font-bold tracking-tighter">WIRED</span>
-            <span className="font-display text-h3 font-bold tracking-tighter">FORBES</span>
-            <span className="font-display text-h3 font-bold tracking-tighter">DWELL</span>
-            <span className="font-display text-h3 font-bold tracking-tighter">MONOCLE</span>
+            <span className="font-display text-h3 font-bold tracking-tighter">{t("app.page.text.architectural.digest.8f4c4f21")}</span>
+            <span className="font-display text-h3 font-bold tracking-tighter">{t("app.page.text.wired.05625cc3")}</span>
+            <span className="font-display text-h3 font-bold tracking-tighter">{t("app.page.text.forbes.67b27ed0")}</span>
+            <span className="font-display text-h3 font-bold tracking-tighter">{t("app.page.text.dwell.3a89ab31")}</span>
+            <span className="font-display text-h3 font-bold tracking-tighter">{t("app.page.text.monocle.3ec56edf")}</span>
           </div>
         </div>
       </section>
@@ -219,9 +219,9 @@ export default async function HomeLandingPageScalableExact() {
                 data-location="San Francisco"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZis-myS5KP7UUoco2lzJ7dIxoSihYKp8CK-zHwJcQ_7f14dSVkAhWkwuz6lLjc1_VJEUX1zNiLLQk0vbsfjm5oN-XwjWageE8AqESZiBnjAcXZuKyp6lCHTxgiBY6Kk6FWDjSBMEZzTm8cxUpJX8kyb9uDBonzyZkB0LC3ZgJp9rsoEZIVpvz83yrB7CEgzWzAOu9mLdVssJ_sQK_jkDpDVFc87clZynwulsPaJSVweL5EhH5Zo8VLIxfa-iUZempAOZmexfKreU"
               />
-              <div className="absolute top-1/3 left-1/4 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">$120</div>
-              <div className="absolute top-2/3 left-1/2 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">$85</div>
-              <div className="absolute top-1/4 left-3/4 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">$210</div>
+              <div className="absolute top-1/3 left-1/4 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">{t("app.page.text.120.85ee8a8e")}</div>
+              <div className="absolute top-2/3 left-1/2 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">{t("app.page.text.85.3c590424")}</div>
+              <div className="absolute top-1/4 left-3/4 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">{t("app.page.text.210.280b18c7")}</div>
             </div>
             <div className="flex flex-col gap-6 lg:overflow-y-auto lg:pr-2">
               <div className="bg-background p-6 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/20 hover:border-primary/20 transition-all cursor-pointer">
@@ -291,17 +291,17 @@ export default async function HomeLandingPageScalableExact() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
           <div className="flex flex-col md:flex-row justify-around items-center gap-10 sm:gap-16 text-center">
             <div>
-              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">12,000+</p>
+              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">{t("app.page.text.12.000.eec2a821")}</p>
               <p className="font-label-caps text-label-caps opacity-70">{t("home.availableTitle")}</p>
             </div>
             <div className="h-16 w-px bg-white/20 hidden md:block"></div>
             <div>
-              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">50+</p>
+              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">{t("app.page.text.50.caee27b0")}</p>
               <p className="font-label-caps text-label-caps opacity-70">{t("storage.storageCaves")}</p>
             </div>
             <div className="h-16 w-px bg-white/20 hidden md:block"></div>
             <div>
-              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">99.9%</p>
+              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">{t("app.page.text.99.9.e16badff")}</p>
               <p className="font-label-caps text-label-caps opacity-70">{t("home.featuredTitle")}</p>
             </div>
           </div>

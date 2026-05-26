@@ -49,7 +49,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
     <main className="min-h-screen bg-background text-on-background pt-28 sm:pt-32 pb-24 mx-auto max-w-[1280px] px-4 sm:px-6">
       <div className="mb-6 flex flex-col gap-2">
         <Link className="text-body-sm font-body-sm text-primary hover:underline" href="/invoices">
-          ← {t("invoiceDetail.backToInvoices")}
+          {t("components.invoices.InvoiceDetailPage.text.text.b1a23455")} {t("invoiceDetail.backToInvoices")}
         </Link>
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
           <div>
@@ -104,7 +104,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                 </p>
                 <h2 className="font-h3 text-h3 text-primary">{invoice.bookingTitle}</h2>
                 <p className="text-body-sm font-body-sm text-on-surface-variant mt-1">
-                  {invoice.bookingAddress}, {invoice.bookingCity}
+                  {invoice.bookingAddress}{t("components.invoices.InvoiceDetailPage.text.text.a2338170")} {invoice.bookingCity}
                 </p>
                 <p className="text-body-sm font-body-sm text-on-surface-variant mt-1">
                   {t("invoiceDetail.storageType", {
@@ -118,9 +118,9 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                   {t("invoiceDetail.dates")}
                 </p>
                 <div className="space-y-1 text-body-sm font-body-sm text-on-surface">
-                  <p>{t("invoiceDetail.issuedAt")}: {formatDate(invoice.issuedAt, locale)}</p>
-                  <p>{t("invoiceDetail.dueAt")}: {formatDate(invoice.dueAt, locale)}</p>
-                  <p>{t("invoiceDetail.paidAt")}: {formatDate(invoice.paidAt, locale)}</p>
+                  <p>{t("invoiceDetail.issuedAt")}{t("components.invoices.InvoiceDetailPage.text.text.9d4500d5")} {formatDate(invoice.issuedAt, locale)}</p>
+                  <p>{t("invoiceDetail.dueAt")}{t("components.invoices.InvoiceDetailPage.text.text.9d4500d5")} {formatDate(invoice.dueAt, locale)}</p>
+                  <p>{t("invoiceDetail.paidAt")}{t("components.invoices.InvoiceDetailPage.text.text.9d4500d5")} {formatDate(invoice.paidAt, locale)}</p>
                 </div>
               </div>
             </div>
@@ -177,44 +177,10 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             <h2 className="font-h3 text-h3 text-primary mb-6">{t("invoiceDetail.summary")}</h2>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-body-sm font-body-sm text-on-surface-variant">
-                  {t("invoiceDetail.subtotal")}
-                </span>
-                <span className="text-body-sm font-semibold text-primary">
-                  {formatCurrency(invoice.subtotal, invoice.currency.toUpperCase())}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-body-sm font-body-sm text-on-surface-variant">
-                  {t("invoiceDetail.platformFee")}
-                </span>
-                <span className="text-body-sm font-semibold text-primary">
-                  {formatCurrency(invoice.platformFee, invoice.currency.toUpperCase())}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-body-sm font-body-sm text-on-surface-variant">
-                  {t("invoiceDetail.taxes")}
-                </span>
-                <span className="text-body-sm font-semibold text-primary">
-                  {formatCurrency(invoice.taxAmount, invoice.currency.toUpperCase())}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-body-sm font-body-sm text-on-surface-variant">
-                  {t("invoiceDetail.securityDeposit")}
-                </span>
-                <span className="text-body-sm font-semibold text-primary">
-                  {formatCurrency(invoice.securityDeposit, invoice.currency.toUpperCase())}
-                </span>
-              </div>
-
               <div className="pt-4 border-t border-[#EBEBE8] flex items-center justify-between gap-4">
-                <span className="font-body-md font-semibold text-primary">{t("invoiceDetail.total")}</span>
+                <span className="font-body-md font-semibold text-primary">
+                  {t("invoiceDetail.totalAmount")}
+                </span>
                 <span className="font-h3 text-h3 text-primary">
                   {formatCurrency(invoice.totalAmount, invoice.currency.toUpperCase())}
                 </span>

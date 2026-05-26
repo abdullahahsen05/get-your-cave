@@ -66,18 +66,6 @@ export async function POST(request: Request) {
         email,
         passwordHash,
         role,
-        ownerProfile:
-          role === "OWNER"
-            ? {
-                create: {},
-              }
-            : undefined,
-        renterProfile:
-          role === "RENTER"
-            ? {
-                create: {},
-              }
-            : undefined,
       },
       select: safeUserSelect,
     });

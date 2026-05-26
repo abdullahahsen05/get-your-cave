@@ -7,9 +7,16 @@ import { useTranslation } from "react-i18next";
 type Props = {
   listingId: string;
   archived: boolean;
+  label: string;
+  variant?: "button" | "badge";
 };
 
-export default function OwnerListingArchiveButton({ listingId, archived }: Props) {
+export default function OwnerListingArchiveButton({
+  listingId,
+  archived,
+  label,
+  variant = "button",
+}: Props) {
   const router = useRouter();
   const { t } = useTranslation();
   const [isArchiving, setIsArchiving] = useState(false);
@@ -28,21 +35,49 @@ export default function OwnerListingArchiveButton({ listingId, archived }: Props
       });
 
       if (!response.ok) {
-        throw new Error(t("errors.unableToArchiveListing"));
+        throw new Error(t("errors.unableToToggleListingArchive"));
       }
 
       router.refresh();
     } catch (archiveError) {
       setError(
-        archiveError instanceof Error ? archiveError.message : t("errors.unableToArchiveListing"),
+        archiveError instanceof Error ? archiveError.message : t("errors.unableToToggleListingArchive"),
       );
     } finally {
       setIsArchiving(false);
     }
   }
 
-  if (archived) {
+  const buttonLabel = archived ? t("common.unarchive") : t("common.archive");
+  const ariaLabel = archived ? t("common.unarchive") : t("common.archive");
+
+  if (!archived && variant === "badge") {
     return null;
+  }
+
+  if (archived && variant === "button") {
+    return null;
+  }
+
+  if (variant === "badge") {
+    return (
+      <button
+        aria-label={ariaLabel}
+        className={`rounded-full px-3 py-1 text-label-caps font-label-caps transition-opacity ${
+          archived
+            ? "bg-secondary-container text-on-secondary-fixed hover:opacity-90"
+            : "bg-primary text-white hover:opacity-90"
+        } disabled:opacity-60`}
+        disabled={isArchiving}
+        title={buttonLabel}
+        type="button"
+        onClick={() => {
+          void handleArchive();
+        }}
+      >
+        {isArchiving ? t("common.loading") : label}
+      </button>
+    );
   }
 
   return (
@@ -50,12 +85,13 @@ export default function OwnerListingArchiveButton({ listingId, archived }: Props
       <button
         className="rounded-full border border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
         disabled={isArchiving}
+        title={buttonLabel}
         type="button"
         onClick={() => {
           void handleArchive();
         }}
       >
-        {isArchiving ? t("common.loading") : t("common.archive")}
+        {isArchiving ? t("common.loading") : buttonLabel}
       </button>
       {error ? <p className="text-xs text-error">{error}</p> : null}
     </div>

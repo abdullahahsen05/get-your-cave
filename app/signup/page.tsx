@@ -181,17 +181,21 @@ export default function SignUpPage() {
       });
 
       const data = (await response.json()) as {
-        user?: { role?: "ADMIN" | "OWNER" | "RENTER" };
+        user?: { role?: "ADMIN" | "OWNER" | "RENTER"; status?: string };
         error?: string;
       };
 
-      if (!response.ok || !data.user?.role) {
+      const user = data.user;
+
+      if (!response.ok || !user?.role) {
         setErrorMessage(t("auth.signupError"));
         return;
       }
 
       const destination =
-        nextPath ?? getDashboardPath(data.user.role) ?? "/renter/dashboard";
+        user.role === "OWNER" || user.role === "RENTER"
+          ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
+          : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
 
       router.replace(destination);
       router.refresh();
@@ -269,7 +273,7 @@ export default function SignUpPage() {
           <aside className="w-full md:w-[40%] bg-secondary-container/30 relative p-8 md:p-12 flex flex-col justify-between overflow-hidden">
             <div className="absolute inset-0 opacity-10 grayscale pointer-events-none">
               <img
-                alt="A clean, professionally organized high-end storage facility with architectural lighting and polished concrete floors."
+                alt={t("app.signup.page.alt.a.clean.professionally.organized.high.end.83eb8cd8")}
                 className="w-full h-full object-cover"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuABaZjB_-aytvUuKveqUINV1YI1WXjyMSJ3dYyiCqOq_D4utxkOrqErgjJmQKWQXrc4IIDv-6PR_mAEE-uZgPAQyHaFlzBj3Aoclm38lS9n9RboAo3gEU6cdOwMw9uUM966NJbfem2kElH7gebXA9hq5WM940SYJ-ewFe1YDSSTzMkbT_cfYWDtTTUy6sfzAyur0zhmOY8nrhc_qtFpHM6WndltIV-bL4_zl5aB9vlEk81-EQLJ2vRh10uqB2QnZ1AZgcZ4E_wnL7U"
               />
@@ -424,7 +428,7 @@ export default function SignUpPage() {
                                 password: event.target.value,
                               }))
                             }
-                            placeholder="••••••••"
+                            placeholder={t("auth.passwordPlaceholder")}
                             type="password"
                             value={formState.password}
                           />
@@ -447,7 +451,7 @@ export default function SignUpPage() {
                                 confirmPassword: event.target.value,
                               }))
                             }
-                            placeholder="••••••••"
+                            placeholder={t("auth.passwordPlaceholder")}
                             type="password"
                             value={formState.confirmPassword}
                           />
@@ -541,7 +545,7 @@ export default function SignUpPage() {
                           type="button"
                         >
                           <img
-                            alt="Google Logo"
+                            alt={t("app.signup.page.alt.google.logo.2b6f80a5")}
                             className="w-5 h-5"
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdEhsntc5vjig4w7WeMCyVcxWJRhdfs8cA1tzBPR-yD02LbeRo4LNKwd5__u5oOd-dOufYAluR4AiON_W3fBKoWUYtByIF26S06tbeVzKLBvFRietmTamoueAsw57ysu57iUiZxNoRSn7UYCtGhWpubYdVs7xED1jDdXfPrPvt74enUUPjkDRDZfyXXinK1QzEKyZcipaYxb4nhRx1Nli7s-TO_ngZbQfxMluvyUoXaSVDZoHMU0ah7AzVYUxmIpkQsLdx8D07Z7Q"
                           />

@@ -14,7 +14,7 @@ export default async function Footer() {
     <footer className="bg-[#F2F0E9] w-full rounded-t-[48px]">
       <div className="flex flex-col md:flex-row justify-between items-start py-20 px-12 max-w-[1440px] mx-auto gap-12">
         <div className="w-full md:w-[22rem] lg:w-[20rem] flex-none">
-          <div className="mb-4 text-2xl font-bold text-[#0F3D3E]">GETYOURCAVE</div>
+          <div className="mb-4 text-2xl font-bold text-[#0F3D3E]">{t("components.layout.Footer.text.getyourcave.823e3085")}</div>
           <p className="mb-8 text-sm leading-relaxed text-stone-600">{t("footer.description")}</p>
           <div className="flex gap-4">
             <span className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white text-primary transition-colors hover:bg-primary hover:text-white">

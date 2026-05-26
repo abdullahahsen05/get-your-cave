@@ -51,6 +51,24 @@ function formatStorageType(value: StorageType) {
     .join(" ");
 }
 
+function formatAmenityLabel(value: string, t: (key: string) => string) {
+  const translated = t(value);
+  if (translated !== value) {
+    return translated;
+  }
+
+  if (value === "Security Camera") return t("createListing.amenities.securityCamera");
+  if (value === "24/7 Access") return t("createListing.amenities.access247");
+  if (value === "Climate Control" || value === "Climate Controlled") {
+    return t("createListing.amenities.climateControl");
+  }
+  if (value === "Private Entry") return t("createListing.amenities.privateEntry");
+  if (value === "Gated") return t("createListing.amenities.gated");
+  if (value === "Loading Dock") return t("createListing.amenities.loadingDock");
+
+  return value;
+}
+
 export default function BrowseStoragePage() {
   const { t } = useTranslation();
   const [location, setLocation] = useState("");
@@ -421,11 +439,13 @@ export default function BrowseStoragePage() {
                       <span className="material-symbols-outlined text-[18px] text-primary">
                         verified
                       </span>
-                      {listing.amenityNames[0] ?? t("storage.verified")}
+                      {listing.amenityNames[0]
+                        ? formatAmenityLabel(listing.amenityNames[0], t)
+                        : t("storage.verified")}
                     </div>
                     <div className="ml-auto text-right">
                       <span className="font-extrabold text-primary text-body-lg">
-                        ${listing.pricePerMonth}
+                        {t("app.storage.page.text.text.33403ca3")}{listing.pricePerMonth}
                       </span>
                       <span className="text-on-surface-variant font-medium text-xs">
                         {t("listing.monthly")}

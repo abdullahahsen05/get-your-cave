@@ -5,6 +5,7 @@ import "./globals.css";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import I18nProvider from "@/components/providers/I18nProvider";
+import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
 
 const manrope = Manrope({
@@ -12,10 +13,14 @@ const manrope = Manrope({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "GETYOURCAVE",
-  description: "Architectural Serenity in Storage",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = createTranslator(await getServerLocale());
+
+  return {
+    title: t("app.layout.metadata.title"),
+    description: t("app.layout.metadata.description"),
+  };
+}
 
 export default async function RootLayout({
   children,

@@ -10,6 +10,13 @@ export type StripeCheckoutMetadata = {
   renterId: string;
 };
 
+export type StripeSubscriptionMetadata = {
+  bookingId: string;
+  renterId: string;
+  durationMonths: string;
+  invoiceId?: string;
+};
+
 export function getStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
 
@@ -59,6 +66,15 @@ export function buildStripeCheckoutMetadata(input: StripeCheckoutMetadata) {
   };
 }
 
+export function buildStripeSubscriptionMetadata(input: StripeSubscriptionMetadata) {
+  return {
+    bookingId: input.bookingId,
+    renterId: input.renterId,
+    durationMonths: input.durationMonths,
+    ...(input.invoiceId ? { invoiceId: input.invoiceId } : {}),
+  };
+}
+
 export function readStripeCheckoutMetadata(metadata: Stripe.Metadata | null | undefined) {
   const bookingId = metadata?.bookingId?.trim();
   const invoiceId = metadata?.invoiceId?.trim();
@@ -75,4 +91,24 @@ export function readStripeCheckoutMetadata(metadata: Stripe.Metadata | null | un
     paymentId,
     renterId,
   } satisfies StripeCheckoutMetadata;
+}
+
+export function readStripeSubscriptionMetadata(
+  metadata: Stripe.Metadata | null | undefined,
+) {
+  const bookingId = metadata?.bookingId?.trim();
+  const renterId = metadata?.renterId?.trim();
+  const durationMonths = metadata?.durationMonths?.trim();
+  const invoiceId = metadata?.invoiceId?.trim();
+
+  if (!bookingId || !renterId || !durationMonths) {
+    return null;
+  }
+
+  return {
+    bookingId,
+    renterId,
+    durationMonths,
+    ...(invoiceId ? { invoiceId } : {}),
+  } satisfies StripeSubscriptionMetadata;
 }

@@ -80,6 +80,24 @@ function formatStorageType(value: string, t: (key: string) => string) {
     .join(" ");
 }
 
+function formatAmenityLabel(value: string, t: (key: string) => string) {
+  const translated = t(value);
+  if (translated !== value) {
+    return translated;
+  }
+
+  if (value === "Security Camera") return t("createListing.amenities.securityCamera");
+  if (value === "24/7 Access") return t("createListing.amenities.access247");
+  if (value === "Climate Control" || value === "Climate Controlled") {
+    return t("createListing.amenities.climateControl");
+  }
+  if (value === "Private Entry") return t("createListing.amenities.privateEntry");
+  if (value === "Gated") return t("createListing.amenities.gated");
+  if (value === "Loading Dock") return t("createListing.amenities.loadingDock");
+
+  return value;
+}
+
 export default function ListingDetailPage({ listingId }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -96,6 +114,8 @@ export default function ListingDetailPage({ listingId }: Props) {
   const [isBooking, setIsBooking] = useState(false);
   const [isStartingConversation, setIsStartingConversation] = useState(false);
   const [conversationError, setConversationError] = useState<string | null>(null);
+  const bookingDurationMonths = Math.max(1, Number(bookingDuration) || 1);
+  const totalAmount = `€${(Number(listing?.pricePerMonth ?? 0) * bookingDurationMonths).toFixed(2)}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -415,7 +435,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               <div>
                 <h2 className="font-h3 text-h3 text-primary">{t("listingDetail.locationMap")}</h2>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">
-                  {listing.city}, {listing.address}
+                  {listing.city} • {listing.address}
                 </p>
               </div>
             </div>
@@ -462,7 +482,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     verified_user
                   </span>
                   <div>
-                    <h4 className="font-bold text-body-md">{amenity}</h4>
+                    <h4 className="font-bold text-body-md">{formatAmenityLabel(amenity, t)}</h4>
                     <p className="text-body-sm text-on-surface-variant">
                       {t("listingDetail.trustedFeature")}
                     </p>
@@ -559,9 +579,9 @@ export default function ListingDetailPage({ listingId }: Props) {
 
           <aside>
             <div className="sticky top-32 bg-white rounded-lg p-lg border border-stone-200 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-              <div className="flex justify-between items-baseline mb-lg">
+                <div className="flex justify-between items-baseline mb-lg">
                 <span className="font-h2 text-h2 text-primary">
-                  ${listing.pricePerMonth}
+                  €{listing.pricePerMonth}
                   <span className="text-body-md font-normal text-on-surface-variant">{t("listingDetail.perMonth")}</span>
                 </span>
                 <span className="text-body-sm font-semibold underline">{t("listingDetail.details")}</span>
@@ -573,14 +593,23 @@ export default function ListingDetailPage({ listingId }: Props) {
                     <p className="text-sm font-medium">{t("listingDetail.anytime")}</p>
                   </div>
                   <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
-                    <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.duration")}</p>
-                    <p className="text-sm font-medium">{t("listingDetail.monthly")}</p>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.durationMonths")}</p>
+                    <p className="text-sm font-medium">{bookingDurationMonths} {t("listingDetail.months")}</p>
                   </div>
                 </div>
                 <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
                   <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.unitSize")}</p>
                   <p className="text-sm font-medium">{listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")}</p>
                 </div>
+              </div>
+
+              <div className="mb-lg rounded-lg border border-secondary-container/40 bg-secondary-container/10 p-4 text-sm text-primary">
+                <p className="font-semibold">
+                  {t("listingDetail.totalAmount", {
+                    total: totalAmount,
+                    months: bookingDurationMonths,
+                  })}
+                </p>
               </div>
 
               {sessionLoading ? (
@@ -620,19 +649,16 @@ export default function ListingDetailPage({ listingId }: Props) {
                     </label>
                     <label className="block">
                       <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
-                        {t("listingDetail.duration")}
+                        {t("listingDetail.durationMonths")}
                       </span>
-                      <select
+                      <input
                         className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:border-primary focus:ring-0"
+                        min={1}
+                        step={1}
+                        type="number"
                         value={bookingDuration}
                         onChange={(event) => setBookingDuration(event.target.value)}
-                      >
-                        <option value="1">{t("listingDetail.oneMonth")}</option>
-                        <option value="2">{t("listingDetail.twoMonths")}</option>
-                        <option value="3">{t("listingDetail.threeMonths")}</option>
-                        <option value="6">{t("listingDetail.sixMonths")}</option>
-                        <option value="12">{t("listingDetail.twelveMonths")}</option>
-                      </select>
+                      />
                     </label>
                     <label className="block">
                       <span className="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">
@@ -702,33 +728,16 @@ export default function ListingDetailPage({ listingId }: Props) {
               ) : null}
               <div className="space-y-3">
                 <div className="flex justify-between text-body-md">
-                  <span className="underline">{t("listingDetail.monthlyRateX1")}</span>
-                  <span>${listing.pricePerMonth}</span>
-                </div>
-                <div className="flex justify-between text-body-md">
-                  <span className="underline">{t("listingDetail.platformCommission")}</span>
-                  <span>
-                    ${(
-                      Number(listing.pricePerMonth) * 0.12
-                    ).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-body-md">
                   <span className="underline">{t("listingDetail.securityDeposit")}</span>
-                  <span>${listing.securityDeposit}</span>
+                  <span>€{listing.securityDeposit}</span>
                 </div>
                 <div className="flex justify-between text-body-md">
                   <span className="underline">{t("listingDetail.caveInsurance")}</span>
-                  <span>${listing.insuranceFee}</span>
+                  <span>€{listing.insuranceFee}</span>
                 </div>
                 <div className="border-t border-stone-200 pt-3 mt-4 flex justify-between font-bold text-primary text-body-lg">
                   <span>{t("listingDetail.totalMonthly")}</span>
-                  <span>
-                    ${(
-                      Number(listing.pricePerMonth) +
-                      Number(listing.insuranceFee)
-                    ).toFixed(2)}
-                  </span>
+                  <span>€{Number(listing.pricePerMonth).toFixed(2)}</span>
                 </div>
               </div>
             </div>

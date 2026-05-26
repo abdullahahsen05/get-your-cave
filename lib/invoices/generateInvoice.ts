@@ -402,52 +402,15 @@ async function loadInvoiceBooking(bookingId: string) {
 }
 
 function buildInvoiceLineItems(params: {
-  months: number;
-  monthlyPrice: Prisma.Decimal;
-  insuranceFee: Prisma.Decimal;
-  securityDeposit: Prisma.Decimal;
-  platformFee: Prisma.Decimal;
-  taxes: Prisma.Decimal;
-  totalRent: Prisma.Decimal;
-  totalInsurance: Prisma.Decimal;
-  totalPlatform: Prisma.Decimal;
-  totalTaxes: Prisma.Decimal;
+  totalAmount: Prisma.Decimal;
 }) {
   return [
     {
-      description: params.months > 1 ? `Monthly rental charge (${params.months} months)` : "Monthly rental charge",
-      quantity: params.months,
-      unitPrice: params.monthlyPrice,
-      total: params.totalRent,
-    },
-    {
-      description: params.months > 1 ? `Insurance fee (${params.months} months)` : "Insurance fee",
-      quantity: params.months,
-      unitPrice: params.insuranceFee,
-      total: params.totalInsurance,
-    },
-    {
-      description: "Security deposit",
+      description: "Total amount",
       quantity: 1,
-      unitPrice: params.securityDeposit,
-      total: params.securityDeposit,
+      unitPrice: params.totalAmount,
+      total: params.totalAmount,
     },
-    {
-      description: params.months > 1 ? `Platform commission (${params.months} months)` : "Platform commission",
-      quantity: params.months,
-      unitPrice: params.platformFee,
-      total: params.totalPlatform,
-    },
-    ...(params.taxes.gt(0)
-      ? [
-          {
-            description: params.months > 1 ? `Taxes (${params.months} months)` : "Taxes",
-            quantity: params.months,
-            unitPrice: params.taxes,
-            total: params.totalTaxes,
-          },
-        ]
-      : []),
   ];
 }
 
@@ -513,16 +476,7 @@ export async function generateInvoiceForBooking(params: {
   const invoiceStatus =
     payment?.status === "PAID" ? InvoiceStatus.PAID : params.status ?? InvoiceStatus.ISSUED;
   const lineItems = buildInvoiceLineItems({
-    months: charges.months,
-    monthlyPrice: charges.monthlyPrice,
-    insuranceFee: charges.insuranceFee,
-    securityDeposit: charges.securityDeposit,
-    platformFee: charges.platformFee,
-    taxes: charges.taxes,
-    totalRent: charges.totalRent,
-    totalInsurance: charges.totalInsurance,
-    totalPlatform: charges.totalPlatform,
-    totalTaxes: charges.totalTaxes,
+    totalAmount: charges.total,
   });
   const existing = booking.invoices[0] ?? null;
 

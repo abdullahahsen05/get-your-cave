@@ -450,11 +450,7 @@ function buildInvoicePdfCommands(invoice: SafeInvoice) {
       font: "F1",
       size: 10,
       color: textSecondary,
-      lines: [
-        `Subtotal  ${formatMoney(invoice.subtotal, currency)}`,
-        `Fees      ${formatMoney(invoice.platformFee, currency)}`,
-        `Deposit   ${formatMoney(invoice.securityDeposit, currency)}`,
-      ],
+      lines: [`Total amount  ${formatMoney(invoice.totalAmount, currency)}`],
       leading: 13,
     }),
   );
@@ -521,12 +517,7 @@ function buildInvoicePdfCommands(invoice: SafeInvoice) {
     width: 1,
   }));
 
-  const summaryRows = [
-    ["Subtotal", formatMoney(invoice.subtotal, currency)],
-    ["Platform fee", formatMoney(invoice.platformFee, currency)],
-    ["Taxes", formatMoney(invoice.taxAmount, currency)],
-    ["Security deposit", formatMoney(invoice.securityDeposit, currency)],
-  ];
+  const summaryRows = [["Total amount", formatMoney(invoice.totalAmount, currency)]];
   let rowY = 428;
   for (const [label, value] of summaryRows) {
     commands.push(

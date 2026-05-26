@@ -11,7 +11,7 @@ export const bookingCreateSchema = z.object({
   listingId: z.string().uuid("Please choose a listing."),
   startDate: z.string().trim().min(1, "Please choose a move-in date."),
   endDate: z.string().trim().min(1).optional(),
-  durationMonths: z.coerce.number().int().positive().max(120).optional(),
+  durationMonths: z.coerce.number().int().positive().optional(),
   renterNote: optionalBookingNote,
 });
 
@@ -21,7 +21,7 @@ export const bookingUpdateSchema = z.object({
   ownerNote: optionalBookingNote,
   startDate: z.string().trim().min(1).optional(),
   endDate: z.string().trim().min(1).optional(),
-  durationMonths: z.coerce.number().int().positive().max(120).optional(),
+  durationMonths: z.coerce.number().int().positive().optional(),
 });
 
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
