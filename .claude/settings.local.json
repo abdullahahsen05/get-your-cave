@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\Victus\\\\Downloads\\\\getyourcave\\\\getyourcave\\\\app\\\\api\\\\admin\\\\users\\\\[id]\\\\verify\")",
+      "Bash(Out-Null)",
+      "Bash(mkdir -p \"C:/Users/Victus/Downloads/getyourcave/getyourcave/app/api/admin/users/[id]/verify\")",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npx next *)",
+      "Bash(npx eslint *)",
+      "Bash(node -e ' *)",
+      "Bash(git push *)"
+    ]
+  }
+}
