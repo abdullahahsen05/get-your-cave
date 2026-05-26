@@ -1,11 +1,11 @@
 import type { HTMLAttributes } from "react";
 
 export function Card({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={`gyc-card p-lg ${className}`} {...props} />;
+  return <div className={`gyc-card p-4 sm:p-lg ${className}`} {...props} />;
 }
 
 export function CardHeader({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={`mb-4 ${className}`} {...props} />;
+  return <div className={`mb-3 sm:mb-4 ${className}`} {...props} />;
 }
 
 export function CardBody({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
@@ -13,6 +13,5 @@ export function CardBody({ className = "", ...props }: HTMLAttributes<HTMLDivEle
 }
 
 export function CardFooter({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={`mt-6 ${className}`} {...props} />;
+  return <div className={`mt-4 sm:mt-6 ${className}`} {...props} />;
 }
-

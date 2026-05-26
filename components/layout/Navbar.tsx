@@ -88,12 +88,12 @@ export default async function Navbar() {
   const config = getNavbarConfig(role);
 
   return (
-    <header className="fixed top-[calc(1rem+env(safe-area-inset-top))] z-50 w-full px-4 sm:px-6">
+    <header className="fixed top-[calc(0.75rem+env(safe-area-inset-top))] z-50 w-full px-2 sm:px-4 sm:top-[calc(1rem+env(safe-area-inset-top))]">
       <div className="mx-auto max-w-[1440px]">
-        <nav className="flex min-h-[88px] items-center justify-between gap-4 rounded-full border border-stone-100 bg-white px-4 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] origin-top scale-100 lg:scale-[0.85] sm:px-8">
+        <nav className="relative flex min-h-[72px] items-center justify-between gap-3 rounded-[28px] border border-stone-100 bg-white px-3 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:min-h-[88px] sm:rounded-full sm:px-4 sm:py-4 lg:scale-[0.85] lg:origin-top lg:px-8">
           <Link className="flex items-center gap-3 shrink-0" href="/">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#002627]">
-              <span className="material-symbols-outlined text-xl text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#002627] sm:h-12 sm:w-12">
+              <span className="material-symbols-outlined text-xl text-white sm:text-[22px]">
                 architecture
               </span>
             </div>
@@ -146,61 +146,70 @@ export default async function Navbar() {
             )}
           </div>
 
-          <details className="relative lg:hidden">
-            <summary className="flex h-11 w-11 list-none items-center justify-center rounded-full border border-stone-200 text-stone-600 transition-colors hover:bg-stone-50 [&::-webkit-details-marker]:hidden">
-              <span className="material-symbols-outlined text-xl">menu</span>
-            </summary>
+          <div className="flex items-center gap-2 lg:hidden">
+            <div className="scale-[0.9] origin-right">
+              <LanguageSwitcher />
+            </div>
 
-            <div className="absolute right-0 top-full mt-3 w-[calc(100vw-1.5rem)] max-w-sm rounded-[24px] border border-stone-100 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.12)]">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  {config.links.map((item) => (
-                    <Link
-                      key={item.labelKey}
-                      className="flex items-center justify-between rounded-2xl border border-stone-100 px-4 py-3 text-sm font-semibold text-[#002627] transition-colors hover:bg-stone-50"
-                      href={item.href}
-                    >
-                      <span>{t(item.labelKey)}</span>
-                      <span className="material-symbols-outlined text-sm text-stone-400">
-                        arrow_forward
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+            <details className="relative">
+              <summary
+                aria-label={t("common.open")}
+                className="inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-stone-200 bg-white p-0 text-stone-600 outline-none transition-colors hover:bg-stone-50 focus-visible:ring-2 focus-visible:ring-[#002627]/15 [&::-webkit-details-marker]:hidden"
+              >
+                <span className="material-symbols-outlined block text-[22px] leading-none translate-y-[0.5px]">
+                  menu
+                </span>
+              </summary>
 
-                <div className="flex items-center justify-between gap-3 border-t border-stone-100 pt-4">
-                  <LanguageSwitcher />
+              <div className="fixed left-2 right-2 top-[calc(0.75rem+env(safe-area-inset-top)+72px+1px)] z-[60] max-h-[calc(100vh-5rem)] overflow-y-auto rounded-[24px] border border-stone-100 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.12)] sm:left-4 sm:right-4 sm:top-[calc(1rem+env(safe-area-inset-top)+88px+1px)] sm:max-h-[calc(100vh-6rem)] lg:hidden">
+                <div className="p-4 sm:p-5">
+                  <div className="space-y-2">
+                    {config.links.map((item) => (
+                      <Link
+                        key={item.labelKey}
+                        className="flex min-h-[64px] items-center justify-between rounded-2xl border border-stone-100 bg-white px-4 py-4 text-[15px] font-semibold text-[#002627] transition-colors hover:bg-stone-50 sm:px-5"
+                        href={item.href}
+                      >
+                        <span>{t(item.labelKey)}</span>
+                        <span className="material-symbols-outlined text-sm text-stone-400">
+                          arrow_forward
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
 
-                  {currentUser ? (
-                    <div className="flex items-center gap-2">
-                      <LogoutButton />
-                      <Link
-                        className="rounded-full bg-[#002627] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#002627]/20"
-                        href={dashboardPath}
-                      >
-                        {dashboardLabel}
-                      </Link>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Link
-                        className="rounded-full border border-stone-200 px-4 py-3 text-sm font-bold text-[#002627]"
-                        href={config.loginHref ?? "/login"}
-                      >
-                        {t("nav.login")}
-                      </Link>
-                      <Link
-                        className="rounded-full bg-[#002627] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#002627]/20"
-                        href={config.guestPrimaryAction?.href ?? "/signup"}
-                      >
-                        {t(config.guestPrimaryAction?.labelKey ?? "nav.joinNow")}
-                      </Link>
-                    </div>
-                  )}
+                  <div className="mt-4 border-t border-stone-100 pt-4">
+                    {currentUser ? (
+                      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
+                        <LogoutButton />
+                        <Link
+                          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#002627] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#002627]/20 transition-all hover:opacity-90 active:scale-95"
+                          href={dashboardPath}
+                        >
+                          {dashboardLabel}
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link
+                          className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 px-4 py-3 text-sm font-bold text-[#002627] transition-colors hover:bg-stone-50"
+                          href={config.loginHref ?? "/login"}
+                        >
+                          {t("nav.login")}
+                        </Link>
+                        <Link
+                          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#002627] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#002627]/20 transition-all hover:opacity-90 active:scale-95"
+                          href={config.guestPrimaryAction?.href ?? "/signup"}
+                        >
+                          {t(config.guestPrimaryAction?.labelKey ?? "nav.joinNow")}
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </details>
+            </details>
+          </div>
         </nav>
       </div>
     </header>

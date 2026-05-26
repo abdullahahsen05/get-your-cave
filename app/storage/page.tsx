@@ -156,10 +156,10 @@ export default function BrowseStoragePage() {
   );
 
   return (
-    <div className="bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed min-h-screen">
-      <section className="mt-28 sm:mt-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="bg-white border border-outline-variant/40 rounded-xl px-2 py-2 flex flex-wrap md:flex-nowrap items-center gap-2 shadow-[0_10px_40px_-10px_rgba(0,38,39,0.12)]">
-          <div className="flex items-center flex-1 min-w-0 md:min-w-[200px] pl-4 sm:pl-6 h-14">
+    <div className="min-h-screen overflow-x-hidden bg-background text-on-surface font-body-md antialiased selection:bg-primary-fixed">
+      <section className="mx-auto mt-28 max-w-6xl px-4 sm:mt-32 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-3 rounded-[28px] border border-outline-variant/40 bg-white p-4 shadow-[0_18px_60px_-24px_rgba(0,38,39,0.35)] lg:flex-row lg:items-center lg:gap-0 lg:p-2">
+          <div className="flex min-h-14 min-w-0 flex-1 items-center rounded-2xl bg-surface-container-lowest px-4 lg:bg-transparent lg:px-5">
             <span
               className="material-symbols-outlined text-primary-container/60 mr-3"
               data-icon="location_on"
@@ -178,8 +178,8 @@ export default function BrowseStoragePage() {
               }}
             />
           </div>
-          <div className="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
-          <div className="flex items-center flex-1 min-w-0 md:min-w-[150px] px-4 h-14">
+          <div className="hidden h-8 w-px bg-outline-variant/30 lg:block"></div>
+          <div className="flex min-h-14 min-w-0 flex-1 items-center rounded-2xl bg-surface-container-lowest px-4 lg:bg-transparent lg:px-5">
             <span
               className="material-symbols-outlined text-primary-container/60 mr-3"
               data-icon="straighten"
@@ -200,8 +200,8 @@ export default function BrowseStoragePage() {
               <option value="LARGE">{t("storage.sizeLarge")}</option>
             </select>
           </div>
-          <div className="hidden md:block w-px h-8 bg-outline-variant/30 mx-2"></div>
-          <div className="flex items-center flex-1 min-w-0 md:min-w-[150px] px-4 h-14">
+          <div className="hidden h-8 w-px bg-outline-variant/30 lg:block"></div>
+          <div className="flex min-h-14 min-w-0 flex-1 items-center rounded-2xl bg-surface-container-lowest px-4 lg:bg-transparent lg:px-5">
             <span
               className="material-symbols-outlined text-primary-container/60 mr-3"
               data-icon="calendar_month"
@@ -215,7 +215,7 @@ export default function BrowseStoragePage() {
             />
           </div>
           <button
-            className="bg-primary text-white h-14 w-full sm:w-auto px-8 rounded-lg flex items-center justify-center gap-2 transition-all hover:bg-primary-container active:scale-95 shadow-md"
+            className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-8 text-white shadow-md transition-all hover:bg-primary-container active:scale-95 lg:w-auto lg:min-w-[220px]"
             type="button"
             onClick={() => setPage(1)}
           >
@@ -235,16 +235,16 @@ export default function BrowseStoragePage() {
         </section>
       ) : null}
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-outline-variant/20 pb-6">
+      <section className="mx-auto mt-12 mb-8 flex max-w-7xl flex-col gap-5 border-b border-outline-variant/20 px-4 pb-6 sm:px-6 md:flex-row md:items-end md:justify-between lg:px-8">
         <div>
-          <h2 className="font-h1 text-h2 text-primary-container flex items-center gap-3">
+          <h2 className="flex flex-col gap-3 font-h1 text-h2 text-primary-container sm:flex-row sm:items-center">
             {loading ? t("common.loading") : t("storage.storageCavesWithCount", { count: total })}
-            <span className="text-body-sm font-normal text-on-surface-variant px-3 py-1 bg-surface-container rounded-full italic-emphasis">
+            <span className="w-fit rounded-full bg-surface-container px-3 py-1 text-body-sm font-normal text-on-surface-variant italic-emphasis">
               {location || city || t("storage.region")}
             </span>
           </h2>
         </div>
-        <div className="flex flex-wrap items-center gap-4 md:gap-6">
+        <div className="flex flex-wrap items-center gap-3 md:gap-6">
           <button
             className="flex items-center gap-2 text-primary font-bold text-body-sm hover:underline"
             type="button"
@@ -267,8 +267,8 @@ export default function BrowseStoragePage() {
       </section>
 
       {showMap ? (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-          <div className="flex items-center justify-between gap-4 mb-4">
+        <section className="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h3 className="font-h3 text-h3 text-primary">{t("storage.mapView")}</h3>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -287,9 +287,9 @@ export default function BrowseStoragePage() {
         </section>
       ) : null}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-28 md:pb-4 flex flex-col lg:flex-row gap-gutter">
-        <aside className="w-full lg:w-[280px] flex-shrink-0 space-y-10">
-          <div className="bg-surface-container-low/40 p-6 rounded-lg border border-outline-variant/20 lg:sticky lg:top-24">
+      <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-4 pb-28 sm:px-6 md:pb-8 lg:flex-row lg:px-8">
+        <aside className="w-full flex-shrink-0 space-y-6 lg:w-[300px]">
+          <div className="rounded-[24px] border border-outline-variant/20 bg-surface-container-low/40 p-5 shadow-[0_10px_40px_-28px_rgba(0,38,39,0.35)] sm:p-6 lg:sticky lg:top-28">
             <h3 className="font-label-caps text-label-caps text-primary mb-6 tracking-widest uppercase">
               {t("storage.refineSearch")}
             </h3>
@@ -358,7 +358,7 @@ export default function BrowseStoragePage() {
                     type="button"
                     onClick={() => {
                       setPage(1);
-                      setStorageType(value as StorageType);
+                      setStorageType((current) => (current === value ? "" : (value as StorageType)));
                     }}
                   >
                     {label}
@@ -380,7 +380,7 @@ export default function BrowseStoragePage() {
           </div>
         </aside>
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {!loading && !error && listings.length === 0 ? (
             <div className="mb-6 rounded-lg border border-outline-variant/20 bg-white px-6 py-8 text-center text-on-surface-variant">
               <p className="font-semibold text-primary">{t("storage.noResultsTitle")}</p>
@@ -388,14 +388,14 @@ export default function BrowseStoragePage() {
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {listings.map((listing) => (
               <Link
                 href={`/storage/${listing.id}`}
                 key={listing.id}
-                className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 card-shadow card-hover transition-all duration-300 flex flex-col h-full"
+                className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-outline-variant/20 bg-white card-shadow card-hover transition-all duration-300"
               >
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden bg-surface-container">
                   <img
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     src={listing.imageUrl ?? fallbackImage}
@@ -418,17 +418,17 @@ export default function BrowseStoragePage() {
                     </span>
                   </div>
                 </div>
-                <div className="p-5 flex-1 flex flex-col">
-                  <h4 className="font-h3 text-h3 text-primary leading-tight mb-1">
+                <div className="flex flex-1 flex-col p-5 sm:p-6">
+                  <h4 className="mb-1 line-clamp-2 font-h3 text-h3 leading-tight text-primary">
                     {listing.title}
                   </h4>
-                  <p className="text-body-sm text-on-surface-variant flex items-center gap-1 mb-6">
+                  <p className="mb-6 flex items-center gap-1 text-body-sm text-on-surface-variant">
                     <span className="material-symbols-outlined text-[16px]">
                       location_on
                     </span>
                     {listing.city}
                   </p>
-                  <div className="flex items-center gap-4 pt-4 border-t border-outline-variant/20 mt-auto">
+                  <div className="mt-auto grid grid-cols-2 gap-3 border-t border-outline-variant/20 pt-4 sm:flex sm:items-center sm:gap-4">
                     <div className="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
                       <span className="material-symbols-outlined text-[18px] text-primary">
                         square_foot
@@ -443,7 +443,7 @@ export default function BrowseStoragePage() {
                         ? formatAmenityLabel(listing.amenityNames[0], t)
                         : t("storage.verified")}
                     </div>
-                    <div className="ml-auto text-right">
+                    <div className="col-span-2 text-left sm:ml-auto sm:text-right">
                       <span className="font-extrabold text-primary text-body-lg">
                         {t("app.storage.page.text.text.33403ca3")}{listing.pricePerMonth}
                       </span>
@@ -457,8 +457,8 @@ export default function BrowseStoragePage() {
             ))}
           </div>
 
-          <div className="py-20 flex justify-center">
-            <nav className="flex items-center gap-4">
+          <div className="flex justify-center py-16 sm:py-20">
+            <nav className="flex items-center gap-3 sm:gap-4">
               <button
                 className="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant hover:text-primary transition-all bg-white shadow-sm disabled:opacity-40"
                 disabled={page <= 1}
@@ -503,7 +503,7 @@ export default function BrowseStoragePage() {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-4 md:hidden bg-white/90 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[32px]">
+      <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-[32px] border-t border-outline-variant/20 bg-white/90 px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl md:hidden">
         <a
           className="flex flex-col items-center justify-center text-primary bg-primary/5 rounded-full px-5 py-1.5"
           href="#"

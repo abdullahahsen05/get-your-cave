@@ -274,19 +274,19 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-background text-on-background pt-28 sm:pt-32 pb-24 sm:pb-32 mx-auto max-w-[1200px] px-4 sm:px-6">
-      <header className="mb-12 text-center md:text-left">
-        <h1 className="font-h1 text-h1 text-primary mb-1">
+    <main className="min-h-screen bg-background text-on-background pt-24 sm:pt-28 lg:pt-32 pb-20 sm:pb-28 lg:pb-32 mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+      <header className="mb-8 sm:mb-10 lg:mb-12 text-center md:text-left">
+        <h1 className="font-h1 text-[34px] leading-[1.08] sm:text-h1 text-primary mb-3 tracking-[-0.02em]">
           {t("verification.title")}
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+        <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto md:mx-0">
           {t("verification.subtitle")}
         </p>
       </header>
 
       {currentUser.status !== "ACTIVE" ? (
-        <section className="mb-12 rounded-[28px] border border-secondary-fixed-dim/30 bg-secondary-container/25 p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <section className="mb-8 sm:mb-10 lg:mb-12 rounded-[28px] border border-secondary-fixed-dim/30 bg-secondary-container/25 p-5 sm:p-7 lg:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-secondary-fixed-variant">
                 {t("verification.bannerLabel")}
@@ -300,7 +300,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                   : t("verification.bannerRenterDescription")}
               </p>
             </div>
-            <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm">
+            <div className="flex shrink-0 items-center justify-center gap-3 rounded-full bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm w-fit">
               <span className="material-symbols-outlined text-base">upload_file</span>
               <span>{t("verification.bannerAction")}</span>
             </div>
@@ -308,17 +308,17 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         </section>
       ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-12">
-          <section className="bg-surface-container-lowest border border-surface-variant p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_390px] gap-8 lg:gap-10 xl:gap-12 items-start">
+        <div className="space-y-8 sm:space-y-10 lg:space-y-12 min-w-0">
+          <section className="bg-surface-container-lowest border border-surface-variant p-5 sm:p-6 lg:p-8 rounded-2xl shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div>
-              <h3 className="font-h3 text-h3 text-primary">{t("verification.accountStatusTitle")}</h3>
+              <h3 className="font-h3 text-h3 text-primary leading-tight">{t("verification.accountStatusTitle")}</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
                 {t("verification.accountStatusDescription")}
               </p>
             </div>
             <span
-              className={`px-6 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 w-fit ${getStatusBadgeClasses(verification.accountStatus)}`}
+              className={`px-5 py-2 rounded-full font-label-caps text-label-caps flex items-center gap-2 w-fit shrink-0 ${getStatusBadgeClasses(verification.accountStatus)}`}
             >
               <span className="material-symbols-outlined text-[14px]">
                 {getStatusBadgeIcon(verification.accountStatus)}
@@ -327,7 +327,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
             </span>
           </section>
 
-          <section className="bg-secondary-container/20 border border-secondary-fixed-dim/30 p-6 rounded-lg flex gap-4 items-start">
+          <section className="bg-secondary-container/20 border border-secondary-fixed-dim/30 p-5 sm:p-6 rounded-2xl flex gap-4 items-start">
             <span className="material-symbols-outlined text-secondary scale-125 mt-1">
               verified_user
             </span>
@@ -342,7 +342,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
           </section>
 
           <section>
-            <h2 className="font-h2 text-h2 text-primary mb-6">
+            <h2 className="font-h2 text-h2 text-primary mb-5 sm:mb-6">
               {t("verification.documentsTitle")}
             </h2>
 
@@ -353,9 +353,9 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
               <p className="mb-4 text-sm text-secondary">{actionMessage}</p>
             ) : null}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <button
-                className="group border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-8 sm:p-12 rounded-lg text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="group min-h-[260px] border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-6 sm:p-8 lg:p-10 rounded-2xl text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                 type="button"
                 disabled={!canUploadDocuments || isUploading}
                 onClick={() => openUploadDialog("ID_CARD")}
@@ -377,7 +377,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
               </button>
 
               <button
-                className="group border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-8 sm:p-12 rounded-lg text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="group min-h-[260px] border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-6 sm:p-8 lg:p-10 rounded-2xl text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                 type="button"
                 disabled={!canUploadProofOfOwnership || isUploading}
                 onClick={() => openUploadDialog("PROOF_OF_OWNERSHIP")}
@@ -406,12 +406,12 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
           </section>
 
           <section className="overflow-hidden">
-            <h2 className="font-h2 text-h2 text-primary mb-6">
+            <h2 className="font-h2 text-h2 text-primary mb-5 sm:mb-6">
               {t("verification.recentDocuments")}
             </h2>
 
             <div className="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left">
+              <table className="w-full min-w-[760px] text-left">
                 <thead className="bg-surface-container font-label-caps text-label-caps text-on-surface-variant">
                   <tr>
                     <th className="px-6 py-4">{t("verification.type")}</th>
@@ -507,14 +507,14 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         </div>
 
         <aside className="space-y-12">
-          <section className="bg-primary-container text-on-primary p-6 sm:p-8 lg:p-12 rounded-lg shadow-xl lg:top-[120px]">
+          <section className="bg-primary-container text-on-primary p-6 sm:p-8 lg:p-9 xl:p-10 rounded-2xl shadow-xl lg:sticky lg:top-[120px]">
             <h3 className="font-h3 text-h3 mb-4">{t("verification.readyTitle")}</h3>
-            <p className="font-body-md text-body-md mb-12 opacity-80">
+            <p className="font-body-md text-body-md mb-8 sm:mb-10 lg:mb-12 opacity-80">
               {t("verification.readyDescription")}
             </p>
 
             <button
-              className="w-full bg-white text-primary font-bold py-4 px-6 sm:px-12 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-4 disabled:opacity-70"
+              className="w-full bg-white text-primary font-bold py-4 px-6 sm:px-8 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-3 disabled:opacity-70"
               disabled={isSubmitting || loading || !verification.canSubmit}
               type="button"
               onClick={() => {
@@ -525,7 +525,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
               <span className="material-symbols-outlined">send</span>
             </button>
 
-            <div className="mt-12 pt-6 border-t border-white/10 space-y-4">
+            <div className="mt-8 sm:mt-10 lg:mt-12 pt-6 border-t border-white/10 space-y-4">
               <div className="flex items-center gap-4">
                 <span className="material-symbols-outlined text-[20px] text-on-primary-container">
                   contact_support
@@ -553,7 +553,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
             </div>
           </section>
 
-          <section className="rounded-lg overflow-hidden h-56 sm:h-64 relative">
+          <section className="rounded-2xl overflow-hidden h-56 sm:h-64 lg:h-[280px] relative shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
             <img
               alt={t("home.featuredTitle")}
               className="w-full h-full object-cover"

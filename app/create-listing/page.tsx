@@ -45,7 +45,7 @@ const LocationPickerMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full min-h-[280px] bg-surface-container rounded-lg animate-pulse border border-outline-variant/30" />
+      <div className="w-full min-h-[320px] sm:min-h-[380px] xl:min-h-[520px] rounded-[28px] animate-pulse border border-outline-variant/30 bg-surface-container" />
     ),
   },
 );
@@ -222,11 +222,74 @@ function parseListingToState(listing: {
     postalCode: listing.postalCode ?? "",
     latitude: listing.latitude !== null ? String(listing.latitude) : "",
     longitude: listing.longitude !== null ? String(listing.longitude) : "",
-    sizeSqFt: listing.sizeSqFt ? String(listing.sizeSqFt) : "",
+    sizeSqFt: listing.sizeSqFt !== null ? String(listing.sizeSqFt) : "",
     amenityNames: listing.amenityNames,
     imageUrls: listing.images.map((image) => image.url),
     primaryImageIndex: primaryIndex,
   };
+}
+
+function formatMoney(value: string) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(parsed);
+}
+
+function getStorageTypeLabel(storageType: FormState["storageType"], t: (key: string) => string) {
+  const match = storageTypes.find((item) => item.value === storageType);
+  return match ? t(match.labelKey) : "—";
+}
+
+function StatRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-2xl border border-outline-variant/30 bg-background/60 px-4 py-3">
+      <span className="font-label-caps text-[11px] uppercase tracking-[0.22em] text-on-surface-variant">
+        {label}
+      </span>
+      <span className="text-right text-sm font-medium text-primary break-words">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function SectionHeading({
+  title,
+  description,
+  eyebrow,
+}: {
+  title: string;
+  description: string;
+  eyebrow?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      {eyebrow ? (
+        <p className="font-label-caps text-[11px] uppercase tracking-[0.28em] text-secondary">
+          {eyebrow}
+        </p>
+      ) : null}
+      <h2 className="font-h2 text-h2 text-primary">
+        {title}
+      </h2>
+      <p className="max-w-2xl text-on-surface-variant font-body-md text-body-md">
+        {description}
+      </p>
+    </div>
+  );
 }
 
 export default function ListYourCavePage() {
@@ -258,6 +321,8 @@ export default function ListYourCavePage() {
   const isLastStep = step === steps.length - 1;
   const displayImages = formState.imageUrls.length ? formState.imageUrls : samplePreviewImages;
   const usingUploadedImages = formState.imageUrls.length > 0;
+  const currentStep = steps[step];
+  const pricePreview = formatMoney(formState.pricePerMonth);
 
   useEffect(() => {
     if (!listingIdFromUrl) {
@@ -342,7 +407,7 @@ export default function ListYourCavePage() {
 
   function applyGeocodeResponse(response: GeocodeResponse) {
     setLocationErrorMessage(null);
-      setLocationStatusMessage(t("createListing.location.foundLocation", { name: response.displayName }));
+    setLocationStatusMessage(t("createListing.location.foundLocation", { name: response.displayName }));
     setFormState((current) => ({
       ...current,
       address: current.address.trim() ? current.address : response.address,
@@ -396,9 +461,7 @@ export default function ListYourCavePage() {
     setLocationStatusMessage(null);
 
     if (!isGeolocationSupported()) {
-      setLocationErrorMessage(
-        t("createListing.location.geoUnsupported"),
-      );
+      setLocationErrorMessage(t("createListing.location.geoUnsupported"));
       return;
     }
 
@@ -620,192 +683,310 @@ export default function ListYourCavePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-28 sm:pt-32 pb-24 sm:pb-32 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-        <section className="mb-12">
-          <div className="flex flex-col gap-4 mb-4 px-1">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-              <span className="font-label-caps text-label-caps text-primary uppercase">
-                {t("createListing.stepProgress", {
-                  current: step + 1,
-                  total: steps.length,
-                  label: t(steps[step].labelKey),
+    <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-24 sm:pt-28 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-8">
+        <section className="overflow-hidden rounded-[32px] border border-outline-variant/30 bg-surface-container-lowest/95 shadow-[0_12px_50px_rgba(15,61,62,0.05)] backdrop-blur">
+          <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:p-10">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary-container/30 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-secondary">
+                  <span className="material-symbols-outlined text-[16px]">edit_square</span>
+                  {t("createListing.stepProgress", {
+                    current: step + 1,
+                    total: steps.length,
+                    label: t(currentStep.labelKey),
+                  })}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="max-w-3xl text-on-surface-variant font-body-md text-body-md">
+                    {t("createListing.percentComplete", { value: Math.round(progress) })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                {steps.map((item, index) => {
+                  const isActive = index === step;
+                  const isComplete = index < step;
+
+                  return (
+                    <button
+                      className={`group flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[22px] border px-3 py-3 text-center transition-all ${
+                        isActive
+                          ? "border-primary bg-primary-fixed text-primary shadow-[0_12px_28px_rgba(15,61,62,0.08)]"
+                          : isComplete
+                            ? "border-secondary/35 bg-secondary-container/30 text-secondary hover:border-secondary/55"
+                            : "border-outline-variant/40 bg-background/70 text-on-surface-variant hover:border-primary/30 hover:bg-surface-container-low"
+                      } disabled:cursor-default disabled:opacity-80`}
+                      disabled={index > step || isSubmitting}
+                      key={item.labelKey}
+                      onClick={() => setStep(index)}
+                      type="button"
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[22px] transition-transform group-hover:scale-105 ${
+                          isActive || isComplete ? "text-current" : "text-on-surface-variant/60"
+                        }`}
+                      >
+                        {isComplete ? "check_circle" : item.icon}
+                      </span>
+                      <span
+                        className={`font-label-caps text-[10px] uppercase tracking-[0.18em] leading-tight ${
+                          isActive || isComplete ? "text-current" : "text-on-surface-variant/70"
+                        }`}
+                      >
+                        {t(item.labelKey)}
+                      </span>
+                    </button>
+                  );
                 })}
-              </span>
-              <span className="font-label-caps text-label-caps text-secondary">
-                {t("createListing.percentComplete", { value: Math.round(progress) })}
-              </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {steps.map((item, index) => {
-                const isActive = index === step;
-                const isComplete = index < step;
+            <div className="rounded-[28px] border border-outline-variant/30 bg-background/70 p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-secondary">
+                    {t("createListing.overview.eyebrow")}
+                  </p>
+                  <h3 className="mt-2 font-h3 text-h3 text-primary">
+                    {formState.title.trim() || t("createListing.overview.untitledListing")}
+                  </h3>
+                </div>
+                <div className="rounded-full bg-primary/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+                  {step + 1}/{steps.length}
+                </div>
+              </div>
 
-                return (
-                  <button
-                    className="flex flex-col sm:flex-row items-center justify-center gap-1 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 py-2 text-center transition-all hover:border-primary disabled:cursor-default min-h-[68px] sm:min-h-0"
-                    disabled={index > step || isSubmitting}
-                    key={item.labelKey}
-                    onClick={() => setStep(index)}
-                    type="button"
-                  >
-                    <span
-                      className={`material-symbols-outlined text-[18px] ${
-                        isActive || isComplete
-                          ? "text-primary"
-                          : "text-on-surface-variant/50"
-                      }`}
-                    >
-                      {isComplete ? "check_circle" : item.icon}
-                    </span>
-                    <span
-                      className={`hidden sm:inline font-label-caps text-[10px] uppercase ${
-                        isActive || isComplete
-                          ? "text-primary"
-                          : "text-on-surface-variant/50"
-                      }`}
-                    >
-                      {t(item.labelKey)}
-                    </span>
-                  </button>
-                );
-              })}
+              <div className="mt-6 space-y-3">
+                <StatRow
+                  label={t("createListing.basicDetails.storageTypeLabel")}
+                  value={getStorageTypeLabel(formState.storageType, t)}
+                />
+                <StatRow
+                  label={t("createListing.pricing.title")}
+                  value={pricePreview}
+                />
+                <StatRow
+                  label={t("createListing.location.title")}
+                  value={formState.city.trim() || formState.address.trim() || t("createListing.overview.locationPending")}
+                />
+                <StatRow
+                  label={t("createListing.overview.photosLabel")}
+                  value={t("createListing.overview.countValue", { value: formState.imageUrls.length || 0 })}
+                />
+                <StatRow
+                  label={t("createListing.overview.amenitiesLabel")}
+                  value={t("createListing.overview.countValue", { value: formState.amenityNames.length || 0 })}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden">
-            <div
-              className="h-full bg-secondary transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
+          <div className="px-5 pb-5 sm:px-8 sm:pb-8 lg:px-10 lg:pb-10">
+            <div className="h-1 overflow-hidden rounded-full bg-outline-variant/20">
+              <div
+                className="h-full rounded-full bg-secondary transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
         </section>
 
-        <section className="bg-surface-container-lowest rounded-lg p-6 sm:p-8 md:p-12 shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/30">
-          {isLoadingExisting ? (
-            <div className="space-y-4">
-              <div className="h-8 w-48 rounded-full bg-surface-container animate-pulse" />
-              <div className="h-4 w-72 rounded-full bg-surface-container animate-pulse" />
-              <div className="h-48 rounded-2xl bg-surface-container animate-pulse" />
-            </div>
-          ) : (
-            <>
-              {step === 0 && (
-                <BasicDetailsStep
-                  formState={formState}
-                  onTitleChange={(value) => updateField("title", value)}
-                  onDescriptionChange={(value) => updateField("description", value)}
-                  onStorageTypeChange={(value) => updateField("storageType", value)}
-                />
-              )}
-              {step === 1 && (
-                <VisualDocumentationStep
-                  displayImages={displayImages}
-                  onFileClick={() => fileInputRef.current?.click()}
-                  onFileChange={handleFileSelection}
-                  onDeleteImage={(index) =>
-                    setFormState((current) => {
-                      const nextImages = current.imageUrls.filter((_, imageIndex) => imageIndex !== index);
-                      return {
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <section className="rounded-[32px] border border-outline-variant/30 bg-surface-container-lowest/95 p-5 shadow-[0_10px_40px_rgba(15,61,62,0.04)] sm:p-8 lg:p-10">
+            {isLoadingExisting ? (
+              <div className="space-y-5">
+                <div className="h-8 w-56 rounded-full bg-surface-container animate-pulse" />
+                <div className="h-4 w-80 max-w-full rounded-full bg-surface-container animate-pulse" />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="h-44 rounded-[28px] bg-surface-container animate-pulse" />
+                  <div className="h-44 rounded-[28px] bg-surface-container animate-pulse" />
+                </div>
+                <div className="h-56 rounded-[28px] bg-surface-container animate-pulse" />
+              </div>
+            ) : (
+              <>
+                {step === 0 && (
+                  <BasicDetailsStep
+                    formState={formState}
+                    onTitleChange={(value) => updateField("title", value)}
+                    onDescriptionChange={(value) => updateField("description", value)}
+                    onStorageTypeChange={(value) => updateField("storageType", value)}
+                  />
+                )}
+                {step === 1 && (
+                  <VisualDocumentationStep
+                    displayImages={displayImages}
+                    onFileClick={() => fileInputRef.current?.click()}
+                    onFileChange={handleFileSelection}
+                    onDeleteImage={(index) =>
+                      setFormState((current) => {
+                        const nextImages = current.imageUrls.filter((_, imageIndex) => imageIndex !== index);
+                        return {
+                          ...current,
+                          imageUrls: nextImages,
+                          primaryImageIndex: Math.max(0, Math.min(current.primaryImageIndex, nextImages.length - 1)),
+                        };
+                      })
+                    }
+                    onSetPrimary={(index) =>
+                      setFormState((current) => ({
                         ...current,
-                        imageUrls: nextImages,
-                        primaryImageIndex: Math.max(0, Math.min(current.primaryImageIndex, nextImages.length - 1)),
-                      };
-                    })
-                  }
-                  onSetPrimary={(index) =>
-                    setFormState((current) => ({
-                      ...current,
-                      primaryImageIndex: index,
-                    }))
-                  }
-                  usingUploadedImages={usingUploadedImages}
-                  fileInputRef={fileInputRef}
-                />
-              )}
-              {step === 2 && (
-                <PricingStep
-                  pricePerMonth={formState.pricePerMonth}
-                  onPriceChange={(value) => updateField("pricePerMonth", value)}
-                />
-              )}
-              {step === 3 && (
-                <LocationStep
-                  address={formState.address}
-                  city={formState.city}
-                  postalCode={formState.postalCode}
-                  latitude={formState.latitude}
-                  longitude={formState.longitude}
-                  sizeSqFt={formState.sizeSqFt}
-                  onAddressChange={(value) => updateField("address", value)}
-                  onCityChange={(value) => updateField("city", value)}
-                  onLatitudeChange={(value) => updateField("latitude", value)}
-                  onLongitudeChange={(value) => updateField("longitude", value)}
-                  onPostalCodeChange={(value) => updateField("postalCode", value)}
-                  onSizeChange={(value) => updateField("sizeSqFt", value)}
-                  onFindOnMap={() => {
-                    void geocodeLocation();
-                  }}
-                  onUseCurrentLocation={() => {
-                    void handleUseCurrentLocation();
-                  }}
-                  isFindingLocation={isFindingLocation}
-                  isUsingCurrentLocation={isUsingCurrentLocation}
-                  locationErrorMessage={locationErrorMessage}
-                  locationStatusMessage={locationStatusMessage}
-                  onToggleManualCoordinates={() => setShowManualCoordinates((current) => !current)}
-                  showManualCoordinates={showManualCoordinates}
-                />
-              )}
-              {step === 4 && (
-                <AmenitiesStep
-                  selectedAmenities={formState.amenityNames}
-                  onToggleAmenity={toggleAmenity}
-                />
-              )}
-            </>
-          )}
+                        primaryImageIndex: index,
+                      }))
+                    }
+                    usingUploadedImages={usingUploadedImages}
+                    fileInputRef={fileInputRef}
+                  />
+                )}
+                {step === 2 && (
+                  <PricingStep
+                    pricePerMonth={formState.pricePerMonth}
+                    onPriceChange={(value) => updateField("pricePerMonth", value)}
+                  />
+                )}
+                {step === 3 && (
+                  <LocationStep
+                    address={formState.address}
+                    city={formState.city}
+                    postalCode={formState.postalCode}
+                    latitude={formState.latitude}
+                    longitude={formState.longitude}
+                    sizeSqFt={formState.sizeSqFt}
+                    onAddressChange={(value) => updateField("address", value)}
+                    onCityChange={(value) => updateField("city", value)}
+                    onLatitudeChange={(value) => updateField("latitude", value)}
+                    onLongitudeChange={(value) => updateField("longitude", value)}
+                    onPostalCodeChange={(value) => updateField("postalCode", value)}
+                    onSizeChange={(value) => updateField("sizeSqFt", value)}
+                    onFindOnMap={() => {
+                      void geocodeLocation();
+                    }}
+                    onUseCurrentLocation={() => {
+                      void handleUseCurrentLocation();
+                    }}
+                    isFindingLocation={isFindingLocation}
+                    isUsingCurrentLocation={isUsingCurrentLocation}
+                    locationErrorMessage={locationErrorMessage}
+                    locationStatusMessage={locationStatusMessage}
+                    onToggleManualCoordinates={() => setShowManualCoordinates((current) => !current)}
+                    showManualCoordinates={showManualCoordinates}
+                  />
+                )}
+                {step === 4 && (
+                  <AmenitiesStep
+                    selectedAmenities={formState.amenityNames}
+                    onToggleAmenity={toggleAmenity}
+                  />
+                )}
+              </>
+            )}
 
-          {errorMessage ? (
-            <div className="mt-8 rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
-              {errorMessage}
+            {errorMessage ? (
+              <div className="mt-8 rounded-[22px] border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+                {errorMessage}
+              </div>
+            ) : null}
+          </section>
+
+          <aside className="space-y-6 xl:sticky xl:top-32 self-start">
+            <div className="rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest/95 p-5 shadow-[0_10px_40px_rgba(15,61,62,0.04)] sm:p-6">
+              <p className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-secondary">
+                {t(currentStep.labelKey)}
+              </p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <h3 className="font-h3 text-h3 text-primary">
+                  {t("createListing.stepProgress", {
+                    current: step + 1,
+                    total: steps.length,
+                    label: t(currentStep.labelKey),
+                  })}
+                </h3>
+                <span className="rounded-full bg-secondary-container/35 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">
+                  {Math.round(progress)}%
+                </span>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <StatRow
+                  label={t("createListing.basicDetails.titleLabel")}
+                  value={formState.title.trim() || "—"}
+                />
+                <StatRow
+                  label={t("createListing.basicDetails.descriptionLabel")}
+                  value={formState.description.trim() ? `${formState.description.trim().slice(0, 60)}${formState.description.trim().length > 60 ? "…" : ""}` : "—"}
+                />
+                <StatRow
+                  label={t("createListing.location.addressLabel")}
+                  value={formState.address.trim() || "—"}
+                />
+                <StatRow
+                  label={t("createListing.location.cityLabel")}
+                  value={formState.city.trim() || "—"}
+                />
+                <StatRow
+                  label={t("createListing.location.sizeLabel")}
+                  value={formState.sizeSqFt.trim() ? `${formState.sizeSqFt} sq ft` : "—"}
+                />
+                <StatRow
+                  label={t("createListing.overview.photosLabel")}
+                  value={t("createListing.overview.countValue", { value: formState.imageUrls.length || 0 })}
+                />
+                <StatRow
+                  label={t("createListing.overview.amenitiesLabel")}
+                  value={t("createListing.overview.countValue", { value: formState.amenityNames.length || 0 })}
+                />
+              </div>
             </div>
-          ) : null}
-        </section>
 
-        <section className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 px-0 sm:px-4">
-          <button
-            className="text-on-surface-variant hover:text-primary font-label-caps text-label-caps transition-colors flex items-center gap-2 uppercase disabled:opacity-40 disabled:hover:text-on-surface-variant"
-            disabled={isFirstStep || isSubmitting}
-            onClick={() => setStep((current) => Math.max(current - 1, 0))}
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            {t("common.back")}
-          </button>
+            <div className="rounded-[28px] border border-outline-variant/30 bg-secondary-container/15 p-5 shadow-[0_10px_40px_rgba(15,61,62,0.04)] sm:p-6">
+              <p className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-secondary">
+                {t("createListing.location.title")}
+              </p>
+              <div className="mt-3 space-y-3 text-sm text-on-surface-variant">
+                <p>{t("createListing.location.description")}</p>
+                <p>{formState.latitude && formState.longitude ? `${formState.latitude}, ${formState.longitude}` : t("createListing.location.manualHint")}</p>
+              </div>
+            </div>
+          </aside>
+        </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full md:w-auto">
+        <section className="rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest/95 p-4 shadow-[0_8px_30px_rgba(15,61,62,0.04)] sm:p-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <button
-              className="flex-1 md:flex-none border border-outline text-primary px-8 py-3 rounded-full font-label-caps text-label-caps hover:bg-surface-container transition-all uppercase"
-              disabled={isSubmitting}
-              onClick={() => persistListing("DRAFT")}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant px-5 py-3 font-label-caps text-label-caps uppercase text-on-surface-variant transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={isFirstStep || isSubmitting}
+              onClick={() => setStep((current) => Math.max(current - 1, 0))}
               type="button"
             >
-              {t("common.saveDraft")}
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              {t("common.back")}
             </button>
-            <button
-              className="flex-1 md:flex-none bg-primary text-white px-12 py-3 rounded-full font-label-caps text-label-caps hover:opacity-90 transition-all uppercase shadow-lg shadow-primary/10 disabled:opacity-60"
-              disabled={isSubmitting}
-              type="submit"
-              form="create-listing-form"
-            >
-              {isSubmitting
-                ? t("createListing.saving")
-                : isLastStep
-                  ? t("common.submitListing")
-                  : t("createListing.nextStep")}
-            </button>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center md:justify-end">
+              <button
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-outline px-6 py-3 font-label-caps text-label-caps uppercase text-primary transition-all hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                disabled={isSubmitting}
+                onClick={() => persistListing("DRAFT")}
+                type="button"
+              >
+                {t("common.saveDraft")}
+              </button>
+              <button
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-7 py-3 font-label-caps text-label-caps uppercase text-white shadow-lg shadow-primary/10 transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                disabled={isSubmitting}
+                type="submit"
+                form="create-listing-form"
+              >
+                {isSubmitting
+                  ? t("createListing.saving")
+                  : isLastStep
+                    ? t("common.submitListing")
+                    : t("createListing.nextStep")}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -828,23 +1009,20 @@ function BasicDetailsStep({
 }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">
-          {t("createListing.basicDetails.title")}
-        </h2>
-        <p className="text-on-surface-variant font-body-md text-body-md">
-          {t("createListing.basicDetails.description")}
-        </p>
-      </div>
+    <section className="space-y-8">
+      <SectionHeading
+        eyebrow={t("createListing.steps.basicDetails")}
+        title={t("createListing.basicDetails.title")}
+        description={t("createListing.basicDetails.description")}
+      />
 
-      <div className="grid grid-cols-1 gap-6">
-        <div className="flex flex-col gap-1">
-          <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+      <div className="grid gap-6">
+        <div className="flex flex-col gap-2">
+          <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
             {t("createListing.basicDetails.titleLabel")}
           </label>
           <input
-            className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 text-body-lg font-h3 transition-colors outline-none"
+            className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-lg font-h3 transition-all outline-none placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
             placeholder={t("createListing.basicDetails.titlePlaceholder")}
             type="text"
             value={formState.title}
@@ -852,24 +1030,24 @@ function BasicDetailsStep({
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+        <div className="flex flex-col gap-2">
+          <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
             {t("createListing.basicDetails.descriptionLabel")}
           </label>
           <textarea
-            className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 text-body-md transition-colors outline-none resize-none"
+            className="min-h-[180px] rounded-2xl border border-outline-variant/60 bg-background px-4 py-4 text-body-md transition-all outline-none placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10 resize-none"
             placeholder={t("createListing.basicDetails.descriptionPlaceholder")}
-            rows={4}
+            rows={5}
             value={formState.description}
             onChange={(event) => onDescriptionChange(event.target.value)}
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
+        <div className="flex flex-col gap-2">
+          <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
             {t("createListing.basicDetails.storageTypeLabel")}
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {storageTypes.map((item) => (
               <StorageTypeOption
                 icon={item.icon}
@@ -899,10 +1077,14 @@ function StorageTypeOption({
 }) {
   return (
     <label className="cursor-pointer">
-      <input className="peer hidden" name="type" type="radio" checked={checked} onChange={onSelect} />
-      <div className="p-6 border border-outline-variant rounded-md flex flex-col items-center gap-2 peer-checked:border-primary peer-checked:bg-primary-fixed peer-checked:text-primary transition-all text-center">
-        <span className="material-symbols-outlined text-h1">{icon}</span>
-        <span className="font-label-caps text-label-caps">{label}</span>
+      <input className="peer sr-only" name="type" type="radio" checked={checked} onChange={onSelect} />
+      <div className="flex min-h-[122px] flex-col items-center justify-center gap-3 rounded-2xl border border-outline-variant/60 bg-background px-3 py-4 text-center transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary-fixed peer-checked:text-primary hover:border-primary/50 hover:shadow-[0_10px_24px_rgba(15,61,62,0.04)]">
+        <span className="material-symbols-outlined text-[28px]">
+          {icon}
+        </span>
+        <span className="font-label-caps text-[10px] uppercase tracking-[0.18em] leading-tight">
+          {label}
+        </span>
       </div>
     </label>
   );
@@ -927,13 +1109,12 @@ function VisualDocumentationStep({
 }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">{t("createListing.visual.title")}</h2>
-        <p className="text-on-surface-variant font-body-sm text-body-sm">
-          {t("createListing.visual.description")}
-        </p>
-      </div>
+    <section className="space-y-8">
+      <SectionHeading
+        eyebrow={t("createListing.steps.photos")}
+        title={t("createListing.visual.title")}
+        description={t("createListing.visual.description")}
+      />
 
       <input
         ref={fileInputRef}
@@ -946,35 +1127,42 @@ function VisualDocumentationStep({
         }}
       />
 
-      <div className="w-full border-2 border-dashed border-outline-variant rounded-lg bg-surface-container-low flex flex-col items-center justify-center p-6 sm:p-8 md:p-12 gap-2 hover:bg-surface-container transition-colors cursor-pointer group">
-        <span className="material-symbols-outlined text-display text-primary/40 group-hover:text-primary transition-colors">
-          image
-        </span>
-        <div className="text-center">
-          <p className="font-h3 text-h3 text-primary">
-            {t("createListing.visual.uploadTitle")}
-          </p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            {t("createListing.visual.uploadHint")}
+      <button
+        className="group relative overflow-hidden rounded-[28px] border border-dashed border-outline-variant/70 bg-gradient-to-br from-surface-container-low via-background to-surface-container-low p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_12px_28px_rgba(15,61,62,0.05)] sm:p-6"
+        type="button"
+        onClick={onFileClick}
+      >
+        <div className="flex flex-col items-center justify-center gap-4 py-6 text-center sm:py-10">
+          <span className="material-symbols-outlined text-[44px] text-primary/35 transition-colors group-hover:text-primary">
+            cloud_upload
+          </span>
+          <div className="space-y-2">
+            <p className="font-h3 text-h3 text-primary">
+              {t("createListing.visual.uploadTitle")}
+            </p>
+            <p className="max-w-lg text-body-sm text-on-surface-variant">
+              {t("createListing.visual.uploadHint")}
+            </p>
+          </div>
+          <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-primary px-6 py-3 font-label-caps text-label-caps uppercase text-primary transition-all group-hover:bg-primary group-hover:text-white">
+            {t("createListing.visual.browseFiles")}
+          </span>
+        </div>
+      </button>
+
+      <div className="flex items-start gap-3 rounded-2xl border border-[#cfa7a7]/50 bg-[#fff6f6] px-4 py-3 text-error">
+        <span className="material-symbols-outlined text-[20px]">error</span>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">{t("createListing.visual.minImages")}</p>
+          <p className="text-xs text-[#7b2d2d]/80">
+            {usingUploadedImages
+              ? t("createListing.visual.previewAlt")
+              : t("createListing.visual.uploadHint")}
           </p>
         </div>
-        <button
-          className="mt-4 border border-primary text-primary px-8 py-2 rounded-full font-label-caps text-label-caps hover:bg-primary hover:text-white transition-all uppercase"
-          type="button"
-          onClick={onFileClick}
-        >
-          {t("createListing.visual.browseFiles")}
-        </button>
       </div>
 
-      <div className="flex items-center gap-1 px-1">
-        <span className="material-symbols-outlined text-error text-[20px]">error</span>
-        <p className="text-body-sm font-semibold text-error">
-          {t("createListing.visual.minImages")}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {displayImages.slice(0, 3).map((src, index) => (
           <ImagePreview
             key={`${src}-${index}`}
@@ -985,9 +1173,15 @@ function VisualDocumentationStep({
             disableActions={!usingUploadedImages && index < 3}
           />
         ))}
-        <div className="aspect-video rounded-md border-2 border-dashed border-outline-variant flex items-center justify-center bg-surface-container-low/50">
-          <span className="material-symbols-outlined text-outline-variant">add</span>
-        </div>
+        <button
+          className="group flex aspect-[4/3] items-center justify-center rounded-[24px] border-2 border-dashed border-outline-variant/60 bg-surface-container-low/60 transition-colors hover:border-primary/50 hover:bg-surface-container-low"
+          type="button"
+          onClick={onFileClick}
+        >
+          <span className="material-symbols-outlined text-[30px] text-outline-variant transition-colors group-hover:text-primary">
+            add
+          </span>
+        </button>
       </div>
     </section>
   );
@@ -1008,30 +1202,40 @@ function ImagePreview({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="group relative aspect-video rounded-md overflow-hidden bg-surface-container border border-outline-variant">
-      <img alt={t("createListing.visual.previewAlt")} className="w-full h-full object-cover" src={src} />
-      <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-        <div className="flex justify-between items-start">
-          <span className="material-symbols-outlined text-white cursor-move">
-            drag_indicator
-          </span>
-          <button className="text-white hover:text-error transition-colors" type="button" disabled={disableActions} onClick={onDelete}>
-            <span className="material-symbols-outlined">delete</span>
+    <div className="group relative aspect-[4/3] overflow-hidden rounded-[24px] border border-outline-variant/50 bg-surface-container shadow-[0_8px_24px_rgba(15,61,62,0.04)]">
+      <img alt={t("createListing.visual.previewAlt")} className="h-full w-full object-cover" src={src} />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/20 to-transparent opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
+        <div className="flex h-full flex-col justify-between p-3">
+          <div className="flex items-start justify-between gap-2">
+            <span className="inline-flex rounded-full bg-black/25 p-2 text-white backdrop-blur-sm">
+              <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+            </span>
+            <button
+              className="inline-flex rounded-full bg-black/25 p-2 text-white transition-colors hover:bg-error hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              type="button"
+              aria-label={t("createListing.visual.minImages")}
+              disabled={disableActions}
+              onClick={onDelete}
+            >
+              <span className="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+          </div>
+
+          <button
+            className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-2 text-[10px] font-label-caps uppercase tracking-[0.18em] text-white backdrop-blur-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+              primary
+                ? "bg-primary/80"
+                : "border border-white/50 bg-white/10 hover:bg-white/20"
+            }`}
+            type="button"
+            disabled={disableActions}
+            onClick={onSetPrimary}
+          >
+            <span className="material-symbols-outlined text-[14px]">star</span>
+            {primary ? t("createListing.visual.primary") : t("createListing.visual.setPrimary")}
           </button>
         </div>
-        <button
-          className={`flex items-center gap-1 text-white self-start px-2 py-1 rounded text-[10px] font-label-caps uppercase ${
-            primary
-              ? "bg-primary/60 backdrop-blur-sm"
-              : "hover:bg-white/20 transition-colors border border-white/50"
-          }`}
-          type="button"
-          disabled={disableActions}
-          onClick={onSetPrimary}
-        >
-          <span className="material-symbols-outlined text-[14px]">star</span>
-          {primary ? t("createListing.visual.primary") : t("createListing.visual.setPrimary")}
-        </button>
       </div>
     </div>
   );
@@ -1046,31 +1250,34 @@ function PricingStep({
 }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">{t("createListing.pricing.title")}</h2>
-        <p className="text-on-surface-variant font-body-sm text-body-sm">
-          {t("createListing.pricing.description")}
-        </p>
-      </div>
+    <section className="space-y-8">
+      <SectionHeading
+        eyebrow={t("createListing.steps.pricing")}
+        title={t("createListing.pricing.title")}
+        description={t("createListing.pricing.description")}
+      />
 
-      <div className="max-w-xs relative">
-          <span className="absolute left-4 top-[34px] -translate-y-1/2 text-h2 text-on-surface-variant font-light">
-          {t("app.create.listing.page.text.text.d4925f55")}
-        </span>
-        <input
-          className="w-full bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 pl-10 pr-4 py-4 text-display font-display transition-colors outline-none appearance-none"
-          placeholder={t("createListing.pricing.placeholder")}
-          type="number"
-          value={pricePerMonth}
-          onChange={(event) => onPriceChange(event.target.value)}
-        />
+      <div className="max-w-xl space-y-4">
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+            €
+          </span>
+          <input
+            className="min-h-14 w-full rounded-2xl border border-outline-variant/60 bg-background px-16 py-4 text-display font-display transition-all outline-none placeholder:text-on-surface-variant/45 focus:border-primary focus:ring-2 focus:ring-primary/10 appearance-none"
+            placeholder={t("createListing.pricing.placeholder")}
+            type="number"
+            value={pricePerMonth}
+            onChange={(event) => onPriceChange(event.target.value)}
+          />
+        </div>
 
-        <div className="mt-4 flex items-start gap-2 p-4 bg-secondary-container/20 rounded-md">
-          <span className="material-symbols-outlined text-secondary">info</span>
-          <p className="text-body-sm text-on-secondary-container">
-            {t("createListing.pricing.helper")}
-          </p>
+        <div className="rounded-2xl border border-secondary/15 bg-secondary-container/20 p-4">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-secondary">info</span>
+            <p className="text-body-sm text-on-secondary-container">
+              {t("createListing.pricing.helper")}
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -1122,18 +1329,17 @@ function LocationStep({
 }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">{t("createListing.location.title")}</h2>
-        <p className="text-on-surface-variant font-body-sm text-body-sm">
-          {t("createListing.location.description")}
-        </p>
-      </div>
+    <section className="space-y-8">
+      <SectionHeading
+        eyebrow={t("createListing.steps.location")}
+        title={t("createListing.location.title")}
+        description={t("createListing.location.description")}
+      />
 
-      <div className="rounded-2xl border border-outline-variant/20 bg-white p-4 sm:p-5 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="rounded-[28px] border border-outline-variant/30 bg-background p-4 shadow-[0_8px_30px_rgba(15,61,62,0.03)] sm:p-5">
+        <div className="grid gap-3 sm:grid-cols-2">
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
             disabled={isFindingLocation || isUsingCurrentLocation}
             type="button"
             onClick={onFindOnMap}
@@ -1142,7 +1348,7 @@ function LocationStep({
             {isFindingLocation ? t("createListing.location.finding") : t("createListing.location.findOnMap")}
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant px-5 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-outline-variant px-5 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
             disabled={isFindingLocation || isUsingCurrentLocation}
             type="button"
             onClick={onUseCurrentLocation}
@@ -1155,131 +1361,135 @@ function LocationStep({
         </div>
 
         {locationStatusMessage ? (
-          <div className="rounded-lg border border-secondary/20 bg-secondary-container/20 px-4 py-3 text-sm text-primary">
+          <div className="mt-4 rounded-2xl border border-secondary/20 bg-secondary-container/20 px-4 py-3 text-sm text-primary">
             {locationStatusMessage}
           </div>
         ) : null}
 
         {locationErrorMessage ? (
-          <div className="rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+          <div className="mt-4 rounded-2xl border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
             {locationErrorMessage}
           </div>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px] gap-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="space-y-6">
-          <div className="flex flex-col gap-1">
-            <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-              {t("createListing.location.addressLabel")}
-            </label>
-            <input
-              className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-              placeholder={t("createListing.location.addressPlaceholder")}
-              type="text"
-              value={address}
-              onChange={(event) => onAddressChange(event.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                {t("createListing.location.cityLabel")}
+          <div className="grid gap-5 rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest p-4 sm:p-6">
+            <div className="flex flex-col gap-2">
+              <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
+                {t("createListing.location.addressLabel")}
               </label>
               <input
-                className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                placeholder={t("createListing.location.cityPlaceholder")}
+                className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                placeholder={t("createListing.location.addressPlaceholder")}
                 type="text"
-                value={city}
-                onChange={(event) => onCityChange(event.target.value)}
+                value={address}
+                onChange={(event) => onAddressChange(event.target.value)}
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                {t("createListing.location.zipLabel")}
-              </label>
-              <input
-                className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                placeholder={t("createListing.location.zipPlaceholder")}
-                type="text"
-                value={postalCode}
-                onChange={(event) => onPostalCodeChange(event.target.value)}
-              />
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-              {t("createListing.location.sizeLabel")}
-            </label>
-            <input
-              className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-              placeholder={t("createListing.location.sizePlaceholder")}
-              type="number"
-              value={sizeSqFt}
-              onChange={(event) => onSizeChange(event.target.value)}
-            />
-          </div>
-
-          <button
-            className="inline-flex items-center gap-2 text-sm font-bold text-primary underline underline-offset-4"
-            type="button"
-            onClick={onToggleManualCoordinates}
-          >
-            <span className="material-symbols-outlined text-sm">
-              {showManualCoordinates ? "expand_less" : "expand_more"}
-            </span>
-            {showManualCoordinates
-              ? t("createListing.location.hideManualCoordinates")
-              : t("createListing.location.showManualCoordinates")}
-          </button>
-
-          {showManualCoordinates ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                  {t("createListing.location.latitudeLabel")}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
+                  {t("createListing.location.cityLabel")}
                 </label>
                 <input
-                  className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                  placeholder={t("createListing.location.latitudePlaceholder")}
-                  step="any"
-                  type="number"
-                  value={latitude}
-                  onChange={(event) => onLatitudeChange(event.target.value)}
+                  className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  placeholder={t("createListing.location.cityPlaceholder")}
+                  type="text"
+                  value={city}
+                  onChange={(event) => onCityChange(event.target.value)}
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="font-label-caps text-label-caps text-primary uppercase ml-1">
-                  {t("createListing.location.longitudeLabel")}
+              <div className="flex flex-col gap-2">
+                <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
+                  {t("createListing.location.zipLabel")}
                 </label>
                 <input
-                  className="bg-background border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-2 text-body-md outline-none"
-                  placeholder={t("createListing.location.longitudePlaceholder")}
-                  step="any"
-                  type="number"
-                  value={longitude}
-                  onChange={(event) => onLongitudeChange(event.target.value)}
+                  className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  placeholder={t("createListing.location.zipPlaceholder")}
+                  type="text"
+                  value={postalCode}
+                  onChange={(event) => onPostalCodeChange(event.target.value)}
                 />
               </div>
             </div>
-          ) : (
-            <div className="rounded-lg border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
-              {t("createListing.location.manualHint")}
+
+            <div className="flex flex-col gap-2">
+              <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
+                {t("createListing.location.sizeLabel")}
+              </label>
+              <input
+                className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                placeholder={t("createListing.location.sizePlaceholder")}
+                type="number"
+                value={sizeSqFt}
+                onChange={(event) => onSizeChange(event.target.value)}
+              />
             </div>
-          )}
+
+            <button
+              className="inline-flex items-center gap-2 self-start text-sm font-bold text-primary underline underline-offset-4"
+              type="button"
+              onClick={onToggleManualCoordinates}
+            >
+              <span className="material-symbols-outlined text-sm">
+                {showManualCoordinates ? "expand_less" : "expand_more"}
+              </span>
+              {showManualCoordinates
+                ? t("createListing.location.hideManualCoordinates")
+                : t("createListing.location.showManualCoordinates")}
+            </button>
+
+            {showManualCoordinates ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
+                    {t("createListing.location.latitudeLabel")}
+                  </label>
+                  <input
+                    className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    placeholder={t("createListing.location.latitudePlaceholder")}
+                    step="any"
+                    type="number"
+                    value={latitude}
+                    onChange={(event) => onLatitudeChange(event.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
+                    {t("createListing.location.longitudeLabel")}
+                  </label>
+                  <input
+                    className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    placeholder={t("createListing.location.longitudePlaceholder")}
+                    step="any"
+                    type="number"
+                    value={longitude}
+                    onChange={(event) => onLongitudeChange(event.target.value)}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+                {t("createListing.location.manualHint")}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="w-full h-full min-h-[320px] rounded-lg overflow-hidden">
-          <LocationPickerMap
-            address={address}
-            city={city}
-            latitude={latitude}
-            longitude={longitude}
-            onLatitudeChange={onLatitudeChange}
-            onLongitudeChange={onLongitudeChange}
-          />
+        <div className="overflow-hidden rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest shadow-[0_8px_30px_rgba(15,61,62,0.03)]">
+          <div className="min-h-[320px] sm:min-h-[380px] xl:min-h-[560px]">
+            <LocationPickerMap
+              address={address}
+              city={city}
+              latitude={latitude}
+              longitude={longitude}
+              onLatitudeChange={onLatitudeChange}
+              onLongitudeChange={onLongitudeChange}
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -1295,17 +1505,19 @@ function AmenitiesStep({
 }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="font-h2 text-h2 text-primary">
-          {t("createListing.amenities.title")}
-        </h2>
-        <p className="text-on-surface-variant font-body-sm text-body-sm">
-          {t("createListing.amenities.description")}
-        </p>
+    <section className="space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <SectionHeading
+          eyebrow={t("createListing.steps.amenities")}
+          title={t("createListing.amenities.title")}
+          description={t("createListing.amenities.description")}
+        />
+        <div className="inline-flex min-h-11 items-center self-start rounded-full border border-secondary/20 bg-secondary-container/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">
+          {t("createListing.overview.selectedCount", { value: selectedAmenities.length })}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {amenityOptions.map((item) => (
           <AmenityOption
             icon={item.icon}
@@ -1332,20 +1544,20 @@ function AmenityOption({
   onToggle: () => void;
 }) {
   return (
-    <label className="group flex items-center gap-4 p-6 border border-outline-variant rounded-md cursor-pointer hover:border-secondary transition-all">
-      <input className="peer hidden" type="checkbox" checked={checked} onChange={onToggle} />
-      <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">
-        {icon}
-      </span>
-      <div className="flex-1">
-        <p className="font-body-sm text-body-sm font-semibold text-primary">
+    <label className="group cursor-pointer">
+      <input className="peer sr-only" type="checkbox" checked={checked} onChange={onToggle} />
+      <div className="flex min-h-[88px] items-center gap-4 rounded-2xl border border-outline-variant/60 bg-background px-4 py-4 transition-all hover:border-secondary/60 hover:shadow-[0_8px_22px_rgba(15,61,62,0.04)] peer-checked:border-secondary peer-checked:bg-secondary-container/25">
+        <span className="material-symbols-outlined text-primary transition-transform group-hover:scale-105">
+          {icon}
+        </span>
+        <p className="flex-1 text-body-sm font-semibold text-primary">
           {label}
         </p>
-      </div>
-      <div className="w-5 h-5 rounded border border-outline-variant peer-checked:bg-secondary peer-checked:border-secondary flex items-center justify-center transition-colors">
-        <span className="material-symbols-outlined text-white text-[14px] hidden peer-checked:block">
-          check
-        </span>
+        <div className={`flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${checked ? "border-secondary bg-secondary text-white" : "border-outline-variant/60 bg-background text-transparent"}`}>
+          <span className="material-symbols-outlined text-[16px]">
+            check
+          </span>
+        </div>
       </div>
     </label>
   );

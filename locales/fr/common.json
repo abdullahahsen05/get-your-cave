@@ -478,6 +478,15 @@
     "percentComplete": "{{value}}% complété",
     "saving": "Enregistrement...",
     "nextStep": "Étape suivante",
+    "overview": {
+      "eyebrow": "Aperçu du brouillon",
+      "untitledListing": "Annonce sans titre",
+      "locationPending": "Emplacement à renseigner",
+      "photosLabel": "Photos",
+      "amenitiesLabel": "Équipements",
+      "selectedCount": "{{value}} sélectionnés",
+      "countValue": "{{value}}"
+    },
     "visual": {
       "title": "Photos",
       "description": "Téléversez des images nettes pour que les locataires sachent é quoi séattendre.",
@@ -803,7 +812,7 @@
     "dueAt": "À payer le",
     "backToInvoices": "Retour aux factures",
     "generateRefresh": "Générer / Actualiser",
-    "bookingLabel": "Réservation {{bookingNumber}} é {{title}}",
+    "bookingLabel": "Réservation {{bookingNumber}} · {{title}}",
     "storageType": "Type de stockage : {{storageType}}",
     "dates": "Dates",
     "paymentBreakdown": "Détail du paiement",
@@ -814,6 +823,7 @@
     "itemizedLine": "Ligne de facture détaillée",
     "totalAmount": "Montant total",
     "total": "Total",
+    "storageTypeLabel": "Type de stockage",
     "people": "Personnes",
     "renter": "Locataire",
     "owner": "Propriétaire",
@@ -884,7 +894,9 @@
     "returnToInvoice": "Retour à la facture",
     "viewInvoices": "Voir les factures",
     "goBack": "Retour",
-    "payment": "Paiement"
+    "payment": "Paiement",
+    "invoiceReference": "Facture {{value}}",
+    "sessionReference": "Session {{value}}"
   },
   "listingDetail": {
     "reviewsLabel": "{{count}} avis",

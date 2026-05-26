@@ -18,7 +18,7 @@ export default async function ContractsRoutePage() {
     : [];
 
   return (
-    <main className="min-h-screen bg-background text-on-background pt-32 pb-32 mx-auto max-w-[1200px] px-6">
+    <main className="min-h-screen bg-background text-on-background px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32 lg:px-8 lg:pb-28">
       <style>{`
         .pdf-preview-canvas {
           background-image:
@@ -31,9 +31,10 @@ export default async function ContractsRoutePage() {
         }
       `}</style>
 
-      <header className="mb-12">
+      <div className="mx-auto flex max-w-[1480px] flex-col gap-8">
+      <header className="space-y-2">
         <h1 className="font-h1 text-h1 text-primary">{t("contracts.title")}</h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
+        <p className="max-w-3xl font-body-lg text-body-lg text-on-surface-variant">
           {t("contracts.subtitle")}
         </p>
       </header>
@@ -45,10 +46,11 @@ export default async function ContractsRoutePage() {
           isAdmin={currentUser.role === "ADMIN"}
         />
       ) : (
-        <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-8 text-on-surface-variant">
+        <div className="rounded-[28px] border border-outline-variant/30 bg-surface-container-low p-6 text-on-surface-variant shadow-[0_8px_30px_rgba(15,61,62,0.04)] sm:p-8">
           {t("contracts.signInRequired")}
         </div>
       )}
+      </div>
     </main>
   );
 }

@@ -47,10 +47,10 @@ export default function OwnerListingTrashButton({ listingId }: Props) {
   }
 
   return (
-    <div className="absolute left-4 top-4 z-20 flex flex-col items-start gap-1 opacity-0 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+    <div className="absolute left-3 top-3 z-20 flex flex-col items-start gap-1 opacity-100 transition-opacity duration-200 sm:left-4 sm:top-4 sm:opacity-0 sm:pointer-events-none sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
       <button
         aria-label={t("common.delete")}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-error shadow-lg shadow-black/10 backdrop-blur transition-transform hover:scale-105 hover:bg-white disabled:opacity-60"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-error shadow-lg shadow-black/10 backdrop-blur transition-transform hover:scale-105 hover:bg-white disabled:opacity-60 sm:h-11 sm:w-11"
         disabled={isDeleting}
         title={t("common.delete")}
         type="button"

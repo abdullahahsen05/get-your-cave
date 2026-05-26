@@ -207,31 +207,31 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="min-h-screen bg-surface text-on-surface antialiased flex items-center justify-center pt-32 pb-12 px-6">
-      <div className="w-full max-w-[1150px] bg-[#F7F7F5] rounded-[24px] shadow-[0_8px_40px_rgba(15,61,62,0.06)] overflow-hidden border border-[#EBEBE8]">
-        <section className="w-full bg-[#F2F0E9] border-b border-[#EBEBE8] px-8 pt-6 pb-4">
+    <main className="min-h-screen bg-surface text-on-surface antialiased flex items-center justify-center pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-12 px-4 sm:px-6">
+      <div className="w-full max-w-[1180px] bg-[#F7F7F5] rounded-[22px] sm:rounded-[28px] shadow-[0_18px_70px_rgba(15,61,62,0.08)] overflow-hidden border border-[#EBEBE8]">
+        <section className="w-full bg-[#F2F0E9] border-b border-[#EBEBE8] px-5 sm:px-8 lg:px-10 pt-5 sm:pt-6 pb-4">
           <div className="flex flex-col gap-4 mb-4 px-1">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-              <span className="font-label-caps text-label-caps text-primary uppercase">
+              <span className="font-label-caps text-label-caps text-primary uppercase tracking-[0.16em]">
                 {t("auth.stepIndicator", {
                   current: step + 1,
                   total: steps.length,
                   label: t(currentStep.labelKey),
                 })}
               </span>
-              <span className="font-label-caps text-label-caps text-secondary">
+              <span className="font-label-caps text-label-caps text-secondary tracking-[0.14em]">
                 {t("auth.percentComplete", { value: Math.round(progress) })}
               </span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:gap-3">
               {steps.map((item, index) => {
                 const isActive = index === step;
                 const isComplete = index < step;
 
                 return (
                   <button
-                    className="flex flex-col sm:flex-row items-center justify-center gap-1 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 py-2 text-center transition-all hover:border-primary disabled:cursor-default"
+                    className="flex min-h-[50px] flex-col sm:flex-row items-center justify-center gap-1.5 rounded-full border border-outline-variant/40 bg-surface-container-lowest px-2 sm:px-3 py-2 text-center transition-all hover:border-primary hover:bg-white disabled:cursor-default disabled:hover:bg-surface-container-lowest"
                     disabled={index > step || isSubmitting}
                     key={item.labelKey}
                     onClick={() => goToStep(index)}
@@ -261,7 +261,7 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden shadow-inner">
             <div
               className="h-full bg-secondary transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -269,8 +269,8 @@ export default function SignUpPage() {
           </div>
         </section>
 
-        <div className="flex flex-col md:flex-row min-h-[600px]">
-          <aside className="w-full md:w-[40%] bg-secondary-container/30 relative p-8 md:p-12 flex flex-col justify-between overflow-hidden">
+        <div className="flex flex-col lg:flex-row min-h-[620px]">
+          <aside className="w-full lg:w-[41%] bg-secondary-container/30 relative p-6 sm:p-8 lg:p-12 flex flex-col justify-between overflow-hidden border-b lg:border-b-0 lg:border-r border-[#EBEBE8]">
             <div className="absolute inset-0 opacity-10 grayscale pointer-events-none">
               <img
                 alt={t("app.signup.page.alt.a.clean.professionally.organized.high.end.83eb8cd8")}
@@ -280,13 +280,13 @@ export default function SignUpPage() {
             </div>
 
             <div className="relative z-10">
-              <h1 className="font-h2 text-h2 text-primary mb-12">
+              <h1 className="font-h2 text-h2 text-primary mb-8 sm:mb-10 lg:mb-12 max-w-[360px] leading-tight">
                 {t("auth.earnFromUnusedSpace")}
               </h1>
 
-              <div className="space-y-10">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
+              <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+                <div className="flex items-start gap-4 rounded-2xl bg-white/35 p-4 border border-white/30">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
                     <span className="material-symbols-outlined text-primary">
                       verified
                     </span>
@@ -295,14 +295,14 @@ export default function SignUpPage() {
                     <p className="font-bold text-primary text-body-md">
                       {t("auth.verifiedOwnersTitle")}
                     </p>
-                    <p className="text-stone-500 text-body-sm">
+                    <p className="text-stone-500 text-body-sm leading-relaxed">
                       {t("auth.verifiedOwnersDescription")}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
+                <div className="flex items-start gap-4 rounded-2xl bg-white/35 p-4 border border-white/30">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
                     <span className="material-symbols-outlined text-primary">
                       payments
                     </span>
@@ -311,14 +311,14 @@ export default function SignUpPage() {
                     <p className="font-bold text-primary text-body-md">
                       {t("auth.securePaymentsTitle")}
                     </p>
-                    <p className="text-stone-500 text-body-sm">
+                    <p className="text-stone-500 text-body-sm leading-relaxed">
                       {t("auth.securePaymentsDescription")}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
+                <div className="flex items-start gap-4 rounded-2xl bg-white/35 p-4 border border-white/30">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
                     <span className="material-symbols-outlined text-primary">
                       description
                     </span>
@@ -327,7 +327,7 @@ export default function SignUpPage() {
                     <p className="font-bold text-primary text-body-md">
                       {t("auth.easyContractsTitle")}
                     </p>
-                    <p className="text-stone-500 text-body-sm">
+                    <p className="text-stone-500 text-body-sm leading-relaxed">
                       {t("auth.easyContractsDescription")}
                     </p>
                   </div>
@@ -336,21 +336,21 @@ export default function SignUpPage() {
             </div>
 
             <div className="relative z-10 pt-8">
-              <p className="text-xs text-secondary italic opacity-75">
+              <p className="text-xs text-secondary italic opacity-80 leading-relaxed max-w-[360px]">
                 {t("auth.joinHosts")}
               </p>
             </div>
           </aside>
 
-          <section className="w-full md:w-[60%] p-8 md:p-12 flex flex-col justify-between">
-            <div className="max-w-[480px] mx-auto w-full">
+          <section className="w-full lg:w-[59%] p-6 sm:p-8 lg:p-12 flex flex-col justify-between bg-[#F7F7F5]">
+            <div className="max-w-[500px] mx-auto w-full">
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <section>
-                  <div className="mb-10">
-                    <h3 className="font-h1 text-h1 text-primary mb-2">
+                  <div className="mb-8 sm:mb-10">
+                    <h3 className="font-h1 text-h1 text-primary mb-3 leading-tight">
                       {t("auth.joinTitle")}
                     </h3>
-                    <p className="font-body-md text-body-md text-stone-500">
+                    <p className="font-body-md text-body-md text-stone-500 leading-relaxed max-w-[440px]">
                       {step === 0 && t("auth.joinDescriptionAccount")}
                       {step === 1 && t("auth.joinDescriptionPassword")}
                       {step === 2 && t("auth.joinDescriptionRole")}
@@ -358,7 +358,7 @@ export default function SignUpPage() {
                     </p>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-5 sm:space-y-6">
                     {step === 0 && (
                       <>
                         <div className="space-y-2">
@@ -370,7 +370,7 @@ export default function SignUpPage() {
                           </label>
                           <input
                             autoComplete="name"
-                            className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                            className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all outline-none"
                             id="full-name"
                             onChange={(event) =>
                               setFormState((current) => ({
@@ -393,7 +393,7 @@ export default function SignUpPage() {
                           </label>
                           <input
                             autoComplete="email"
-                            className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                            className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all outline-none"
                             id="email"
                             onChange={(event) =>
                               setFormState((current) => ({
@@ -420,7 +420,7 @@ export default function SignUpPage() {
                           </label>
                           <input
                             autoComplete="new-password"
-                            className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                            className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all outline-none"
                             id="password"
                             onChange={(event) =>
                               setFormState((current) => ({
@@ -443,7 +443,7 @@ export default function SignUpPage() {
                           </label>
                           <input
                             autoComplete="new-password"
-                            className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                            className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all outline-none"
                             id="confirm-password"
                             onChange={(event) =>
                               setFormState((current) => ({
@@ -469,7 +469,7 @@ export default function SignUpPage() {
                             {t("auth.accountTypeLabel")}
                           </label>
                           <select
-                            className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                            className="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all outline-none"
                             id="role"
                             onChange={(event) =>
                               setFormState((current) => ({
@@ -489,7 +489,7 @@ export default function SignUpPage() {
                           </select>
                         </div>
 
-                        <div className="rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-5 py-4">
+                        <div className="rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-5 py-4 shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
                           <p className="font-label-caps text-[10px] uppercase tracking-[0.18em] text-on-tertiary-fixed-variant mb-2">
                             {t("auth.whyThisMatters")}
                           </p>
@@ -502,38 +502,38 @@ export default function SignUpPage() {
 
                     {step === 3 && (
                       <>
-                        <div className="rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-5 py-4 space-y-3">
+                        <div className="rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-5 py-5 space-y-4 shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
                           <div className="flex items-center justify-between gap-4">
                             <span className="font-label-caps text-[10px] uppercase tracking-[0.18em] text-on-tertiary-fixed-variant">
                               {t("auth.review")}
                             </span>
-                            <span className="text-xs text-secondary">
+                            <span className="text-xs text-secondary font-semibold">
                               {t("auth.everythingLooksReady")}
                             </span>
                           </div>
 
-                          <div className="space-y-2 text-body-sm text-stone-600">
-                            <div className="flex items-center justify-between gap-4">
+                          <div className="space-y-3 text-body-sm text-stone-600">
+                            <div className="flex items-start justify-between gap-4 rounded-xl bg-white/60 px-4 py-3">
                               <span className="text-on-tertiary-fixed-variant">
                                 {t("auth.fullNameLabel")}
                               </span>
-                              <span className="font-semibold text-primary">
+                              <span className="font-semibold text-primary text-right break-all">
                                 {formState.fullName || t("auth.notAddedYet")}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-start justify-between gap-4 rounded-xl bg-white/60 px-4 py-3">
                               <span className="text-on-tertiary-fixed-variant">
                                 {t("auth.emailAddressLabel")}
                               </span>
-                              <span className="font-semibold text-primary">
+                              <span className="font-semibold text-primary text-right break-all">
                                 {formState.email || t("auth.notAddedYet")}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-start justify-between gap-4 rounded-xl bg-white/60 px-4 py-3">
                               <span className="text-on-tertiary-fixed-variant">
                                 {t("auth.accountTypeLabel")}
                               </span>
-                              <span className="font-semibold text-primary">
+                              <span className="font-semibold text-primary text-right break-all">
                                 {formState.role === "OWNER" ? t("auth.owner") : t("auth.renter")}
                               </span>
                             </div>
@@ -541,7 +541,7 @@ export default function SignUpPage() {
                         </div>
 
                         <button
-                          className="w-full bg-transparent border border-stone-300 text-primary py-4 rounded-full font-bold text-body-md flex items-center justify-center gap-3 hover:bg-stone-50 active:scale-[0.98] transition-all"
+                          className="w-full bg-transparent border border-stone-300 text-primary py-4 rounded-full font-bold text-body-md flex items-center justify-center gap-3 hover:bg-stone-50 active:scale-[0.98] transition-all shadow-sm"
                           type="button"
                         >
                           <img
@@ -562,9 +562,9 @@ export default function SignUpPage() {
                   </div>
                 </section>
 
-                <div className="pt-8 flex items-center justify-between gap-4">
+                <div className="pt-6 sm:pt-8 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <button
-                    className="px-8 py-3 rounded-full text-primary font-bold text-sm hover:bg-stone-100 transition-colors flex items-center gap-2 disabled:opacity-40 disabled:hover:bg-transparent"
+                    className="w-full sm:w-auto justify-center px-8 py-3 rounded-full text-primary font-bold text-sm hover:bg-stone-100 transition-colors flex items-center gap-2 disabled:opacity-40 disabled:hover:bg-transparent"
                     disabled={step === 0 || isSubmitting}
                     onClick={goBack}
                     type="button"
@@ -576,7 +576,7 @@ export default function SignUpPage() {
                   </button>
 
                   <button
-                    className="bg-[#0F3D3E] text-on-primary px-10 py-4 rounded-full font-bold text-body-md hover:opacity-90 active:scale-[0.98] transition-all shadow-md flex items-center gap-2 disabled:opacity-60"
+                    className="w-full sm:w-auto justify-center bg-[#0F3D3E] text-on-primary px-10 py-4 rounded-full font-bold text-body-md hover:opacity-90 active:scale-[0.98] transition-all shadow-md flex items-center gap-2 disabled:opacity-60"
                     disabled={isSubmitting}
                     type="submit"
                   >
@@ -592,7 +592,7 @@ export default function SignUpPage() {
                 </div>
               </form>
 
-              <div className="mt-10 text-center">
+              <div className="mt-8 sm:mt-10 text-center">
                 <p className="text-body-sm text-stone-500">
                   {t("auth.alreadyHaveAccount")}{" "}
                   <Link

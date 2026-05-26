@@ -503,6 +503,15 @@
     "percentComplete": "{{value}}% complete",
     "saving": "Saving...",
     "nextStep": "Next step",
+    "overview": {
+      "eyebrow": "Draft overview",
+      "untitledListing": "Untitled listing",
+      "locationPending": "Location pending",
+      "photosLabel": "Photos",
+      "amenitiesLabel": "Amenities",
+      "selectedCount": "{{value}} selected",
+      "countValue": "{{value}}"
+    },
     "storageTypes": {
       "garage": "Garage",
       "basement": "Basement",
@@ -883,7 +892,7 @@
     "download": "Download",
     "payNow": "Pay Now",
     "generateRefresh": "Generate / Refresh",
-    "bookingLabel": "Booking {{bookingNumber}} Â· {{title}}",
+    "bookingLabel": "Booking {{bookingNumber}} · {{title}}",
     "storageType": "Storage type: {{storageType}}",
     "dates": "Dates",
     "paymentBreakdown": "Payment breakdown",
@@ -894,6 +903,7 @@
     "itemizedLine": "Itemized invoice line",
     "totalAmount": "Total amount",
     "total": "Total",
+    "storageTypeLabel": "Storage type",
     "people": "People",
     "renter": "Renter",
     "owner": "Owner",
@@ -967,7 +977,9 @@
     "cancelDescription": "No payment was captured. You can return to your invoice and try again whenever you are ready.",
     "returnToInvoice": "Return to invoice",
     "viewInvoices": "View invoices",
-    "goBack": "Go back"
+    "goBack": "Go back",
+    "invoiceReference": "Invoice {{value}}",
+    "sessionReference": "Session {{value}}"
   },
   "app": {
     "create": {

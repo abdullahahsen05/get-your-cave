@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SafeGeneratedContract } from "@/lib/contracts/generateContract";
@@ -132,20 +132,29 @@ export function ContractsWorkspace({
     filteredContracts[0] ??
     null;
 
+  useEffect(() => {
+    if (!filteredContracts.length) {
+      return;
+    }
+
+    if (!filteredContracts.some((contract) => contract.id === selectedContractId)) {
+      setSelectedContractId(filteredContracts[0].id);
+    }
+  }, [filteredContracts, selectedContractId]);
+
   async function handleGenerate(contract: SafeGeneratedContract) {
     setBusyId(contract.id);
     setNotice(null);
-
-      try {
-        const response = await fetch("/api/contracts/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            bookingId: contract.bookingId,
-          }),
-        });
+    try {
+      const response = await fetch("/api/contracts/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingId: contract.bookingId,
+        }),
+      });
 
       const payload = (await response.json()) as {
         contract?: SafeGeneratedContract;
@@ -173,69 +182,139 @@ export function ContractsWorkspace({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <section className="lg:col-span-7 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low p-4 rounded-lg border border-outline-variant/30">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="font-label-caps text-label-caps text-on-surface-variant">
-              {t("contracts.filterStatus")}
-            </span>
-            <select
-              className="bg-surface border-none rounded-full px-6 py-1 font-body-sm text-body-sm text-on-surface ring-1 ring-outline-variant focus:ring-primary transition-shadow"
-              value={filter}
-              onChange={(event) =>
-                setFilter(event.target.value as "all" | "generated" | "sent" | "signed" | "cancelled")
-              }
-            >
-              <option value="all">
-                {isAdmin ? t("contracts.allContracts") : t("contracts.allStatuses")}
-              </option>
-              <option value="generated">{t("contracts.statusGenerated")}</option>
-              <option value="sent">{t("contracts.statusSent")}</option>
-              <option value="signed">{t("contracts.statusSigned")}</option>
-              <option value="cancelled">{t("contracts.statusCancelled")}</option>
-            </select>
-          </div>
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(340px,0.6fr)] xl:items-start">
+      <section className="space-y-6">
+        <div className="rounded-[28px] border border-outline-variant/30 bg-surface-container-low/70 p-4 shadow-[0_8px_30px_rgba(15,61,62,0.04)] sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <span className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                {t("contracts.filterStatus")}
+              </span>
+              <select
+                className="min-h-11 rounded-full border border-outline-variant/30 bg-surface px-4 py-2 text-body-sm font-medium text-on-surface ring-0 transition-shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+                value={filter}
+                onChange={(event) =>
+                  setFilter(event.target.value as "all" | "generated" | "sent" | "signed" | "cancelled")
+                }
+              >
+                <option value="all">
+                  {isAdmin ? t("contracts.allContracts") : t("contracts.allStatuses")}
+                </option>
+                <option value="generated">{t("contracts.statusGenerated")}</option>
+                <option value="sent">{t("contracts.statusSent")}</option>
+                <option value="signed">{t("contracts.statusSigned")}</option>
+                <option value="cancelled">{t("contracts.statusCancelled")}</option>
+              </select>
+            </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="font-label-caps text-label-caps text-on-surface-variant">
-              {t("common.sortBy")}
-            </span>
-            <select
-              className="bg-surface border-none rounded-full px-6 py-1 font-body-sm text-body-sm text-on-surface ring-1 ring-outline-variant focus:ring-primary transition-shadow"
-              value={sort}
-              onChange={(event) => setSort(event.target.value as "newest" | "oldest" | "amount")}
-            >
-              <option value="newest">{t("contracts.newestFirst")}</option>
-              <option value="oldest">{t("contracts.oldestFirst")}</option>
-              <option value="amount">{t("contracts.amountHighLow")}</option>
-            </select>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <span className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                {t("common.sortBy")}
+              </span>
+              <select
+                className="min-h-11 rounded-full border border-outline-variant/30 bg-surface px-4 py-2 text-body-sm font-medium text-on-surface ring-0 transition-shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+                value={sort}
+                onChange={(event) => setSort(event.target.value as "newest" | "oldest" | "amount")}
+              >
+                <option value="newest">{t("contracts.newestFirst")}</option>
+                <option value="oldest">{t("contracts.oldestFirst")}</option>
+                <option value="amount">{t("contracts.amountHighLow")}</option>
+              </select>
+            </div>
           </div>
         </div>
 
         {isAdmin ? (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-body-sm text-primary">
+          <div className="rounded-[24px] border border-primary/20 bg-primary/5 px-4 py-3 text-body-sm text-primary shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
             {t("contracts.adminAllContractsNote")}
           </div>
         ) : null}
 
-        <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/30 overflow-x-auto shadow-[0_4px_20px_rgba(15,61,62,0.02)]">
-          <table className="w-full min-w-[780px] text-left border-collapse">
+        <div className="space-y-4 lg:hidden">
+          {filteredContracts.length ? (
+            filteredContracts.map((contract) => (
+              <article
+                className={`rounded-[24px] border p-4 shadow-[0_8px_24px_rgba(15,61,62,0.04)] transition-all ${
+                  contract.id === selectedContractId
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-outline-variant/30 bg-surface-container-lowest"
+                }`}
+                key={contract.id}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <button
+                      className="block text-left"
+                      type="button"
+                      onClick={() => setSelectedContractId(contract.id)}
+                    >
+                      <div className="line-clamp-2 font-h3 text-h3 text-primary">
+                        {contract.listingTitle}
+                      </div>
+                      <div className="mt-1 text-body-sm text-on-surface-variant">
+                        {t("contracts.bookingNumber", { number: contract.bookingNumber })}
+                      </div>
+                    </button>
+                  </div>
+                  <span
+                    className={`${getStatusStyles(contract.status)} shrink-0 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]`}
+                  >
+                    {t(`status.contract.${contract.status}`)}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className={`${getTypeStyles(contract.contractType)} rounded-2xl px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em]`}>
+                    {getContractTypeBadge(contract.contractType, locale)}
+                  </div>
+                  <div className="rounded-2xl border border-outline-variant/20 bg-background/60 px-3 py-2 text-body-sm text-on-surface-variant">
+                    {formatDate(contract.generatedAt, locale)}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-outline-variant/30 px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-surface-container"
+                    type="button"
+                    onClick={() => setSelectedContractId(contract.id)}
+                  >
+                    {t("common.viewDetails")}
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!canGenerate || busyId === contract.id}
+                    type="button"
+                    onClick={() => handleGenerate(contract)}
+                  >
+                    {busyId === contract.id ? t("common.loading") : t("contracts.generate")}
+                  </button>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="rounded-[24px] border border-outline-variant/30 bg-surface-container-lowest px-5 py-10 text-center text-on-surface-variant">
+              {t("contracts.noContracts")}
+            </div>
+          )}
+        </div>
+
+        <div className="hidden overflow-hidden rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.02)] lg:block">
+          <table className="min-w-[780px] w-full border-collapse text-left">
             <thead className="bg-surface-container-low">
               <tr>
-                <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
+                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.booking")}
                 </th>
-                <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
+                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.type")}
                 </th>
-                <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
+                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.status")}
                 </th>
-                <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30">
+                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.date")}
                 </th>
-                <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant/30 text-right">
+                <th className="border-b border-outline-variant/30 px-6 py-4 text-right font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.actions")}
                 </th>
               </tr>
@@ -247,67 +326,66 @@ export function ContractsWorkspace({
                   <tr
                     className={
                       contract.id === selectedContractId
-                        ? "bg-primary/5 border-l-4 border-l-primary"
-                        : "hover:bg-surface-container-low transition-colors"
+                        ? "border-l-4 border-l-primary bg-primary/5"
+                        : "transition-colors hover:bg-surface-container-low"
                     }
                     key={contract.id}
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 align-top">
                       <button
-                        className="text-left w-full"
+                        className="w-full text-left"
                         type="button"
                         onClick={() => setSelectedContractId(contract.id)}
                       >
                         <div className="font-h3 text-body-md text-primary">
                           {contract.listingTitle}
                         </div>
-                        <div className="font-body-sm text-body-sm text-on-surface-variant">
+                        <div className="mt-1 font-body-sm text-body-sm text-on-surface-variant">
                           {t("contracts.bookingNumber", { number: contract.bookingNumber })}
                         </div>
                       </button>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 align-top">
                       <span
-                        className={`${getTypeStyles(contract.contractType)} px-2 py-1 rounded font-label-caps text-[10px]`}
+                        className={`${getTypeStyles(contract.contractType)} inline-flex rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]`}
                       >
                         {getContractTypeBadge(contract.contractType, locale)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 align-top">
                       <span
-                        className={`${getStatusStyles(contract.status)} px-4 py-1 rounded-full font-label-caps text-[11px]`}
+                        className={`${getStatusStyles(contract.status)} inline-flex rounded-full px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]`}
                       >
                         {t(`status.contract.${contract.status}`)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-body-sm text-body-sm text-on-surface-variant">
+                    <td className="px-6 py-4 align-top font-body-sm text-body-sm text-on-surface-variant">
                       {formatDate(contract.generatedAt, locale)}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        className="text-primary font-label-caps text-label-caps hover:underline mr-4"
-                        type="button"
-                        onClick={() => setSelectedContractId(contract.id)}
-                      >
-                        {t("common.viewDetails")}
-                      </button>
-                      <button
-                        className="text-primary font-label-caps text-label-caps hover:underline disabled:opacity-50"
-                        disabled={!canGenerate || busyId === contract.id}
-                        type="button"
-                        onClick={() => handleGenerate(contract)}
-                      >
-                        {busyId === contract.id ? t("common.loading") : t("contracts.generate")}
-                      </button>
+                    <td className="px-6 py-4 align-top text-right">
+                      <div className="inline-flex flex-wrap items-center justify-end gap-3">
+                        <button
+                          className="rounded-full border border-outline-variant/30 px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-surface-container"
+                          type="button"
+                          onClick={() => setSelectedContractId(contract.id)}
+                        >
+                          {t("common.viewDetails")}
+                        </button>
+                        <button
+                          className="rounded-full bg-primary px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={!canGenerate || busyId === contract.id}
+                          type="button"
+                          onClick={() => handleGenerate(contract)}
+                        >
+                          {busyId === contract.id ? t("common.loading") : t("contracts.generate")}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    className="px-6 py-12 text-center text-on-surface-variant"
-                    colSpan={5}
-                  >
+                  <td className="px-6 py-12 text-center text-on-surface-variant" colSpan={5}>
                     {t("contracts.noContracts")}
                   </td>
                 </tr>
@@ -317,9 +395,9 @@ export function ContractsWorkspace({
         </div>
       </section>
 
-      <aside className="lg:col-span-5">
-        <section className="lg:sticky lg:top-32 bg-surface-container-lowest rounded-lg border border-outline-variant/30 shadow-[0_8px_40px_rgba(15,61,62,0.06)] overflow-hidden">
-          <div className="p-6 border-b border-outline-variant/30 flex justify-between items-start gap-4">
+      <aside className="xl:sticky xl:top-32 self-start">
+        <section className="overflow-hidden rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest shadow-[0_12px_40px_rgba(15,61,62,0.06)]">
+          <div className="flex items-start justify-between gap-4 border-b border-outline-variant/30 p-5 sm:p-6">
             <div>
               <h2 className="font-h2 text-h2 text-primary">
                 {selectedContract?.listingTitle ?? t("contracts.noSelected")}
@@ -349,12 +427,12 @@ export function ContractsWorkspace({
             )}
           </div>
 
-          <div className="bg-surface-container-high h-[500px] flex items-center justify-center relative overflow-hidden">
+          <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden bg-surface-container-high sm:min-h-[420px] xl:min-h-[500px]">
             <div className="pdf-preview-canvas absolute inset-0 opacity-40" />
 
             {selectedContract ? (
-              <div className="relative z-10 w-4/5 h-[400px] bg-white shadow-xl rounded-sm p-12 flex flex-col gap-4">
-                <div className="h-10 bg-surface-container w-2/3 rounded-sm" />
+              <div className="relative z-10 flex h-[260px] w-[82%] max-w-[360px] flex-col gap-4 rounded-[20px] bg-white p-6 shadow-xl sm:h-[340px] sm:max-w-[420px] sm:p-8">
+                <div className="h-10 w-2/3 rounded-sm bg-surface-container" />
 
                 <div className="space-y-2">
                   <div className="h-4 bg-surface-container-low w-full rounded-sm" />
@@ -377,15 +455,15 @@ export function ContractsWorkspace({
                   </div>
                 </div>
 
-                <div className="absolute inset-0 flex items-center justify-center group cursor-pointer">
-                  <div className="bg-primary/90 text-on-primary px-6 py-4 rounded-full font-label-caps text-label-caps flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 flex cursor-pointer items-center justify-center group">
+                  <div className="flex items-center gap-2 rounded-full bg-primary/90 px-5 py-3 font-label-caps text-[11px] uppercase tracking-[0.18em] text-on-primary opacity-0 transition-opacity group-hover:opacity-100">
                     <span className="material-symbols-outlined">zoom_in</span>
                     {t("contracts.fullscreenPreview")}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="relative z-10 w-4/5 h-[400px] bg-white shadow-xl rounded-sm p-12 flex flex-col items-center justify-center text-center gap-4">
+              <div className="relative z-10 flex h-[260px] w-[82%] max-w-[360px] flex-col items-center justify-center gap-4 rounded-[20px] bg-white p-6 text-center shadow-xl sm:h-[340px] sm:max-w-[420px] sm:p-8">
                 <p className="font-body-md text-body-md text-on-surface-variant">
                   {t("contracts.generatedPreview")}
                 </p>
@@ -393,14 +471,14 @@ export function ContractsWorkspace({
             )}
           </div>
 
-          <div className="p-6 bg-surface-container-low space-y-4">
+          <div className="space-y-4 bg-surface-container-low p-5 sm:p-6">
             {notice ? (
               <p className="text-body-sm font-body-sm text-primary">{notice}</p>
             ) : null}
 
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                className={`flex-1 bg-primary-container text-on-primary py-3 rounded-full text-sm font-bold text-center ${selectedContract ? "" : "opacity-50 pointer-events-none"}`}
+                className={`flex-1 rounded-full bg-primary-container py-3 text-center text-sm font-bold text-on-primary transition-opacity ${selectedContract ? "" : "pointer-events-none opacity-50"}`}
                 href={
                   selectedContract
                     ? downloadHref(selectedContract.id)
@@ -412,7 +490,7 @@ export function ContractsWorkspace({
               </a>
 
               <button
-                className="flex-1 border border-outline-variant text-primary py-3 rounded-full text-sm font-bold hover:bg-surface-container transition-colors disabled:opacity-50"
+                className="flex-1 rounded-full border border-outline-variant py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-50"
                 disabled={!selectedContract || !canGenerate || busyId === selectedContract?.id}
                 type="button"
                 onClick={() => {
@@ -426,17 +504,17 @@ export function ContractsWorkspace({
             </div>
 
             {selectedContract ? (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/70 rounded-lg p-4 border border-outline-variant/20">
-                  <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="rounded-2xl border border-outline-variant/20 bg-white/70 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">
                     {t("contracts.bookingLink")}
                   </p>
                   <p className="font-body-sm text-body-sm text-on-surface mt-1">
                     {selectedContract.bookingNumber}
                   </p>
                 </div>
-                <div className="bg-white/70 rounded-lg p-4 border border-outline-variant/20">
-                  <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
+                <div className="rounded-2xl border border-outline-variant/20 bg-white/70 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">
                     {t("contracts.generated")}
                   </p>
                   <p className="font-body-sm text-body-sm text-on-surface mt-1">
@@ -446,12 +524,12 @@ export function ContractsWorkspace({
               </div>
             ) : null}
 
-            <h3 className="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase tracking-widest text-[10px]">
+            <h3 className="mb-4 font-label-caps text-[10px] uppercase tracking-[0.22em] text-on-surface-variant">
               {t("contracts.timeline")}
             </h3>
 
             <div className="relative space-y-4">
-              <div className="absolute left-2.5 top-2 bottom-2 w-px bg-outline-variant" />
+              <div className="absolute bottom-2 top-2 left-2.5 w-px bg-outline-variant" />
 
               {selectedContract ? (
                 <>

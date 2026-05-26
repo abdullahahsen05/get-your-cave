@@ -6,7 +6,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function PrimaryButton({ className = "", children, ...props }: Props) {
   return (
-    <button className={`gyc-button-primary px-6 py-3 text-sm ${className}`} {...props}>
+    <button className={`gyc-button-primary inline-flex min-h-11 items-center justify-center whitespace-nowrap px-4 py-3 text-sm sm:px-6 ${className}`} {...props}>
       {children}
     </button>
   );
@@ -14,7 +14,7 @@ export function PrimaryButton({ className = "", children, ...props }: Props) {
 
 export function SecondaryButton({ className = "", children, ...props }: Props) {
   return (
-    <button className={`gyc-button-secondary px-6 py-3 text-sm ${className}`} {...props}>
+    <button className={`gyc-button-secondary inline-flex min-h-11 items-center justify-center whitespace-nowrap px-4 py-3 text-sm sm:px-6 ${className}`} {...props}>
       {children}
     </button>
   );
@@ -22,9 +22,8 @@ export function SecondaryButton({ className = "", children, ...props }: Props) {
 
 export function GhostButton({ className = "", children, ...props }: Props) {
   return (
-    <button className={`rounded-full px-6 py-3 text-sm font-semibold text-primary transition-colors hover:bg-[#F2F0E9] ${className}`} {...props}>
+    <button className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-[#F2F0E9] sm:px-6 ${className}`} {...props}>
       {children}
     </button>
   );
 }
-

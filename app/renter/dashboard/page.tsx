@@ -36,6 +36,54 @@ function formatDateRange(startDate: string, endDate: string | null, locale: stri
 
 export const dynamic = "force-dynamic";
 
+function StatCard({
+  label,
+  value,
+  supporting,
+  icon,
+  progress,
+}: {
+  label: string;
+  value: string | number;
+  supporting?: string;
+  icon: string;
+  progress?: number;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-[22px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_45px_rgba(15,61,62,0.07)] sm:p-6 lg:p-7">
+      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-secondary-container/30 opacity-60 transition-transform duration-500 group-hover:scale-125" />
+      <div className="relative flex min-h-[150px] flex-col justify-between gap-6">
+        <div className="flex items-start justify-between gap-4">
+          <p className="font-label-caps text-label-caps uppercase tracking-widest text-outline">
+            {label}
+          </p>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
+            <span className="material-symbols-outlined text-[20px]">{icon}</span>
+          </div>
+        </div>
+
+        <div>
+          <p className="font-h2 text-h2 leading-none text-primary">{value}</p>
+          {supporting ? (
+            <p className="mt-3 flex items-center gap-1.5 text-body-sm font-body-sm text-secondary">
+              {supporting}
+            </p>
+          ) : null}
+        </div>
+
+        {typeof progress === "number" ? (
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
+            <div
+              className="h-full rounded-full bg-secondary-fixed-dim transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+            />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default async function RenterDashboardPage() {
   const locale = await getServerLocale();
   const t = createTranslator(locale);
@@ -63,12 +111,14 @@ export default async function RenterDashboardPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed antialiased max-w-[1200px] mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-24">
-      <header className="mb-12">
-        <h1 className="font-h1 text-h1 text-primary mb-2">
+    <main className="min-h-screen bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed antialiased">
+      <div className="mx-auto w-full max-w-[1240px] px-4 pb-24 pt-28 sm:px-6 sm:pt-32 lg:px-8">
+      <header className="mb-10 rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest px-5 py-6 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:px-7 sm:py-8 lg:px-10">
+        <p className="mb-3 font-label-caps text-label-caps uppercase tracking-widest text-secondary">{t("dashboard.renter.title")}</p>
+        <h1 className="max-w-4xl font-h1 text-h1 leading-tight text-primary">
           {t("dashboard.renter.welcome", { name: currentUser.fullName ?? t("common.renter") })}
         </h1>
-        <p className="font-body-md text-body-md text-outline">
+        <p className="mt-3 max-w-3xl font-body-md text-body-md leading-7 text-outline">
           {t("dashboard.renter.summary", {
             active: activeUnitCount,
             pending: dashboard.pendingBookingsCount,
@@ -76,45 +126,30 @@ export default async function RenterDashboardPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-        <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
-          <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
-            {t("dashboard.renter.activeRentals")}
-          </p>
-          <p className="font-h2 text-h2 text-primary">{activeUnitCount}</p>
-          <div className="mt-4 w-full bg-surface-container h-1.5 rounded-full">
-            <div
-              className="bg-secondary-fixed-dim h-full rounded-full"
-              style={{ width: `${Math.min(100, activeUnitCount * 33)}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
-          <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
-            {t("dashboard.renter.nextPayment")}
-          </p>
-          <p className="font-h2 text-h2 text-primary">{formatFullDate(dashboard.nextPaymentDate, locale)}</p>
-          <p className="text-body-sm font-body-sm text-secondary mt-2 flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">event</span>
-            {t("dashboard.renter.autoPayEnabled")}
-          </p>
-        </div>
-
-        <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
-          <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
-            {t("dashboard.renter.totalSaved")}
-          </p>
-          <p className="font-h2 text-h2 text-primary">{`${totalSavedSqFt} sq ft`}</p>
-          <p className="text-body-sm font-body-sm text-secondary mt-2 flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">check_circle</span>
-            {t("dashboard.renter.verifiedCapacity")}
-          </p>
-        </div>
+      <section className="mb-14 grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-5">
+        <StatCard
+          icon="inventory_2"
+          label={t("dashboard.renter.activeRentals")}
+          progress={activeUnitCount * 33}
+          supporting={t("dashboard.renter.currentSpaces")}
+          value={activeUnitCount}
+        />
+        <StatCard
+          icon="event"
+          label={t("dashboard.renter.nextPayment")}
+          supporting={t("dashboard.renter.autoPayEnabled")}
+          value={formatFullDate(dashboard.nextPaymentDate, locale)}
+        />
+        <StatCard
+          icon="check_circle"
+          label={t("dashboard.renter.totalSaved")}
+          supporting={t("dashboard.renter.verifiedCapacity")}
+          value={`${totalSavedSqFt} sq ft`}
+        />
       </section>
 
       {dashboard.paymentRequiredInvoice ? (
-        <section className="mb-16">
+        <section className="mb-14">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
             <div>
               <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.paymentRequired")}</h2>
@@ -127,7 +162,7 @@ export default async function RenterDashboardPage() {
             </span>
           </div>
 
-          <article className="rounded-lg border border-[#EBEBE8] bg-surface-container-lowest p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+          <article className="rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-7 lg:p-8">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
               <div className="space-y-3">
                 <p className="font-label-caps text-label-caps text-outline uppercase tracking-widest">
@@ -187,7 +222,7 @@ export default async function RenterDashboardPage() {
         </section>
       ) : null}
 
-      <section className="mb-16">
+      <section className="mb-14">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
           <div>
             <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.pendingRequests")}</h2>
@@ -202,14 +237,14 @@ export default async function RenterDashboardPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
           {dashboard.pendingBookings.length ? (
             dashboard.pendingBookings.map((booking) => (
               <article
-                className="group bg-surface-container-lowest rounded-lg overflow-hidden shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8] transition-all hover:translate-y-[-4px]"
+                className="group overflow-hidden rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,61,62,0.08)]"
                 key={booking.id}
               >
-                <div className="h-56 sm:h-64 relative overflow-hidden">
+                <div className="relative h-52 overflow-hidden sm:h-60">
                   <img
                     alt={booking.listing.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -220,8 +255,8 @@ export default async function RenterDashboardPage() {
                   </span>
                 </div>
 
-                <div className="p-6 sm:p-8">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
+                <div className="p-5 sm:p-6 lg:p-7">
+                  <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <h3 className="font-h3 text-h3 text-primary mb-1">{booking.listing.title}</h3>
                       <p className="font-body-sm text-body-sm text-outline">{booking.listing.address}</p>
@@ -255,7 +290,7 @@ export default async function RenterDashboardPage() {
         </div>
       </section>
 
-      <section className="mb-16">
+      <section className="mb-14">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
           <div>
             <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.rejectedRequests")}</h2>
@@ -271,11 +306,11 @@ export default async function RenterDashboardPage() {
           {dashboard.rejectedBookings.length ? (
             dashboard.rejectedBookings.map((booking) => (
               <div
-                className="flex flex-col md:flex-row md:items-center justify-between p-5 sm:p-6 bg-surface-container-lowest rounded-lg border border-[#EBEBE8] gap-4"
+                className="flex flex-col justify-between gap-4 rounded-[20px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.03)] sm:p-6 md:flex-row md:items-center"
                 key={booking.id}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-surface-container">
                     <img
                       alt={booking.listing.title}
                       className="w-full h-full object-cover"
@@ -312,7 +347,7 @@ export default async function RenterDashboardPage() {
               </div>
             ))
           ) : (
-            <div className="rounded-lg border border-[#EBEBE8] bg-surface-container-lowest p-6 text-body-sm text-on-surface-variant">
+            <div className="rounded-[20px] border border-[#EBEBE8] bg-surface-container-lowest p-6 text-body-sm text-on-surface-variant">
               {t("dashboard.renter.noBookingRequests")}
             </div>
           )}
@@ -330,14 +365,14 @@ export default async function RenterDashboardPage() {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
           {dashboard.activeBookings.length ? (
             dashboard.activeBookings.map((booking) => (
               <article
-                className="group bg-surface-container-lowest rounded-lg overflow-hidden shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8] transition-all hover:translate-y-[-4px]"
+                className="group overflow-hidden rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,61,62,0.08)]"
                 key={booking.id}
               >
-                <div className="h-56 sm:h-64 relative overflow-hidden">
+                <div className="relative h-52 overflow-hidden sm:h-60">
                   <img
                     alt={booking.listing.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -348,8 +383,8 @@ export default async function RenterDashboardPage() {
                   </span>
                 </div>
 
-                <div className="p-6 sm:p-8">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
+                <div className="p-5 sm:p-6 lg:p-7">
+                  <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <h3 className="font-h3 text-h3 text-primary mb-1">{booking.listing.title}</h3>
                       <p className="font-body-sm text-body-sm text-outline">{booking.listing.address}</p>
@@ -380,7 +415,7 @@ export default async function RenterDashboardPage() {
         </div>
       </section>
 
-      <section className="mb-16">
+      <section className="mb-14">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
           <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.recentInvoices")}</h2>
           <Link
@@ -392,7 +427,7 @@ export default async function RenterDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
+          <div className="rounded-[22px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-7">
             <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
               {t("dashboard.renter.totalPaid")}
             </p>
@@ -401,7 +436,7 @@ export default async function RenterDashboardPage() {
             </p>
           </div>
 
-          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
+          <div className="rounded-[22px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-7">
             <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
               {t("dashboard.renter.outstanding")}
             </p>
@@ -410,7 +445,7 @@ export default async function RenterDashboardPage() {
             </p>
           </div>
 
-          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-[#EBEBE8]">
+          <div className="rounded-[22px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-7">
             <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
               {t("dashboard.renter.latestPayment")}
             </p>
@@ -420,7 +455,7 @@ export default async function RenterDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-lg border border-[#EBEBE8] overflow-hidden">
+        <div className="overflow-hidden rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead>
@@ -481,11 +516,11 @@ export default async function RenterDashboardPage() {
 
               return (
                 <div
-                  className="flex flex-col md:flex-row md:items-center justify-between p-5 sm:p-6 bg-surface-container-lowest rounded-lg border border-[#EBEBE8] gap-4"
+                  className="flex flex-col justify-between gap-4 rounded-[20px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.03)] sm:p-6 md:flex-row md:items-center"
                   key={booking.id}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-surface-container">
                       <img
                         alt={booking.listing.title}
                         className="w-full h-full object-cover"
@@ -522,12 +557,13 @@ export default async function RenterDashboardPage() {
               );
             })
           ) : (
-            <div className="rounded-lg border border-[#EBEBE8] bg-surface-container-lowest p-6 text-body-sm text-on-surface-variant">
+            <div className="rounded-[20px] border border-[#EBEBE8] bg-surface-container-lowest p-6 text-body-sm text-on-surface-variant">
               {t("dashboard.renter.noPastRentals")}
             </div>
           )}
         </div>
       </section>
+      </div>
     </main>
   );
 }

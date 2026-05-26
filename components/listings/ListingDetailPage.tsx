@@ -223,11 +223,11 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   if (loading) {
     return (
-      <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-28 sm:pt-32 pb-xxl">
+      <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-28 sm:pt-32 pb-24 sm:pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="h-10 w-96 rounded-full bg-surface-container animate-pulse" />
           <div className="h-[420px] rounded-2xl bg-surface-container animate-pulse" />
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-xl">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
             <div className="space-y-4">
               <div className="h-8 w-3/4 rounded-full bg-surface-container animate-pulse" />
               <div className="h-4 w-1/2 rounded-full bg-surface-container animate-pulse" />
@@ -378,11 +378,11 @@ export default function ListingDetailPage({ listingId }: Props) {
 
   return (
     <div className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen">
-      <main className="pt-28 sm:pt-32 pb-xxl max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-lg gap-md">
+      <main className="pt-28 sm:pt-32 pb-24 sm:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 sm:mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="font-h1 text-h1 text-primary mb-2">{listing.title}</h1>
-            <div className="flex flex-wrap items-center gap-3 text-body-sm text-on-surface-variant">
+            <h1 className="font-h1 text-[34px] leading-[1.05] text-primary sm:text-h1 mb-3">{listing.title}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-body-sm text-on-surface-variant">
               <div className="flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                   star
@@ -398,8 +398,8 @@ export default function ListingDetailPage({ listingId }: Props) {
               </span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 font-label-caps text-label-caps hover:bg-surface-container transition-colors p-2 rounded-lg" type="button">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-3">
+            <button className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 font-label-caps text-label-caps transition-colors hover:bg-surface-container sm:flex-none" type="button">
               <span className="material-symbols-outlined text-md">ios_share</span>
               {t("listingDetail.share")}
             </button>
@@ -410,16 +410,16 @@ export default function ListingDetailPage({ listingId }: Props) {
           </div>
         </div>
 
-        <div className="hero-grid mb-xl rounded-lg overflow-hidden">
-          <div className="relative overflow-hidden group">
+        <div className="mb-10 grid h-auto grid-cols-1 gap-2 overflow-hidden rounded-[22px] sm:grid-cols-4 sm:grid-rows-2 lg:mb-14 lg:h-[520px]">
+          <div className="group relative min-h-[260px] overflow-hidden bg-surface-container sm:col-span-2 sm:row-span-2 sm:min-h-0">
             <img
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               src={primaryImage}
               alt={listing.title}
             />
           </div>
           {secondaryImages.map((image) => (
-            <div className="relative overflow-hidden group" key={image}>
+            <div className="group relative hidden min-h-[254px] overflow-hidden bg-surface-container sm:block" key={image}>
               <img
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 src={image}
@@ -431,7 +431,7 @@ export default function ListingDetailPage({ listingId }: Props) {
 
         {hasCoordinates ? (
           <section className="mb-xl">
-            <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="font-h3 text-h3 text-primary">{t("listingDetail.locationMap")}</h2>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -449,12 +449,12 @@ export default function ListingDetailPage({ listingId }: Props) {
           </section>
         ) : null}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-xl">
-          <div className="space-y-xl">
-            <section className="border-b border-stone-200 pb-lg">
-              <div className="flex justify-between items-start gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-xl">
+          <div className="space-y-10 sm:space-y-12">
+            <section className="border-b border-stone-200 pb-8">
+              <div className="flex items-start justify-between gap-5 sm:gap-6">
                 <div>
-            <h2 className="font-h2 text-h2 text-primary mb-2">
+            <h2 className="font-h2 text-[26px] leading-tight text-primary sm:text-h2 mb-2">
                     {formatStorageType(listing.storageType, t)} in {listing.city}
                   </h2>
                   <p className="text-body-md text-on-surface-variant italic-emphasis italic opacity-80">
@@ -462,7 +462,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                   </p>
                 </div>
                 <img
-                  className="w-14 h-14 rounded-full object-cover border-2 border-secondary-container"
+                  className="h-14 w-14 shrink-0 rounded-full border-2 border-secondary-container object-cover sm:h-16 sm:w-16"
                   alt={listing.owner.fullName}
                   src={
                     listing.owner.avatarUrl ??
@@ -472,12 +472,12 @@ export default function ListingDetailPage({ listingId }: Props) {
               </div>
             </section>
 
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-lg py-sm">
+            <section className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-3 sm:gap-5">
               {(listing.amenityNames.slice(0, 3).length
                 ? listing.amenityNames.slice(0, 3)
                 : [t("listingDetail.secureAccess"), t("listingDetail.climateControl"), t("listingDetail.access247")]
               ).map((amenity) => (
-                <div className="flex gap-4" key={amenity}>
+                <div className="flex gap-4 rounded-2xl border border-outline-variant/20 bg-white/70 p-4" key={amenity}>
                   <span className="material-symbols-outlined text-primary text-3xl">
                     verified_user
                   </span>
@@ -491,9 +491,9 @@ export default function ListingDetailPage({ listingId }: Props) {
               ))}
             </section>
 
-            <section className="border-t border-stone-200 pt-xl">
-              <h3 className="font-h3 text-h3 text-primary mb-md">{t("listingDetail.aboutThisSpace")}</h3>
-              <div className="space-y-md text-body-lg text-on-surface-variant leading-relaxed max-w-3xl">
+            <section className="border-t border-stone-200 pt-10">
+              <h3 className="font-h3 text-h3 text-primary mb-4">{t("listingDetail.aboutThisSpace")}</h3>
+              <div className="max-w-3xl space-y-4 text-body-lg leading-relaxed text-on-surface-variant">
                 <p>{listing.description}</p>
                 <button className="font-bold text-primary underline underline-offset-4 flex items-center gap-1 mt-4" type="button">
                   {t("listingDetail.showMore")}
@@ -502,9 +502,9 @@ export default function ListingDetailPage({ listingId }: Props) {
               </div>
             </section>
 
-            <section className="bg-surface-container-low rounded-lg p-6 sm:p-xl flex flex-col md:flex-row items-center gap-xl border border-stone-100">
+            <section className="flex flex-col items-center gap-6 rounded-[24px] border border-stone-100 bg-surface-container-low p-6 text-center sm:p-8 md:flex-row md:text-left">
               <img
-                className="w-24 h-24 rounded-full object-cover"
+                className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-white sm:h-28 sm:w-28"
                 alt={listing.owner.fullName}
                 src={
                   listing.owner.avatarUrl ??
@@ -518,7 +518,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 <p className="text-body-sm text-on-surface-variant mb-md">
                   {listing.owner.bio ?? listing.owner.city ?? t("listingDetail.verifiedOwner")}
                 </p>
-                <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-lg">
+                <div className="mb-6 flex flex-wrap justify-center gap-4 md:justify-start">
                   <span className="flex items-center gap-1 text-body-sm font-semibold">
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                       star
@@ -543,7 +543,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 ) : sessionUser ? (
                   canStartConversation ? (
                     <button
-                      className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all hover:opacity-90 active:scale-95 disabled:opacity-70"
+                      className="rounded-full bg-primary px-8 py-3 font-bold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-70"
                       type="button"
                       disabled={isStartingConversation}
                       onClick={() => {
@@ -578,15 +578,15 @@ export default function ListingDetailPage({ listingId }: Props) {
           </div>
 
           <aside>
-            <div className="sticky top-32 bg-white rounded-lg p-lg border border-stone-200 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-                <div className="flex justify-between items-baseline mb-lg">
+            <div className="sticky top-28 rounded-[24px] border border-stone-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,61,62,0.08)] sm:p-6 lg:top-32">
+                <div className="mb-6 flex items-baseline justify-between gap-4">
                 <span className="font-h2 text-h2 text-primary">
                   €{listing.pricePerMonth}
                   <span className="text-body-md font-normal text-on-surface-variant">{t("listingDetail.perMonth")}</span>
                 </span>
                 <span className="text-body-sm font-semibold underline">{t("listingDetail.details")}</span>
               </div>
-              <div className="border border-stone-200 rounded-lg overflow-hidden mb-lg">
+              <div className="mb-6 overflow-hidden rounded-2xl border border-stone-200">
                 <div className="grid grid-cols-2 border-b border-stone-200">
                   <div className="p-3 border-r border-stone-200 cursor-pointer hover:bg-surface-container-low transition-colors">
                     <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.moveIn")}</p>
@@ -603,7 +603,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 </div>
               </div>
 
-              <div className="mb-lg rounded-lg border border-secondary-container/40 bg-secondary-container/10 p-4 text-sm text-primary">
+              <div className="mb-6 rounded-2xl border border-secondary-container/40 bg-secondary-container/10 p-4 text-sm text-primary">
                 <p className="font-semibold">
                   {t("listingDetail.totalAmount", {
                     total: totalAmount,
@@ -674,7 +674,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     </label>
                   </div>
                   <button
-                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 hover:opacity-95 active:scale-95 transition-all disabled:opacity-70"
+                    className="w-full rounded-full bg-primary py-4 text-body-lg font-bold text-white transition-all hover:opacity-95 active:scale-95 disabled:opacity-70"
                     type="button"
                     disabled={isBooking || !bookingStartDate}
                     onClick={() => {
@@ -741,7 +741,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 </div>
               </div>
             </div>
-            <div className="mt-lg p-lg bg-secondary-container/20 rounded-lg border border-secondary-container/30 flex gap-4 items-start">
+            <div className="mt-5 flex items-start gap-4 rounded-[24px] border border-secondary-container/30 bg-secondary-container/20 p-5">
               <span className="material-symbols-outlined text-secondary">verified</span>
               <div>
                 <p className="font-bold text-primary text-sm">{t("listingDetail.protectedByCaveShield")}</p>

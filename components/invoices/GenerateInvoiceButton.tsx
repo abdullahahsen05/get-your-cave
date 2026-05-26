@@ -57,7 +57,7 @@ export default function GenerateInvoiceButton({
   return (
     <div className="space-y-2">
       <button
-        className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors ${className} ${loading ? "opacity-60 cursor-wait" : ""}`}
+        className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-colors ${className} ${loading ? "cursor-wait opacity-60" : ""}`}
         disabled={loading}
         type="button"
         onClick={() => {

@@ -131,10 +131,10 @@ export default function LocationPickerMap({
   );
 
   return (
-    <div className="relative h-full min-h-[280px] overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container">
+    <div className="relative h-full min-h-[240px] overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container sm:min-h-[280px]">
       <MapContainer
         center={center}
-        className="h-full min-h-[280px] w-full"
+        className="h-full min-h-[240px] w-full sm:min-h-[280px]"
         scrollWheelZoom={false}
         zoom={hasSelection ? SELECTED_ZOOM : DEFAULT_ZOOM}
       >
@@ -160,9 +160,9 @@ export default function LocationPickerMap({
         ) : null}
       </MapContainer>
 
-      <div className="pointer-events-none absolute left-4 top-4 max-w-[240px] rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
-        <p className="text-sm font-semibold text-primary">{t("maps.pickerTitle")}</p>
-        <p className="text-xs leading-relaxed text-on-surface-variant">
+      <div className="pointer-events-none absolute left-3 top-3 max-w-[200px] rounded-2xl border border-white/70 bg-white/90 px-3 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] sm:left-4 sm:top-4 sm:max-w-[240px] sm:px-4 sm:py-3">
+        <p className="text-xs font-semibold text-primary sm:text-sm">{t("maps.pickerTitle")}</p>
+        <p className="text-[11px] leading-relaxed text-on-surface-variant sm:text-xs">
           {t("maps.pickerDescription")}
         </p>
       </div>

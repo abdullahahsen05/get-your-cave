@@ -27,7 +27,7 @@ export default function ListingMap({
   const { t } = useTranslation();
   if (!isValidCoordinatePair(latitude, longitude)) {
     return (
-      <div className="flex h-[360px] items-center justify-center rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-6 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+      <div className="flex min-h-[240px] items-center justify-center overflow-hidden rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-4 py-4 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:min-h-[300px] sm:px-6 lg:min-h-[360px]">
         <div className="max-w-md space-y-2">
           <p className="font-h3 text-h3 text-primary">{t("maps.title")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -46,7 +46,7 @@ export default function ListingMap({
     <div className="overflow-hidden rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
       <MapContainer
         center={position}
-        className="h-[360px] w-full"
+        className="h-[240px] w-full sm:h-[300px] lg:h-[360px]"
         scrollWheelZoom={false}
         zoom={13}
       >
@@ -55,15 +55,15 @@ export default function ListingMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker icon={createListingMarkerIcon()} position={position}>
-          <Popup>
-            <div className="space-y-1">
-              <p className="font-semibold text-primary">{title}</p>
-              <p className="text-sm text-on-surface-variant">
-                {city}
-                {address ? ` ? ${address}` : ""}
-              </p>
-            </div>
-          </Popup>
+              <Popup>
+                <div className="space-y-1">
+                  <p className="font-semibold text-primary">{title}</p>
+                  <p className="text-sm text-on-surface-variant">
+                    {city}
+                    {address ? ` · ${address}` : ""}
+                  </p>
+                </div>
+              </Popup>
         </Marker>
       </MapContainer>
     </div>

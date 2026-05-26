@@ -66,7 +66,7 @@ export default function ListingsMap({ listings }: Props) {
 
   if (!points.length) {
     return (
-      <div className="flex h-[420px] items-center justify-center rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-6 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+      <div className="flex min-h-[240px] items-center justify-center overflow-hidden rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-4 py-4 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:min-h-[320px] sm:px-6 lg:min-h-[420px]">
         <div className="max-w-md space-y-2">
           <p className="font-h3 text-h3 text-primary">{t("maps.title")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -81,7 +81,7 @@ export default function ListingsMap({ listings }: Props) {
     <div className="overflow-hidden rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
       <MapContainer
         center={defaultCenter}
-        className="h-[420px] w-full"
+        className="h-[240px] w-full sm:h-[320px] lg:h-[420px]"
         scrollWheelZoom={false}
         zoom={5}
       >

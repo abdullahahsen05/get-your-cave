@@ -584,12 +584,12 @@ export default function AdminDashboardWorkspace() {
 
   return (
     <div className="min-h-screen bg-[#fcf9f8] font-['Manrope',sans-serif] text-[#1c1b1b] antialiased">
-      <main className="mx-auto max-w-[1440px] space-y-8 px-4 pb-20 pt-24 sm:px-6 sm:pt-28 lg:space-y-12 lg:px-12 lg:pt-32">
-        <div className="mb-10 flex flex-col gap-2">
-          <h1 className="text-[32px] font-bold leading-[1.1] text-[#0F3D3E] sm:text-[40px] lg:text-[48px]">
+      <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 pt-24 sm:px-6 sm:pt-28 md:space-y-8 lg:space-y-10 lg:px-10 xl:px-12 lg:pt-32">
+        <div className="mb-2 flex flex-col gap-3 rounded-[2rem] border border-[#EBEBE8] bg-white/70 px-5 py-6 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:px-7 sm:py-8 lg:px-10">
+          <h1 className="max-w-[760px] text-[30px] font-bold leading-[1.08] tracking-[-0.03em] text-[#0F3D3E] sm:text-[40px] lg:text-[50px]">
             {t("dashboard.admin.title")}
           </h1>
-          <p className="font-medium text-stone-500">
+          <p className="max-w-[760px] text-sm font-medium leading-6 text-stone-500 sm:text-base">
             {t("dashboard.admin.subtitle")}
           </p>
           {error ? (
@@ -599,16 +599,16 @@ export default function AdminDashboardWorkspace() {
           ) : null}
         </div>
 
-        <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           {statCards.map((item) => (
-            <div key={item.label} className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+            <div key={item.label} className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:p-7">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848]">
                   {item.label}
                 </p>
                 <span className="material-symbols-outlined text-[#4b6547]">{item.icon}</span>
               </div>
-              <h2 className="text-[36px] font-bold leading-[1.2] tracking-[-0.01em] text-[#0f3d3e]">
+              <h2 className="text-[32px] font-bold leading-none tracking-[-0.03em] text-[#0f3d3e] sm:text-[38px]">
                 {item.value}
               </h2>
               <p className="mt-2 text-sm font-medium italic leading-[1.5] text-[#4b6547]">
@@ -618,8 +618,8 @@ export default function AdminDashboardWorkspace() {
           ))}
         </section>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:col-span-2 lg:p-12">
+        <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:col-span-8 lg:p-8">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-12">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
                 {t("dashboard.admin.revenueActivity")}
@@ -642,7 +642,7 @@ export default function AdminDashboardWorkspace() {
               </div>
             </div>
 
-            <div className="relative flex h-[300px] w-full items-end justify-between px-2">
+            <div className="relative flex h-[240px] w-full items-end justify-between px-1 sm:h-[300px] sm:px-2">
               <div className="absolute inset-0 flex flex-col justify-between border-b border-l border-[#c0c8c8]/30 py-2">
                 {[0, 1, 2, 3].map((line) => (
                   <div key={line} className="w-full border-t border-[#c0c8c8]/10" />
@@ -679,7 +679,7 @@ export default function AdminDashboardWorkspace() {
             </div>
           </div>
 
-          <div className="tonal-card flex flex-col justify-between rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+          <div className="tonal-card flex flex-col justify-between gap-6 rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:col-span-4 lg:p-8">
             <div>
               <h3 className="mb-4 text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
                 {t("dashboard.admin.marketInsights")}
@@ -727,8 +727,8 @@ export default function AdminDashboardWorkspace() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+        <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+          <div className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:p-7">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
                 {t("dashboard.admin.pendingListings")}
@@ -747,7 +747,7 @@ export default function AdminDashboardWorkspace() {
             {moderationLoading ? (
               <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
             ) : pendingListings.length ? (
-              <div className="overflow-x-auto">
+              <div className="-mx-2 overflow-x-auto px-2">
                 <table className="w-full min-w-[640px] text-left">
                   <thead className="border-b border-[#EBEBE8]">
                     <tr>
@@ -790,7 +790,7 @@ export default function AdminDashboardWorkspace() {
                           </span>
                         </td>
                         <td className="py-4 text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex flex-col justify-end gap-2 sm:flex-row">
                             <button
                               className="rounded-full bg-[#0f3d3e] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                               disabled={
@@ -841,7 +841,7 @@ export default function AdminDashboardWorkspace() {
             )}
           </div>
 
-          <div className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+          <div className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:p-7">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
                 {t("dashboard.admin.pendingVerifications")}
@@ -854,7 +854,7 @@ export default function AdminDashboardWorkspace() {
             {moderationLoading ? (
               <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
             ) : verificationRows.length ? (
-              <div className="overflow-x-auto">
+              <div className="-mx-2 overflow-x-auto px-2">
                 <table className="w-full min-w-[760px] text-left">
                   <thead className="border-b border-[#EBEBE8]">
                     <tr>
@@ -951,7 +951,7 @@ export default function AdminDashboardWorkspace() {
         </section>
 
         {pendingUsers.length > 0 ? (
-          <section className="tonal-card rounded-[2rem] border border-[#EBEBE8] p-6 sm:p-8 lg:p-12">
+          <section className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:p-7">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
                 {t("components.admin.AdminDashboardWorkspace.text.pending.users.bb62ad0b")}
@@ -970,7 +970,7 @@ export default function AdminDashboardWorkspace() {
             {moderationLoading ? (
               <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="-mx-2 overflow-x-auto px-2">
                 <table className="w-full min-w-[640px] text-left">
                   <thead className="border-b border-[#EBEBE8]">
                     <tr>
@@ -1031,16 +1031,16 @@ export default function AdminDashboardWorkspace() {
           </section>
         ) : null}
 
-        <section className="tonal-card overflow-hidden rounded-[2rem] border border-[#EBEBE8]">
+        <section className="tonal-card overflow-hidden rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 shadow-[0_8px_32px_rgba(15,61,62,0.035)]">
           <div className="flex flex-col gap-4 border-b border-[#EBEBE8] px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-12">
             <h2 className="text-[28px] font-bold leading-[1.3] text-[#0f3d3e]">{t("dashboard.admin.recentActivity")}</h2>
-            <div className="flex items-center gap-4">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#404848]">
                   search
                 </span>
                 <input
-                  className="w-56 sm:w-64 rounded-full border border-[#EBEBE8] bg-white py-2 pl-10 pr-4 text-sm leading-[1.5] focus:border-[#4b6547] focus:ring-0"
+                  className="w-full rounded-full border border-[#EBEBE8] bg-white py-2.5 pl-10 pr-4 text-sm leading-[1.5] focus:border-[#4b6547] focus:ring-0 sm:w-64"
                 placeholder={t("dashboard.admin.filterActivity")}
                   type="text"
                   value={search}
@@ -1060,8 +1060,8 @@ export default function AdminDashboardWorkspace() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          <div className="-mx-2 overflow-x-auto px-2">
+            <table className="w-full min-w-[760px] text-left">
               <thead className="bg-[#f6f3f2]">
                 <tr>
                   {[t("dashboard.admin.nameId"), t("dashboard.admin.type"), t("dashboard.admin.status"), t("dashboard.admin.date")].map((heading) => (

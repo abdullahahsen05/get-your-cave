@@ -35,7 +35,7 @@ export default function OwnerBookingDetails({
   return (
     <div className="pt-1">
       <button
-        className="inline-flex items-center gap-1 rounded-full border border-outline-variant px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container"
+        className="inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-full border border-outline-variant px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container sm:w-auto"
         type="button"
         onClick={() => setOpen((v) => !v)}
       >
@@ -46,27 +46,27 @@ export default function OwnerBookingDetails({
       </button>
 
       {open ? (
-        <div className="mt-3 rounded-lg border border-outline-variant/30 bg-surface-container-low px-4 py-3 space-y-2 text-body-sm font-body-sm text-on-surface-variant">
-          <div className="flex justify-between gap-4">
+        <div className="mt-3 space-y-3 rounded-[20px] border border-outline-variant/30 bg-surface-container-low px-4 py-4 text-body-sm font-body-sm text-on-surface-variant sm:px-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4">
             <span>{t("dashboard.owner.duration")}</span>
             <span className="font-semibold text-on-surface">
               {months} {months === 1 ? t("dashboard.owner.month") : t("dashboard.owner.months")}
             </span>
           </div>
-          <div className="flex justify-between gap-4">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4">
             <span>{t("dashboard.owner.monthlyRent")}</span>
             <span className="font-semibold text-on-surface">{formatMoney(monthlyPrice)}</span>
           </div>
-          <div className="flex justify-between gap-4 border-t border-outline-variant/20 pt-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-t border-outline-variant/20 pt-3">
             <span>{t("dashboard.owner.estimatedTotal")}</span>
             <span className="font-bold text-primary">{formatMoney(estimatedTotal)}</span>
           </div>
           {renterNote ? (
-            <div className="border-t border-outline-variant/20 pt-2 space-y-1">
+            <div className="border-t border-outline-variant/20 pt-3 space-y-1">
               <span className="text-label-caps font-label-caps uppercase">
                 {t("dashboard.owner.renterNote")}
               </span>
-              <p className="text-on-surface italic">{renterNote}</p>
+              <p className="text-on-surface italic leading-relaxed">{renterNote}</p>
             </div>
           ) : null}
         </div>

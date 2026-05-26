@@ -21,6 +21,24 @@ const initialState: LoginFormState = {
   password: "",
 };
 
+const loginFeatures = [
+  {
+    icon: "verified",
+    titleKey: "auth.secureAccess",
+    descriptionKey: "auth.secureAccessDescription",
+  },
+  {
+    icon: "route",
+    titleKey: "auth.roleRouting",
+    descriptionKey: "auth.roleRoutingDescription",
+  },
+  {
+    icon: "lock",
+    titleKey: "auth.protectedSession",
+    descriptionKey: "auth.protectedSessionDescription",
+  },
+] as const;
+
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -85,153 +103,157 @@ export default function LoginPage() {
     }
   }
 
+  function updateField<K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) {
+    setErrorMessage(null);
+    setFormState((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
   return (
-    <main className="min-h-screen bg-surface text-on-surface antialiased flex items-center justify-center pt-32 pb-12 px-6">
-      <div className="w-full max-w-[1150px] bg-[#F7F7F5] rounded-[24px] shadow-[0_8px_40px_rgba(15,61,62,0.06)] overflow-hidden border border-[#EBEBE8]">
-        <div className="flex flex-col md:flex-row min-h-[600px]">
-          <aside className="w-full md:w-[40%] bg-secondary-container/30 relative p-8 md:p-12 flex flex-col justify-between overflow-hidden">
-            <div className="absolute inset-0 opacity-10 grayscale pointer-events-none">
+    <main className="min-h-screen bg-surface text-on-surface antialiased flex items-center justify-center pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-12 px-4 sm:px-6">
+      <div className="w-full max-w-[1160px] bg-[#F7F7F5] rounded-[28px] sm:rounded-[32px] shadow-[0_18px_70px_rgba(15,61,62,0.08)] overflow-hidden border border-[#EBEBE8]">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.92fr_1.08fr] min-h-[640px]">
+          <aside className="relative bg-secondary-container/30 overflow-hidden p-6 sm:p-8 lg:p-12 xl:p-14 flex flex-col justify-between gap-10 min-h-[360px] lg:min-h-full">
+            <div className="absolute inset-0 opacity-[0.11] grayscale pointer-events-none">
               <img
                 alt={t("app.login.page.alt.a.clean.professionally.organized.high.end.a735372d")}
                 className="w-full h-full object-cover"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuABaZjB_-aytvUuKveqUINV1YI1WXjyMSJ3dYyiCqOq_D4utxkOrqErgjJmQKWQXrc4IIDv-6PR_mAEE-uZgPAQyHaFlzBj3Aoclm38lS9n9RboAo3gEU6cdOwMw9uUM966NJbfem2kElH7gebXA9hq5WM940SYJ-ewFe1YDSSTzMkbT_cfYWDtTTUy6sfzAyur0zhmOY8nrhc_qtFpHM6WndltIV-bL4_zl5aB9vlEk81-EQLJ2vRh10uqB2QnZ1AZgcZ4E_wnL7U"
               />
             </div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.75),transparent_42%),linear-gradient(180deg,rgba(247,247,245,0.42),rgba(247,247,245,0.18))] pointer-events-none" />
 
-            <div className="relative z-10">
-              <h1 className="font-h2 text-h2 text-primary mb-12">
-                {t("auth.welcomeBack")}
-              </h1>
-
-              <div className="space-y-10">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
-                    <span className="material-symbols-outlined text-primary">
-                      verified
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-primary text-body-md">
-                      {t("auth.secureAccess")}
-                    </p>
-                    <p className="text-stone-500 text-body-sm">
-                      {t("auth.secureAccessDescription")}
-                    </p>
-                  </div>
+            <div className="relative z-10 space-y-10 sm:space-y-12">
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-on-primary/70 px-4 py-2 shadow-sm backdrop-blur-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span className="font-label-caps text-label-caps text-primary uppercase tracking-[0.18em]">
+                    GETYOURCAVE
+                  </span>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
-                    <span className="material-symbols-outlined text-primary">
-                      payments
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-primary text-body-md">
-                      {t("auth.roleRouting")}
-                    </p>
-                    <p className="text-stone-500 text-body-sm">
-                      {t("auth.roleRoutingDescription")}
-                    </p>
-                  </div>
+                <div className="space-y-3 max-w-[420px]">
+                  <h1 className="font-h2 text-h2 text-primary leading-tight">
+                    {t("auth.welcomeBack")}
+                  </h1>
+                  <p className="font-body-md text-body-md text-stone-500 leading-relaxed">
+                    {t("auth.loginHint")}
+                  </p>
                 </div>
+              </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-on-primary flex items-center justify-center shadow-sm shrink-0">
-                    <span className="material-symbols-outlined text-primary">
-                      description
-                    </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4 sm:gap-3 lg:gap-5">
+                {loginFeatures.map((item) => (
+                  <div
+                    className="group rounded-2xl border border-primary/10 bg-on-primary/70 p-4 sm:p-5 shadow-[0_8px_26px_rgba(15,61,62,0.04)] backdrop-blur-sm transition-all hover:border-primary/20 hover:bg-on-primary"
+                    key={item.titleKey}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#F7F7F5] flex items-center justify-center shadow-sm shrink-0 transition-transform group-hover:scale-105">
+                        <span className="material-symbols-outlined text-primary text-[22px]">
+                          {item.icon}
+                        </span>
+                      </div>
+                      <div className="min-w-0 pt-0.5">
+                        <p className="font-bold text-primary text-body-md leading-snug">
+                          {t(item.titleKey)}
+                        </p>
+                        <p className="mt-1 text-stone-500 text-body-sm leading-relaxed">
+                          {t(item.descriptionKey)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-primary text-body-md">
-                      {t("auth.protectedSession")}
-                    </p>
-                    <p className="text-stone-500 text-body-sm">
-                      {t("auth.protectedSessionDescription")}
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="relative z-10 pt-8">
-              <p className="text-xs text-secondary italic opacity-75">
-                {t("auth.loginHint")}
+            <div className="relative z-10 hidden lg:block">
+              <div className="h-px w-full bg-primary/10 mb-5" />
+              <p className="text-xs text-secondary italic opacity-75 leading-relaxed max-w-[360px]">
+                {t("auth.secureAccessDescription")}
               </p>
             </div>
           </aside>
 
-          <section className="w-full md:w-[60%] p-8 md:p-12 flex flex-col justify-between">
-            <div className="max-w-[480px] mx-auto w-full">
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <section>
-                  <div className="mb-10">
-                    <h3 className="font-h1 text-h1 text-primary mb-2">
-                      {t("auth.login")}
-                    </h3>
-                    <p className="font-body-md text-body-md text-stone-500">
-                      {t("auth.loginDescription")}
-                    </p>
+          <section className="bg-[#F7F7F5] p-6 sm:p-8 lg:p-12 xl:p-16 flex items-center">
+            <div className="max-w-[500px] mx-auto w-full">
+              <form className="space-y-8 sm:space-y-10" onSubmit={handleSubmit}>
+                <section className="space-y-8">
+                  <div className="space-y-3">
+                    <span className="font-label-caps text-label-caps text-secondary uppercase tracking-[0.18em]">
+                      {t("auth.signInTitle")}
+                    </span>
+                    <div className="space-y-2">
+                      <h2 className="font-h1 text-h1 text-primary leading-tight">
+                        {t("auth.login")}
+                      </h2>
+                      <p className="font-body-md text-body-md text-stone-500 leading-relaxed max-w-[430px]">
+                        {t("auth.loginDescription")}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="space-y-2">
+                  <div className="space-y-5 sm:space-y-6">
+                    <div className="space-y-2.5">
                       <label
-                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
+                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1 uppercase tracking-[0.14em]"
                         htmlFor="email"
-                        >
+                      >
                         {t("auth.email")}
                       </label>
-                      <input
-                        autoComplete="email"
-                        className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
-                        id="email"
-                        onChange={(event) =>
-                          setFormState((current) => ({
-                            ...current,
-                            email: event.target.value,
-                          }))
-                        }
-                        placeholder={t("auth.emailPlaceholder")}
-                        type="email"
-                        value={formState.email}
-                      />
+                      <div className="relative group">
+                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45 transition-colors group-focus-within:text-primary">
+                          mail
+                        </span>
+                        <input
+                          autoComplete="email"
+                          className="w-full bg-surface-container-low border border-transparent rounded-2xl pl-12 pr-5 py-4 sm:py-[18px] font-body-md text-body-md text-primary placeholder:text-stone-400 focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all outline-none"
+                          id="email"
+                          onChange={(event) => updateField("email", event.target.value)}
+                          placeholder={t("auth.emailPlaceholder")}
+                          type="email"
+                          value={formState.email}
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       <label
-                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1"
+                        className="font-label-caps text-label-caps text-on-tertiary-fixed-variant ml-1 uppercase tracking-[0.14em]"
                         htmlFor="password"
-                        >
+                      >
                         {t("auth.password")}
                       </label>
-                      <input
-                        autoComplete="current-password"
-                        className="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 font-body-md text-body-md focus:ring-2 focus:ring-primary/10 transition-all outline-none"
-                        id="password"
-                        onChange={(event) =>
-                          setFormState((current) => ({
-                            ...current,
-                            password: event.target.value,
-                          }))
-                        }
-                        placeholder={t("auth.passwordPlaceholder")}
-                        type="password"
-                        value={formState.password}
-                      />
+                      <div className="relative group">
+                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45 transition-colors group-focus-within:text-primary">
+                          lock
+                        </span>
+                        <input
+                          autoComplete="current-password"
+                          className="w-full bg-surface-container-low border border-transparent rounded-2xl pl-12 pr-5 py-4 sm:py-[18px] font-body-md text-body-md text-primary placeholder:text-stone-400 focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all outline-none"
+                          id="password"
+                          onChange={(event) => updateField("password", event.target.value)}
+                          placeholder={t("auth.passwordPlaceholder")}
+                          type="password"
+                          value={formState.password}
+                        />
+                      </div>
                     </div>
 
                     {errorMessage ? (
-                      <div className="rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+                      <div className="rounded-2xl border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3.5 text-sm text-[#7b2d2d] leading-relaxed">
                         {errorMessage}
                       </div>
                     ) : null}
                   </div>
                 </section>
 
-                <div className="pt-8 flex items-center justify-between gap-4">
+                <div className="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <Link
-                    className="px-8 py-3 rounded-full text-primary font-bold text-sm hover:bg-stone-100 transition-colors flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-full text-primary font-bold text-sm hover:bg-stone-100 transition-colors flex items-center justify-center gap-2"
                     href="/signup"
                   >
                     <span className="material-symbols-outlined text-sm">
@@ -241,7 +263,7 @@ export default function LoginPage() {
                   </Link>
 
                   <button
-                    className="bg-[#0F3D3E] text-on-primary px-10 py-4 rounded-full font-bold text-body-md hover:opacity-90 active:scale-[0.98] transition-all shadow-md flex items-center gap-2 disabled:opacity-60"
+                    className="w-full sm:w-auto bg-[#0F3D3E] text-on-primary px-8 sm:px-10 py-4 rounded-full font-bold text-body-md hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_12px_28px_rgba(15,61,62,0.16)] flex items-center justify-center gap-2 disabled:opacity-60"
                     disabled={isSubmitting}
                     type="submit"
                   >

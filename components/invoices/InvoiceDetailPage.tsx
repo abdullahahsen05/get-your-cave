@@ -5,13 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import GenerateInvoiceButton from "@/components/invoices/GenerateInvoiceButton";
 import StripeCheckoutButton from "@/components/payments/StripeCheckoutButton";
-import {
-  formatCurrency,
-} from "@/lib/invoices/formatCurrency";
-import {
-  getInvoiceStatusClass,
-  getInvoiceStatusLabel,
-} from "@/lib/invoices/invoiceTypes";
+import { formatCurrency } from "@/lib/invoices/formatCurrency";
+import { getInvoiceStatusClass, getInvoiceStatusLabel } from "@/lib/invoices/invoiceTypes";
 import { normalizeLocale } from "@/lib/i18n";
 import type { SafeInvoice } from "@/lib/invoices/generateInvoice";
 
@@ -41,143 +36,179 @@ function getStorageTypeLabel(storageType: string, t: (key: string) => string) {
   return storageType;
 }
 
+function InfoBlock({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-surface-container-low p-4 sm:p-5">
+      <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">{label}</p>
+      <p className="mt-2 text-body-sm font-semibold text-primary">{value}</p>
+    </div>
+  );
+}
+
 export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Props) {
   const { t, i18n } = useTranslation();
   const locale = normalizeLocale(i18n.language);
 
   return (
-    <main className="min-h-screen bg-background text-on-background pt-28 sm:pt-32 pb-24 mx-auto max-w-[1280px] px-4 sm:px-6">
-      <div className="mb-6 flex flex-col gap-2">
-        <Link className="text-body-sm font-body-sm text-primary hover:underline" href="/invoices">
-          {t("components.invoices.InvoiceDetailPage.text.text.b1a23455")} {t("invoiceDetail.backToInvoices")}
-        </Link>
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div>
-            <p className="font-label-caps text-label-caps text-secondary tracking-widest uppercase">
+    <main className="mx-auto min-h-screen max-w-[1380px] bg-background px-4 pb-24 pt-28 text-on-background sm:px-6 sm:pb-28 sm:pt-32 lg:px-8">
+      <section className="mb-8 flex flex-col gap-4 lg:mb-10 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-3">
+          <Link
+            className="inline-flex items-center gap-2 text-body-sm font-body-sm text-primary transition-colors hover:underline"
+            href="/invoices"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            {t("invoiceDetail.backToInvoices")}
+          </Link>
+
+          <div className="space-y-3">
+            <p className="font-label-caps text-label-caps uppercase tracking-[0.24em] text-secondary">
               {t("invoiceDetail.title")}
             </p>
-            <h1 className="font-h1 text-h1 text-primary">{invoice.invoiceNumber}</h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
-              {t("invoiceDetail.bookingLabel", { bookingNumber: invoice.bookingNumber, title: invoice.bookingTitle })}
+            <h1 className="max-w-4xl font-h1 text-[clamp(2.4rem,4vw,4.8rem)] leading-[0.95] tracking-[-0.04em] text-primary">
+              {invoice.invoiceNumber}
+            </h1>
+            <p className="max-w-3xl font-body-lg text-body-lg text-on-surface-variant">
+              {t("invoiceDetail.bookingLabel", {
+                bookingNumber: invoice.bookingNumber,
+                title: invoice.bookingTitle,
+              })}
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-3">
-            <span
-              className={`inline-flex items-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest ${getInvoiceStatusClass(invoice.status)}`}
-            >
-              {getInvoiceStatusLabel(invoice.status, locale)}
-            </span>
-            <a
-              className="inline-flex items-center gap-2 rounded-full border border-outline-variant px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low"
-              href={`/api/invoices/${invoice.id}/pdf`}
-            >
-              <span className="material-symbols-outlined text-sm">download</span>
-              {t("invoiceDetail.download")}
-            </a>
-            {canGenerate ? (
-              <GenerateInvoiceButton
-                bookingId={invoice.bookingId}
-                className="bg-primary text-on-primary"
-                label={t("invoiceDetail.generateRefresh")}
-              />
-            ) : null}
-            {canPay ? (
-              <StripeCheckoutButton
-                bookingId={invoice.bookingId}
-                className="bg-primary text-on-primary"
-                invoiceId={invoice.id}
-                label={t("invoiceDetail.payNow")}
-              />
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 space-y-6">
-          <div className="bg-surface-container-lowest rounded-lg border border-[#EBEBE8] p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">
-                  {t("invoiceDetail.booking")}
-                </p>
-                <h2 className="font-h3 text-h3 text-primary">{invoice.bookingTitle}</h2>
-                <p className="text-body-sm font-body-sm text-on-surface-variant mt-1">
-                  {invoice.bookingAddress}{t("components.invoices.InvoiceDetailPage.text.text.a2338170")} {invoice.bookingCity}
-                </p>
-                <p className="text-body-sm font-body-sm text-on-surface-variant mt-1">
-                  {t("invoiceDetail.storageType", {
-                    storageType: getStorageTypeLabel(invoice.bookingStorageType, t),
-                  })}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">
-                  {t("invoiceDetail.dates")}
-                </p>
-                <div className="space-y-1 text-body-sm font-body-sm text-on-surface">
-                  <p>{t("invoiceDetail.issuedAt")}{t("components.invoices.InvoiceDetailPage.text.text.9d4500d5")} {formatDate(invoice.issuedAt, locale)}</p>
-                  <p>{t("invoiceDetail.dueAt")}{t("components.invoices.InvoiceDetailPage.text.text.9d4500d5")} {formatDate(invoice.dueAt, locale)}</p>
-                  <p>{t("invoiceDetail.paidAt")}{t("components.invoices.InvoiceDetailPage.text.text.9d4500d5")} {formatDate(invoice.paidAt, locale)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest rounded-lg border border-[#EBEBE8] p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-            <div className="flex items-center justify-between gap-4 mb-6">
-              <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.paymentBreakdown")}</h2>
-              <p className="text-body-sm font-body-sm text-on-surface-variant">
-                {t("invoiceDetail.currency", { currency: invoice.currency.toUpperCase() })}
-              </p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-left">
-                <thead>
-                  <tr className="border-b border-[#EBEBE8]">
-                    <th className="py-3 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                      {t("invoiceDetail.description")}
-                    </th>
-                    <th className="py-3 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                      {t("invoiceDetail.quantity")}
-                    </th>
-                    <th className="py-3 text-[10px] uppercase tracking-widest text-on-surface-variant text-right">
-                      {t("invoiceDetail.amount")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EBEBE8]">
-                  {invoice.items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="py-4 pr-4">
-                        <p className="font-body-sm font-semibold text-primary">{item.description}</p>
-                        <p className="text-body-sm font-body-sm text-on-surface-variant">
-                          {t("invoiceDetail.itemizedLine")}
-                        </p>
-                      </td>
-                      <td className="py-4 text-body-sm font-body-sm text-on-surface">
-                        {item.quantity}
-                      </td>
-                      <td className="py-4 text-right font-body-sm font-semibold text-primary">
-                        {formatCurrency(item.total, invoice.currency.toUpperCase())}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
-        <aside className="lg:col-span-4 space-y-6">
-          <div className="bg-surface-container-lowest rounded-lg border border-[#EBEBE8] p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-            <h2 className="font-h3 text-h3 text-primary mb-6">{t("invoiceDetail.summary")}</h2>
+        <div className="flex flex-wrap gap-3">
+          <span
+            className={`inline-flex items-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest ${getInvoiceStatusClass(invoice.status)}`}
+          >
+            {getInvoiceStatusLabel(invoice.status, locale)}
+          </span>
+          <a
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-outline-variant px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low"
+            href={`/api/invoices/${invoice.id}/pdf`}
+          >
+            <span className="material-symbols-outlined text-sm">download</span>
+            {t("invoiceDetail.download")}
+          </a>
+          {canGenerate ? (
+            <GenerateInvoiceButton
+              bookingId={invoice.bookingId}
+              className="w-full rounded-full bg-primary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-container sm:w-auto"
+              label={t("invoiceDetail.generateRefresh")}
+            />
+          ) : null}
+          {canPay ? (
+            <StripeCheckoutButton
+              bookingId={invoice.bookingId}
+              className="w-full rounded-full bg-primary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-container sm:w-auto"
+              invoiceId={invoice.id}
+              label={t("invoiceDetail.payNow")}
+            />
+          ) : null}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.35fr)_420px] xl:items-start">
+        <div className="space-y-6">
+          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <InfoBlock
+                label={t("invoiceDetail.booking")}
+                value={invoice.bookingTitle}
+              />
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <InfoBlock
+                  label={t("invoiceDetail.issuedAt")}
+                  value={formatDate(invoice.issuedAt, locale)}
+                />
+                <InfoBlock
+                  label={t("invoiceDetail.dueAt")}
+                  value={formatDate(invoice.dueAt, locale)}
+                />
+                <InfoBlock
+                  label={t("invoiceDetail.paidAt")}
+                  value={formatDate(invoice.paidAt, locale)}
+                />
+                <InfoBlock
+                  label={t("invoiceDetail.storageTypeLabel")}
+                  value={getStorageTypeLabel(invoice.bookingStorageType, t)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[24px] bg-surface-container-low p-4 sm:p-5">
+              <div className="grid grid-cols-1 gap-3 text-body-sm font-body-sm text-on-surface-variant sm:grid-cols-2">
+                <p>{invoice.bookingAddress}</p>
+                <p>{invoice.bookingCity}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.paymentBreakdown")}</h2>
+                <p className="mt-1 text-body-sm font-body-sm text-on-surface-variant">
+                  {t("invoiceDetail.currency", { currency: invoice.currency.toUpperCase() })}
+                </p>
+              </div>
+              <div className="inline-flex w-fit items-center gap-3 rounded-full border border-outline-variant bg-surface-container-low px-4 py-2 text-body-sm font-body-sm text-on-surface-variant">
+                <span className="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
+                <span>
+                  {t("invoiceDetail.totalAmount")}{" "}
+                  <strong className="font-semibold text-primary">
+                    {formatCurrency(invoice.totalAmount, invoice.currency.toUpperCase())}
+                  </strong>
+                </span>
+              </div>
+            </div>
 
             <div className="space-y-4">
-              <div className="pt-4 border-t border-[#EBEBE8] flex items-center justify-between gap-4">
+              {invoice.items.map((item) => (
+                <article
+                  className="rounded-[24px] border border-outline-variant/20 bg-surface-container-low p-4 sm:p-5"
+                  key={item.id}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <p className="font-body-sm font-semibold text-primary">{item.description}</p>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {t("invoiceDetail.itemizedLine")}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 self-start sm:self-auto">
+                      <span className="rounded-full border border-outline-variant/30 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                        {t("invoiceDetail.quantity")} {item.quantity}
+                      </span>
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
+                          {t("invoiceDetail.amount")}
+                        </p>
+                        <p className="mt-1 font-body-md font-semibold text-primary">
+                          {formatCurrency(item.total, invoice.currency.toUpperCase())}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside className="space-y-6 xl:sticky xl:top-[120px]">
+          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+            <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.summary")}</h2>
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-container-low p-4">
                 <span className="font-body-md font-semibold text-primary">
                   {t("invoiceDetail.totalAmount")}
                 </span>
@@ -186,33 +217,33 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                 </span>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="bg-surface-container-lowest rounded-lg border border-[#EBEBE8] p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-            <h2 className="font-h3 text-h3 text-primary mb-6">{t("invoiceDetail.people")}</h2>
+          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+            <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.people")}</h2>
 
-            <div className="space-y-6">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">
+            <div className="mt-6 space-y-4">
+              <div className="rounded-2xl bg-surface-container-low p-4">
+                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
                   {t("invoiceDetail.renter")}
                 </p>
-                <p className="font-body-md font-semibold text-primary">{invoice.renterName}</p>
+                <p className="mt-2 font-body-md font-semibold text-primary">{invoice.renterName}</p>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">{invoice.renterEmail}</p>
               </div>
 
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">
+              <div className="rounded-2xl bg-surface-container-low p-4">
+                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
                   {t("invoiceDetail.owner")}
                 </p>
-                <p className="font-body-md font-semibold text-primary">{invoice.ownerName}</p>
+                <p className="mt-2 font-body-md font-semibold text-primary">{invoice.ownerName}</p>
                 <p className="text-body-sm font-body-sm text-on-surface-variant">{invoice.ownerEmail}</p>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="bg-surface-container-lowest rounded-lg border border-[#EBEBE8] p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
-            <h2 className="font-h3 text-h3 text-primary mb-6">{t("invoiceDetail.timeline")}</h2>
-            <div className="space-y-4">
+          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+            <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.timeline")}</h2>
+            <div className="mt-6 space-y-4">
               {invoice.timeline.map((item) => (
                 <div className="flex items-start gap-3" key={item.key}>
                   <span
@@ -227,7 +258,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         </aside>
       </section>
     </main>

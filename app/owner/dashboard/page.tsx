@@ -104,18 +104,44 @@ export default async function OwnerDashboardPage() {
     .slice(0, 4);
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] text-on-surface max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-12 pt-28 sm:pt-32">
-      <header className="space-y-2">
-        <p className="text-label-caps font-label-caps text-secondary tracking-widest">
-          {t("dashboard.owner.title")}
-        </p>
-        <h1 className="text-h1 font-h1 text-primary">
-          {t("dashboard.owner.welcome", { name: ownerName })}
-        </h1>
+    <main className="min-h-screen bg-[#F7F7F5] text-on-surface antialiased">
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-24 space-y-8 sm:space-y-10 lg:space-y-12">
+      <header className="relative overflow-hidden rounded-[28px] border border-outline-variant/20 bg-white px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10 shadow-[0_8px_32px_rgba(15,61,62,0.04)]">
+        <div className="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-secondary-container/30 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-primary/5 blur-3xl" />
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-2.5">
+            <p className="text-label-caps font-label-caps text-secondary tracking-[0.22em] uppercase">
+              {t("dashboard.owner.title")}
+            </p>
+            <h1 className="text-h1 font-h1 text-primary max-w-3xl leading-[0.95]">
+              {t("dashboard.owner.welcome", { name: ownerName })}
+            </h1>
+            <p className="max-w-2xl text-body-md font-body-md text-on-surface-variant">
+              {t("dashboard.owner.subtitle")}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant bg-white px-5 py-3 text-body-sm font-bold text-primary hover:bg-surface-container-low transition-colors"
+              href="/messaging"
+            >
+              <span className="material-symbols-outlined text-[18px]">chat</span>
+              {t("nav.messages")}
+            </Link>
+            <Link
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-body-sm font-bold text-on-primary hover:opacity-90 transition-opacity shadow-[0_12px_28px_rgba(15,61,62,0.14)]"
+              href="/create-listing"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              {t("dashboard.owner.addNewCave")}
+            </Link>
+          </div>
+        </div>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-low p-6 sm:p-8 lg:p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+        <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-[24px] border border-outline-variant/20 flex flex-col gap-3 shadow-[0_8px_28px_rgba(15,61,62,0.035)] min-h-[176px]">
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             {t("dashboard.owner.earnings")}
           </span>
@@ -130,7 +156,7 @@ export default async function OwnerDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-surface-container-low p-6 sm:p-8 lg:p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
+        <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-[24px] border border-outline-variant/20 flex flex-col gap-3 shadow-[0_8px_28px_rgba(15,61,62,0.035)] min-h-[176px]">
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             {t("dashboard.owner.activeListings")}
           </span>
@@ -142,7 +168,7 @@ export default async function OwnerDashboardPage() {
           </span>
         </div>
 
-        <div className="bg-surface-container-low p-6 sm:p-8 lg:p-12 rounded-lg border border-outline-variant/30 flex flex-col gap-2">
+        <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-[24px] border border-outline-variant/20 flex flex-col gap-3 shadow-[0_8px_28px_rgba(15,61,62,0.035)] min-h-[176px]">
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             {t("dashboard.owner.pendingRequests")}
           </span>
@@ -158,8 +184,8 @@ export default async function OwnerDashboardPage() {
         </div>
       </section>
 
-      <section className="bg-surface-container-low rounded-lg border border-outline-variant/30 overflow-hidden">
-        <div className="px-4 sm:px-6 lg:px-12 pt-8 sm:pt-12 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+      <section className="bg-white rounded-[28px] border border-outline-variant/20 overflow-hidden shadow-[0_8px_32px_rgba(15,61,62,0.04)]">
+        <div className="px-5 sm:px-8 lg:px-10 pt-7 sm:pt-9 lg:pt-10 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
           <div>
             <h2 className="text-h3 font-h3 text-primary">{t("dashboard.owner.revenueChart")}</h2>
             <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -177,7 +203,7 @@ export default async function OwnerDashboardPage() {
             </div>
         </div>
 
-        <div className="h-64 mt-8 relative px-4 sm:px-6 lg:px-12 pb-8 sm:pb-12">
+        <div className="h-56 sm:h-64 lg:h-72 mt-6 sm:mt-8 relative px-5 sm:px-8 lg:px-10 pb-8 sm:pb-10">
           <svg
             className="w-full h-full"
             preserveAspectRatio="none"
@@ -207,11 +233,11 @@ export default async function OwnerDashboardPage() {
         </div>
       </section>
 
-      <section className="space-y-6 mt-12">
+      <section className="space-y-5 sm:space-y-6 mt-8 sm:mt-10">
         <h2 className="text-h3 font-h3 text-primary">{t("dashboard.owner.earningsAndLegal")}</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-surface-container-low p-6 sm:p-8 rounded-lg border border-outline-variant/30 flex flex-col justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-[24px] border border-outline-variant/20 flex flex-col justify-between shadow-[0_8px_28px_rgba(15,61,62,0.035)] min-h-[160px]">
             <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
               {t("dashboard.owner.pendingPayouts")}
             </span>
@@ -229,7 +255,7 @@ export default async function OwnerDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-surface-container-low p-6 sm:p-8 rounded-lg border border-outline-variant/30 flex flex-col justify-between relative">
+          <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-[24px] border border-outline-variant/20 flex flex-col justify-between shadow-[0_8px_28px_rgba(15,61,62,0.035)] min-h-[160px] relative">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
               <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">
                 {t("dashboard.owner.unsignedContracts")}
@@ -249,7 +275,7 @@ export default async function OwnerDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-error-container/20 border border-error/20 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="bg-error-container/20 border border-error/20 p-4 sm:p-5 rounded-[20px] flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <span className="material-symbols-outlined text-error">error</span>
           <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
             <p className="text-body-sm font-medium text-on-error-container">
@@ -284,11 +310,11 @@ export default async function OwnerDashboardPage() {
             {dashboard.pendingBookings.length ? (
               dashboard.pendingBookings.map((booking) => (
                 <article
-                  className="rounded-lg border border-outline-variant/20 bg-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,61,62,0.04)]"
+                  className="rounded-[24px] border border-outline-variant/20 bg-white p-5 sm:p-6 lg:p-7 shadow-[0_8px_28px_rgba(15,61,62,0.035)]"
                   key={booking.id}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="space-y-2">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 lg:gap-8">
+                    <div className="space-y-2.5">
                       <p className="text-label-caps font-label-caps text-on-surface-variant">
                         {booking.renter.fullName}
                       </p>
@@ -356,11 +382,11 @@ export default async function OwnerDashboardPage() {
             {dashboard.activeBookings.length ? (
               dashboard.activeBookings.map((booking) => (
                 <article
-                  className="rounded-lg border border-outline-variant/20 bg-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,61,62,0.04)]"
+                  className="rounded-[24px] border border-outline-variant/20 bg-white p-5 sm:p-6 lg:p-7 shadow-[0_8px_28px_rgba(15,61,62,0.035)]"
                   key={booking.id}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="space-y-2">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 lg:gap-8">
+                    <div className="space-y-2.5">
                       <p className="text-label-caps font-label-caps text-on-surface-variant">
                         {booking.renter.fullName}
                       </p>
@@ -418,7 +444,7 @@ export default async function OwnerDashboardPage() {
           </div>
         </section>
 
-        <div className="bg-white rounded-lg border border-outline-variant/20 overflow-hidden">
+        <div className="bg-white rounded-[24px] border border-outline-variant/20 overflow-hidden shadow-[0_8px_28px_rgba(15,61,62,0.035)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left border-collapse">
               <thead>
@@ -477,8 +503,8 @@ export default async function OwnerDashboardPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-6">
+      <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px] gap-6 lg:gap-8 xl:gap-10">
+        <div className="space-y-5 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-h2 font-h2 text-primary">{t("dashboard.owner.yourListings")}</h2>
             <div className="flex flex-wrap items-center gap-3">
@@ -497,11 +523,11 @@ export default async function OwnerDashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {dashboard.ownerListings.length ? (
               dashboard.ownerListings.map((listing) => (
                 <article
-                  className="group bg-white rounded-lg overflow-hidden border border-outline-variant/20 hover:shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-all"
+                  className="group bg-white rounded-[24px] overflow-hidden border border-outline-variant/20 hover:shadow-[0_12px_32px_rgba(15,61,62,0.08)] transition-all"
                   key={listing.id}
                 >
                   <div className="aspect-video w-full overflow-hidden relative">
@@ -575,7 +601,7 @@ export default async function OwnerDashboardPage() {
         <aside className="space-y-6" id="recent-bookings">
           <h2 className="text-h2 font-h2 text-primary">{t("dashboard.owner.recentActivity")}</h2>
 
-          <div className="bg-surface-container-low rounded-lg p-6 space-y-6 border border-outline-variant/30">
+          <div className="bg-white rounded-[24px] p-5 sm:p-6 space-y-5 border border-outline-variant/20 shadow-[0_8px_28px_rgba(15,61,62,0.035)] lg:sticky lg:top-28">
             {recentActivity.length ? (
               recentActivity.map((booking) => (
                 <div className="flex gap-4 items-start" key={booking.id}>
@@ -609,6 +635,7 @@ export default async function OwnerDashboardPage() {
           </div>
         </aside>
       </section>
+      </div>
     </main>
   );
 }
