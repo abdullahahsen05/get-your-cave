@@ -63,7 +63,7 @@ const fallbackImages = [
 const ListingMap = dynamic(() => import("@/components/maps/ListingMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[360px] items-center justify-center rounded-2xl border border-[#EBEBE8] bg-surface-container animate-pulse" />
+    <div className="flex h-[360px] items-center justify-center rounded-2xl border border-outline-variant/60 bg-surface-container animate-pulse" />
   ),
 });
 
@@ -244,7 +244,7 @@ export default function ListingDetailPage({ listingId }: Props) {
     return (
       <main className="bg-background text-on-surface font-body-md selection:bg-secondary-container min-h-screen pt-28 sm:pt-32 pb-xxl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-outline-variant/30 bg-white p-8">
+        <div className="rounded-2xl border border-outline-variant/60 bg-surface p-8">
             <h1 className="font-h1 text-h1 text-primary">{t("listingDetail.notFoundTitle")}</h1>
             <p className="text-body-md text-on-surface-variant mt-2">
               {t("listingDetail.notFoundDescription")}
@@ -399,11 +399,11 @@ export default function ListingDetailPage({ listingId }: Props) {
             </div>
           </div>
           <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-3">
-            <button className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 font-label-caps text-label-caps transition-colors hover:bg-surface-container sm:flex-none" type="button">
+          <button className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2 font-label-caps text-label-caps transition-colors hover:bg-secondary-container/20 sm:flex-none" type="button">
               <span className="material-symbols-outlined text-md">ios_share</span>
               {t("listingDetail.share")}
             </button>
-            <button className="flex items-center gap-2 font-label-caps text-label-caps hover:bg-surface-container transition-colors p-2 rounded-lg" type="button">
+          <button className="flex items-center gap-2 font-label-caps text-label-caps hover:bg-secondary-container/20 transition-colors p-2 rounded-lg" type="button">
               <span className="material-symbols-outlined text-md">favorite</span>
               {t("listingDetail.save")}
             </button>
@@ -451,7 +451,7 @@ export default function ListingDetailPage({ listingId }: Props) {
 
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-xl">
           <div className="space-y-10 sm:space-y-12">
-            <section className="border-b border-stone-200 pb-8">
+            <section className="border-b border-outline-variant/60 pb-8">
               <div className="flex items-start justify-between gap-5 sm:gap-6">
                 <div>
             <h2 className="font-h2 text-[26px] leading-tight text-primary sm:text-h2 mb-2">
@@ -477,8 +477,8 @@ export default function ListingDetailPage({ listingId }: Props) {
                 ? listing.amenityNames.slice(0, 3)
                 : [t("listingDetail.secureAccess"), t("listingDetail.climateControl"), t("listingDetail.access247")]
               ).map((amenity) => (
-                <div className="flex gap-4 rounded-2xl border border-outline-variant/20 bg-white/70 p-4" key={amenity}>
-                  <span className="material-symbols-outlined text-primary text-3xl">
+                <div className="flex gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-low p-4" key={amenity}>
+                  <span className="material-symbols-outlined text-secondary text-3xl">
                     verified_user
                   </span>
                   <div>
@@ -491,7 +491,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               ))}
             </section>
 
-            <section className="border-t border-stone-200 pt-10">
+            <section className="border-t border-outline-variant/60 pt-10">
               <h3 className="font-h3 text-h3 text-primary mb-4">{t("listingDetail.aboutThisSpace")}</h3>
               <div className="max-w-3xl space-y-4 text-body-lg leading-relaxed text-on-surface-variant">
                 <p>{listing.description}</p>
@@ -502,7 +502,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               </div>
             </section>
 
-            <section className="flex flex-col items-center gap-6 rounded-[24px] border border-stone-100 bg-surface-container-low p-6 text-center sm:p-8 md:flex-row md:text-left">
+            <section className="flex flex-col items-center gap-6 rounded-[24px] border border-outline-variant/60 bg-surface-container-low p-6 text-center sm:p-8 md:flex-row md:text-left">
               <img
                 className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-white sm:h-28 sm:w-28"
                 alt={listing.owner.fullName}
@@ -534,7 +534,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 </div>
                 {sessionLoading ? (
                   <button
-                    className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all opacity-70"
+                    className="bg-secondary text-white px-xl py-3 rounded-full font-bold transition-all opacity-70"
                     type="button"
                     disabled
                   >
@@ -543,7 +543,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 ) : sessionUser ? (
                   canStartConversation ? (
                     <button
-                      className="rounded-full bg-primary px-8 py-3 font-bold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-70"
+                      className="rounded-full bg-secondary px-8 py-3 font-bold text-white transition-all hover:bg-[#d9590f] active:scale-95 disabled:opacity-70"
                       type="button"
                       disabled={isStartingConversation}
                       onClick={() => {
@@ -554,7 +554,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     </button>
                   ) : (
                     <button
-                      className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all opacity-70 cursor-not-allowed"
+                      className="bg-secondary text-white px-xl py-3 rounded-full font-bold transition-all opacity-70 cursor-not-allowed"
                       type="button"
                       disabled
                     >
@@ -563,7 +563,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                   )
                 ) : (
                   <button
-                    className="bg-primary text-white px-xl py-3 rounded-full font-bold transition-all hover:opacity-90 active:scale-95"
+                  className="bg-secondary text-white px-xl py-3 rounded-full font-bold transition-all hover:bg-[#d9590f] active:scale-95"
                     type="button"
                     onClick={() => router.push(loginHref)}
                   >
@@ -578,7 +578,7 @@ export default function ListingDetailPage({ listingId }: Props) {
           </div>
 
           <aside>
-            <div className="sticky top-28 rounded-[24px] border border-stone-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,61,62,0.08)] sm:p-6 lg:top-32">
+            <div className="sticky top-28 rounded-[24px] border border-outline-variant/60 bg-surface p-5 shadow-[0_18px_50px_rgba(17,24,39,0.06)] sm:p-6 lg:top-32">
                 <div className="mb-6 flex items-baseline justify-between gap-4">
                 <span className="font-h2 text-h2 text-primary">
                   €{listing.pricePerMonth}
@@ -586,18 +586,18 @@ export default function ListingDetailPage({ listingId }: Props) {
                 </span>
                 <span className="text-body-sm font-semibold underline">{t("listingDetail.details")}</span>
               </div>
-              <div className="mb-6 overflow-hidden rounded-2xl border border-stone-200">
-                <div className="grid grid-cols-2 border-b border-stone-200">
-                  <div className="p-3 border-r border-stone-200 cursor-pointer hover:bg-surface-container-low transition-colors">
+              <div className="mb-6 overflow-hidden rounded-2xl border border-outline-variant/60">
+                <div className="grid grid-cols-2 border-b border-outline-variant/60">
+                  <div className="p-3 border-r border-outline-variant/60 cursor-pointer hover:bg-secondary-container/10 transition-colors">
                     <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.moveIn")}</p>
                     <p className="text-sm font-medium">{t("listingDetail.anytime")}</p>
                   </div>
-                  <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
+                  <div className="p-3 cursor-pointer hover:bg-secondary-container/10 transition-colors">
                     <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.durationMonths")}</p>
                     <p className="text-sm font-medium">{bookingDurationMonths} {t("listingDetail.months")}</p>
                   </div>
                 </div>
-                <div className="p-3 cursor-pointer hover:bg-surface-container-low transition-colors">
+                <div className="p-3 cursor-pointer hover:bg-secondary-container/10 transition-colors">
                   <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.unitSize")}</p>
                   <p className="text-sm font-medium">{listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")}</p>
                 </div>
@@ -614,7 +614,7 @@ export default function ListingDetailPage({ listingId }: Props) {
 
               {sessionLoading ? (
                 <button
-                  className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg mb-lg scale-100 opacity-70 transition-all"
+                  className="w-full bg-secondary text-white py-4 rounded-full font-bold text-body-lg mb-lg scale-100 opacity-70 transition-all"
                   type="button"
                   disabled
                 >
@@ -623,7 +623,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               ) : !isBookable ? (
                 <div className="mb-lg space-y-3">
                   <button
-                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 opacity-70 transition-all cursor-not-allowed"
+                    className="w-full bg-secondary text-white py-4 rounded-full font-bold text-body-lg scale-100 opacity-70 transition-all cursor-not-allowed"
                     type="button"
                     disabled
                   >
@@ -674,7 +674,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                     </label>
                   </div>
                   <button
-                    className="w-full rounded-full bg-primary py-4 text-body-lg font-bold text-white transition-all hover:opacity-95 active:scale-95 disabled:opacity-70"
+                    className="w-full rounded-full bg-secondary py-4 text-body-lg font-bold text-white transition-all hover:bg-[#d9590f] active:scale-95 disabled:opacity-70"
                     type="button"
                     disabled={isBooking || !bookingStartDate}
                     onClick={() => {
@@ -687,7 +687,7 @@ export default function ListingDetailPage({ listingId }: Props) {
               ) : sessionUser ? (
                 <div className="mb-lg">
                   <button
-                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 opacity-70 transition-all cursor-not-allowed"
+                    className="w-full bg-secondary text-white py-4 rounded-full font-bold text-body-lg scale-100 opacity-70 transition-all cursor-not-allowed"
                     type="button"
                     disabled
                   >
@@ -697,14 +697,14 @@ export default function ListingDetailPage({ listingId }: Props) {
               ) : (
                 <div className="mb-lg space-y-3">
                   <button
-                    className="w-full bg-primary text-white py-4 rounded-full font-bold text-body-lg scale-100 hover:opacity-95 active:scale-95 transition-all"
+                    className="w-full bg-secondary text-white py-4 rounded-full font-bold text-body-lg scale-100 hover:bg-[#d9590f] active:scale-95 transition-all"
                     type="button"
                     onClick={() => router.push(loginHref)}
                   >
                     {t("listingDetail.loginToBook")}
                   </button>
                   <button
-                    className="w-full border border-outline-variant text-primary py-3 rounded-full font-bold text-body-md hover:bg-surface-container transition-all"
+                    className="w-full border border-outline-variant text-primary py-3 rounded-full font-bold text-body-md hover:bg-secondary-container/20 transition-all"
                     type="button"
                     onClick={() => router.push(signupHref)}
                   >
@@ -722,7 +722,7 @@ export default function ListingDetailPage({ listingId }: Props) {
                 </div>
               ) : null}
               {bookingError ? (
-                <div className="mb-4 rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+                <div className="mb-4 rounded-lg border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3 text-sm text-[#8f3d12]">
                   {bookingError}
                 </div>
               ) : null}
@@ -735,13 +735,13 @@ export default function ListingDetailPage({ listingId }: Props) {
                   <span className="underline">{t("listingDetail.caveInsurance")}</span>
                   <span>€{listing.insuranceFee}</span>
                 </div>
-                <div className="border-t border-stone-200 pt-3 mt-4 flex justify-between font-bold text-primary text-body-lg">
+                <div className="border-t border-outline-variant/60 pt-3 mt-4 flex justify-between font-bold text-primary text-body-lg">
                   <span>{t("listingDetail.totalMonthly")}</span>
                   <span>€{Number(listing.pricePerMonth).toFixed(2)}</span>
                 </div>
               </div>
             </div>
-            <div className="mt-5 flex items-start gap-4 rounded-[24px] border border-secondary-container/30 bg-secondary-container/20 p-5">
+            <div className="mt-5 flex items-start gap-4 rounded-[24px] border border-secondary/20 bg-secondary-container/20 p-5">
               <span className="material-symbols-outlined text-secondary">verified</span>
               <div>
                 <p className="font-bold text-primary text-sm">{t("listingDetail.protectedByCaveShield")}</p>

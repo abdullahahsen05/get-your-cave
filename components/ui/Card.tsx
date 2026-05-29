@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 
 export function Card({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={`gyc-card p-4 sm:p-lg ${className}`} {...props} />;
+  return <div className={`gyc-card bg-surface p-4 sm:p-lg ${className}`} {...props} />;
 }
 
 export function CardHeader({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {

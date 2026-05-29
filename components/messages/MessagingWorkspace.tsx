@@ -628,9 +628,9 @@ export default function MessagingWorkspace({
 
   if (currentUser.role !== "OWNER" && currentUser.role !== "RENTER") {
     return (
-      <div className="min-h-screen overflow-x-hidden bg-[#F7F7F5] text-on-surface antialiased">
+      <div className="min-h-screen overflow-x-hidden bg-background text-on-surface antialiased">
         <main className="mx-auto max-w-[1280px] px-3 pt-24 pb-6 sm:px-6 sm:pt-28 lg:px-gutter lg:pt-[132px]">
-          <div className="flex min-h-[680px] items-center justify-center rounded-[28px] border border-[#EBEBE8] bg-white shadow-[0_18px_60px_rgba(15,61,62,0.07)]">
+          <div className="flex min-h-[680px] items-center justify-center rounded-[28px] border border-outline-variant/60 bg-surface shadow-[0_18px_60px_rgba(17,24,39,0.06)]">
             <div className="text-center max-w-md px-6">
               <h2 className="font-h2 text-h2 text-primary mb-3">{t("messaging.unavailableTitle")}</h2>
               <p className="font-body-md text-body-md text-on-surface-variant">
@@ -652,11 +652,11 @@ export default function MessagingWorkspace({
         : t("common.connecting");
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F7F7F5] text-on-surface antialiased">
+    <div className="min-h-screen overflow-x-hidden bg-background text-on-surface antialiased">
       <main className="mx-auto max-w-[1280px] px-3 pt-24 pb-6 sm:px-6 sm:pt-28 lg:px-gutter lg:pt-[132px]">
-        <div className="flex h-[calc(100vh-8.5rem)] min-h-[640px] flex-col overflow-hidden rounded-[28px] border border-[#EBEBE8] bg-white shadow-[0_18px_60px_rgba(15,61,62,0.07)] md:h-[calc(100vh-9.5rem)] md:min-h-[680px] md:flex-row">
-          <aside className="flex max-h-[38vh] w-full shrink-0 flex-col border-b border-[#EBEBE8] bg-surface md:max-h-none md:w-[360px] md:border-b-0 md:border-r lg:w-[390px]">
-            <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#EBEBE8] px-4 sm:px-6">
+        <div className="flex h-[calc(100vh-8.5rem)] min-h-[640px] flex-col overflow-hidden rounded-[28px] border border-outline-variant/60 bg-surface shadow-[0_18px_60px_rgba(17,24,39,0.06)] md:h-[calc(100vh-9.5rem)] md:min-h-[680px] md:flex-row">
+          <aside className="flex max-h-[38vh] w-full shrink-0 flex-col border-b border-outline-variant/60 bg-surface-container-low md:max-h-none md:w-[360px] md:border-b-0 md:border-r lg:w-[390px]">
+            <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-outline-variant/60 px-4 sm:px-6">
               <h2 className="font-h2 text-[26px] leading-tight text-primary sm:text-h2">{t("messaging.title")}</h2>
             </div>
 
@@ -666,7 +666,7 @@ export default function MessagingWorkspace({
                   search
                 </span>
                 <input
-                  className="h-11 w-full rounded-full border border-transparent bg-surface-container-low py-2 pl-10 pr-4 text-sm font-manrope placeholder-stone-400 outline-none transition-colors focus:border-primary/40 focus:ring-0"
+                  className="h-11 w-full rounded-full border border-outline-variant/60 bg-surface-container-low py-2 pl-10 pr-4 text-sm font-manrope placeholder-stone-400 outline-none transition-colors focus:border-secondary/40 focus:ring-0"
                   placeholder={t("messaging.searchPlaceholder")}
                   type="text"
                   value={searchTerm}
@@ -687,17 +687,17 @@ export default function MessagingWorkspace({
                     <button
                       className={`w-full cursor-pointer rounded-[20px] px-3 py-3 text-left transition-all sm:px-4 ${
                         isActive
-                          ? "bg-[#F2F0E9] shadow-sm"
+                          ? "bg-secondary-container/20 shadow-sm"
                           : index === 0
-                            ? "border-b border-[#F7F7F5]"
-                            : "hover:bg-stone-50"
+                            ? "border-b border-outline-variant/20"
+                            : "hover:bg-secondary-container/10"
                       }`}
                       key={conversation.id}
                       type="button"
                       onClick={() => handleSelectConversation(conversation.id)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-primary bg-stone-200">
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-secondary bg-stone-200">
                         <img
                           alt={conversation.otherParticipant.fullName}
                           className="w-full h-full object-cover"
@@ -722,7 +722,7 @@ export default function MessagingWorkspace({
                         </p>
                       </div>
                         {conversation.unreadCount > 0 ? (
-                          <span className="ml-2 inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-primary px-2 text-[10px] font-bold text-white">
+                          <span className="ml-2 inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-secondary px-2 text-[10px] font-bold text-white">
                             {conversation.unreadCount}
                           </span>
                         ) : null}
@@ -738,10 +738,10 @@ export default function MessagingWorkspace({
             </div>
           </aside>
 
-          <section className="flex min-h-0 flex-1 flex-col bg-white md:min-h-0">
-            <header className="flex shrink-0 flex-col gap-3 border-b border-[#EBEBE8] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 md:h-[72px] md:py-0">
+          <section className="flex min-h-0 flex-1 flex-col bg-surface md:min-h-0">
+            <header className="flex shrink-0 flex-col gap-3 border-b border-outline-variant/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 md:h-[72px] md:py-0">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-stone-100 ring-1 ring-[#EBEBE8]">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-stone-100 ring-1 ring-outline-variant/60">
                   <img
                     alt={activeConversation?.otherParticipant.fullName ?? "Conversation"}
                     className="w-full h-full object-cover"
@@ -768,7 +768,7 @@ export default function MessagingWorkspace({
               </div>
 
               <button
-                className="self-start rounded-full border border-primary px-4 py-2 font-label-caps text-xs text-primary transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
+                className="self-start rounded-full border border-secondary px-4 py-2 font-label-caps text-xs text-secondary transition-all hover:bg-secondary-container/20 disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
                 type="button"
                 disabled={!activeConversation?.listingId}
                 onClick={() => {
@@ -781,7 +781,7 @@ export default function MessagingWorkspace({
               </button>
             </header>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-[#FCF9F8] px-4 py-5 sm:px-6 sm:py-6">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-background px-4 py-5 sm:px-6 sm:py-6">
               {detailLoading ? (
                 <div className="text-sm text-stone-500">{t("messaging.loadingMessages")}</div>
               ) : selectedMessages.length ? (
@@ -791,15 +791,15 @@ export default function MessagingWorkspace({
                   return (
                     <div
                       className={`flex max-w-[88%] flex-col gap-1.5 sm:max-w-[72%] lg:max-w-[64%] ${
-                        isOutgoing ? "self-end items-end" : ""
+                          isOutgoing ? "self-end items-end" : ""
                       }`}
                       key={message.id}
                     >
                       <div
                         className={`message-bubble px-4 py-3 text-body-md leading-relaxed shadow-sm sm:px-5 ${
                           isOutgoing
-                            ? "message-bubble-outgoing rounded-[22px] rounded-br-md bg-[#0F3D3E] text-white"
-                            : "message-bubble-incoming rounded-[22px] rounded-bl-md bg-[#F2F0E9] text-on-surface"
+                            ? "message-bubble-outgoing rounded-[22px] rounded-br-md bg-secondary text-white"
+                            : "message-bubble-incoming rounded-[22px] rounded-bl-md bg-surface-container-low text-on-surface"
                         }`}
                       >
                         {message.type === "FILE" && message.fileUrl ? (
@@ -822,17 +822,17 @@ export default function MessagingWorkspace({
                   );
                 })
               ) : selectedConversationId ? (
-                <div className="m-auto max-w-md rounded-[24px] border border-[#EBEBE8] bg-white p-8 text-center text-on-surface-variant shadow-sm">
+                <div className="m-auto max-w-md rounded-[24px] border border-outline-variant/60 bg-surface p-8 text-center text-on-surface-variant shadow-sm">
                   {t("messaging.noMessagesYet")}
                 </div>
               ) : (
-                <div className="m-auto max-w-md rounded-[24px] border border-[#EBEBE8] bg-white p-8 text-center text-on-surface-variant shadow-sm">
+                <div className="m-auto max-w-md rounded-[24px] border border-outline-variant/60 bg-surface p-8 text-center text-on-surface-variant shadow-sm">
                   {t("messaging.selectConversationToStart")}
                 </div>
               )}
 
               {errorMessage ? (
-                <div className="rounded-lg border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+                <div className="rounded-lg border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3 text-sm text-[#8f3d12]">
                   {errorMessage}
                 </div>
               ) : null}
@@ -840,9 +840,9 @@ export default function MessagingWorkspace({
               <div ref={scrollAnchorRef} />
             </div>
 
-            <div className="shrink-0 border-t border-[#EBEBE8] bg-white p-3 sm:p-5">
-              <div className="flex items-end gap-2 rounded-[28px] border border-[#EBEBE8] bg-[#F2F0E9]/50 px-3 py-2 transition-colors focus-within:border-primary sm:gap-3 sm:px-4 sm:py-3">
-                <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-white hover:text-primary" type="button">
+            <div className="shrink-0 border-t border-outline-variant/60 bg-surface p-3 sm:p-5">
+              <div className="flex items-end gap-2 rounded-[28px] border border-outline-variant/60 bg-secondary-container/10 px-3 py-2 transition-colors focus-within:border-secondary sm:gap-3 sm:px-4 sm:py-3">
+                <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-secondary-container/20 hover:text-secondary" type="button">
                   <span className="material-symbols-outlined" data-icon="attach_file">
                     attach_file
                   </span>
@@ -861,7 +861,7 @@ export default function MessagingWorkspace({
                   }}
                 />
                 <button
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-all hover:opacity-90 active:scale-95"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-white transition-all hover:bg-[#d9590f] active:scale-95"
                   type="button"
                   onClick={handleSendMessage}
                 >

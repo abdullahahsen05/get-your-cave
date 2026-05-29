@@ -27,7 +27,7 @@ export default function ListingMap({
   const { t } = useTranslation();
   if (!isValidCoordinatePair(latitude, longitude)) {
     return (
-      <div className="flex min-h-[240px] items-center justify-center overflow-hidden rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest px-4 py-4 text-center shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:min-h-[300px] sm:px-6 lg:min-h-[360px]">
+      <div className="flex min-h-[240px] items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest px-4 py-4 text-center shadow-[0_10px_30px_rgba(17,24,39,0.05)] sm:min-h-[300px] sm:px-6 lg:min-h-[360px]">
         <div className="max-w-md space-y-2">
           <p className="font-h3 text-h3 text-primary">{t("maps.title")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -43,7 +43,7 @@ export default function ListingMap({
   const position = toLatLng(safeLatitude, safeLongitude);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+    <div className="overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest shadow-[0_10px_30px_rgba(17,24,39,0.05)]">
       <MapContainer
         center={position}
         className="h-[240px] w-full sm:h-[300px] lg:h-[360px]"

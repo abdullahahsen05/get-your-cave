@@ -32,7 +32,7 @@ export default async function ContractsRoutePage() {
       `}</style>
 
       <div className="mx-auto flex max-w-[1480px] flex-col gap-8">
-      <header className="space-y-2">
+        <header className="space-y-2">
         <h1 className="font-h1 text-h1 text-primary">{t("contracts.title")}</h1>
         <p className="max-w-3xl font-body-lg text-body-lg text-on-surface-variant">
           {t("contracts.subtitle")}
@@ -46,7 +46,7 @@ export default async function ContractsRoutePage() {
           isAdmin={currentUser.role === "ADMIN"}
         />
       ) : (
-        <div className="rounded-[28px] border border-outline-variant/30 bg-surface-container-low p-6 text-on-surface-variant shadow-[0_8px_30px_rgba(15,61,62,0.04)] sm:p-8">
+        <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-6 text-on-surface-variant shadow-[0_10px_32px_rgba(17,24,39,0.05)] sm:p-8">
           {t("contracts.signInRequired")}
         </div>
       )}

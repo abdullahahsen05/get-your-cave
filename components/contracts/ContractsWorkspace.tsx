@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SafeGeneratedContract } from "@/lib/contracts/generateContract";
@@ -41,9 +41,9 @@ function formatCurrency(value: string, locale: string) {
 function getStatusStyles(status: SafeGeneratedContract["status"]) {
   switch (status) {
     case "SIGNED":
-      return "bg-primary-fixed text-on-primary-fixed-variant";
-    case "GENERATED":
       return "bg-secondary-container text-on-secondary-container";
+    case "GENERATED":
+      return "bg-secondary-container/70 text-on-secondary-container";
     case "SENT":
     case "SENT_FOR_SIGNATURE":
       return "bg-tertiary-fixed text-on-tertiary-fixed-variant";
@@ -59,11 +59,11 @@ function getStatusStyles(status: SafeGeneratedContract["status"]) {
 function getTypeStyles(contractType: SafeGeneratedContract["contractType"]) {
   switch (contractType) {
     case "SEASONAL_RENTAL":
-      return "bg-secondary-container/50 text-on-secondary-container";
+      return "bg-secondary-container/40 text-on-secondary-container";
     case "PLATFORM_INTRODUCTION":
       return "bg-tertiary-fixed text-on-tertiary-fixed-variant";
     default:
-      return "bg-primary-fixed/40 text-on-primary-fixed-variant";
+      return "bg-secondary-container/30 text-on-secondary-container";
   }
 }
 
@@ -127,20 +127,15 @@ export function ContractsWorkspace({
     return sorted;
   }, [contracts, filter, sort]);
 
+  const activeSelectedContractId =
+    filteredContracts.some((contract) => contract.id === selectedContractId)
+      ? selectedContractId
+      : filteredContracts[0]?.id ?? "";
+
   const selectedContract =
-    filteredContracts.find((contract) => contract.id === selectedContractId) ??
+    filteredContracts.find((contract) => contract.id === activeSelectedContractId) ??
     filteredContracts[0] ??
     null;
-
-  useEffect(() => {
-    if (!filteredContracts.length) {
-      return;
-    }
-
-    if (!filteredContracts.some((contract) => contract.id === selectedContractId)) {
-      setSelectedContractId(filteredContracts[0].id);
-    }
-  }, [filteredContracts, selectedContractId]);
 
   async function handleGenerate(contract: SafeGeneratedContract) {
     setBusyId(contract.id);
@@ -184,14 +179,14 @@ export function ContractsWorkspace({
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(340px,0.6fr)] xl:items-start">
       <section className="space-y-6">
-        <div className="rounded-[28px] border border-outline-variant/30 bg-surface-container-low/70 p-4 shadow-[0_8px_30px_rgba(15,61,62,0.04)] sm:p-5">
+        <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low/70 p-4 shadow-[0_10px_32px_rgba(17,24,39,0.05)] sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <span className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                 {t("contracts.filterStatus")}
               </span>
               <select
-                className="min-h-11 rounded-full border border-outline-variant/30 bg-surface px-4 py-2 text-body-sm font-medium text-on-surface ring-0 transition-shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+                className="min-h-11 rounded-full border border-outline-variant/60 bg-surface px-4 py-2 text-body-sm font-medium text-on-surface ring-0 transition-shadow focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10"
                 value={filter}
                 onChange={(event) =>
                   setFilter(event.target.value as "all" | "generated" | "sent" | "signed" | "cancelled")
@@ -212,7 +207,7 @@ export function ContractsWorkspace({
                 {t("common.sortBy")}
               </span>
               <select
-                className="min-h-11 rounded-full border border-outline-variant/30 bg-surface px-4 py-2 text-body-sm font-medium text-on-surface ring-0 transition-shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+                className="min-h-11 rounded-full border border-outline-variant/60 bg-surface px-4 py-2 text-body-sm font-medium text-on-surface ring-0 transition-shadow focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10"
                 value={sort}
                 onChange={(event) => setSort(event.target.value as "newest" | "oldest" | "amount")}
               >
@@ -225,7 +220,7 @@ export function ContractsWorkspace({
         </div>
 
         {isAdmin ? (
-          <div className="rounded-[24px] border border-primary/20 bg-primary/5 px-4 py-3 text-body-sm text-primary shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
+        <div className="rounded-[24px] border border-secondary/20 bg-secondary-container/15 px-4 py-3 text-body-sm text-primary shadow-[0_8px_24px_rgba(15,61,62,0.04)]">
             {t("contracts.adminAllContractsNote")}
           </div>
         ) : null}
@@ -235,9 +230,9 @@ export function ContractsWorkspace({
             filteredContracts.map((contract) => (
               <article
                 className={`rounded-[24px] border p-4 shadow-[0_8px_24px_rgba(15,61,62,0.04)] transition-all ${
-                  contract.id === selectedContractId
-                    ? "border-primary/40 bg-primary/5"
-                    : "border-outline-variant/30 bg-surface-container-lowest"
+                  contract.id === activeSelectedContractId
+                    ? "border-secondary/40 bg-secondary-container/10"
+                    : "border-outline-variant/60 bg-surface-container-lowest"
                 }`}
                 key={contract.id}
               >
@@ -267,21 +262,21 @@ export function ContractsWorkspace({
                   <div className={`${getTypeStyles(contract.contractType)} rounded-2xl px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em]`}>
                     {getContractTypeBadge(contract.contractType, locale)}
                   </div>
-                  <div className="rounded-2xl border border-outline-variant/20 bg-background/60 px-3 py-2 text-body-sm text-on-surface-variant">
+                    <div className="rounded-2xl border border-outline-variant/60 bg-background/60 px-3 py-2 text-body-sm text-on-surface-variant">
                     {formatDate(contract.generatedAt, locale)}
                   </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
-                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-outline-variant/30 px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-surface-container"
+                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-outline-variant/60 px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-surface-container-low"
                     type="button"
                     onClick={() => setSelectedContractId(contract.id)}
                   >
                     {t("common.viewDetails")}
                   </button>
                   <button
-                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-secondary px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-on-secondary transition-opacity hover:bg-[#d9590f] disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!canGenerate || busyId === contract.id}
                     type="button"
                     onClick={() => handleGenerate(contract)}
@@ -292,29 +287,29 @@ export function ContractsWorkspace({
               </article>
             ))
           ) : (
-            <div className="rounded-[24px] border border-outline-variant/30 bg-surface-container-lowest px-5 py-10 text-center text-on-surface-variant">
+            <div className="rounded-[24px] border border-outline-variant/60 bg-surface-container-lowest px-5 py-10 text-center text-on-surface-variant">
               {t("contracts.noContracts")}
             </div>
           )}
         </div>
 
-        <div className="hidden overflow-hidden rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.02)] lg:block">
+        <div className="hidden overflow-hidden rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest shadow-[0_10px_30px_rgba(17,24,39,0.05)] lg:block">
           <table className="min-w-[780px] w-full border-collapse text-left">
             <thead className="bg-surface-container-low">
               <tr>
-                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                <th className="border-b border-outline-variant/60 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.booking")}
                 </th>
-                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                <th className="border-b border-outline-variant/60 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.type")}
                 </th>
-                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                <th className="border-b border-outline-variant/60 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.status")}
                 </th>
-                <th className="border-b border-outline-variant/30 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                <th className="border-b border-outline-variant/60 px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.date")}
                 </th>
-                <th className="border-b border-outline-variant/30 px-6 py-4 text-right font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
+                <th className="border-b border-outline-variant/60 px-6 py-4 text-right font-label-caps text-[11px] uppercase tracking-[0.24em] text-on-surface-variant">
                   {t("contracts.actions")}
                 </th>
               </tr>
@@ -326,7 +321,7 @@ export function ContractsWorkspace({
                   <tr
                     className={
                       contract.id === selectedContractId
-                        ? "border-l-4 border-l-primary bg-primary/5"
+                        ? "border-l-4 border-l-secondary bg-secondary-container/10"
                         : "transition-colors hover:bg-surface-container-low"
                     }
                     key={contract.id}
@@ -365,14 +360,14 @@ export function ContractsWorkspace({
                     <td className="px-6 py-4 align-top text-right">
                       <div className="inline-flex flex-wrap items-center justify-end gap-3">
                         <button
-                          className="rounded-full border border-outline-variant/30 px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-surface-container"
+                        className="rounded-full border border-outline-variant/60 px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-surface-container-low"
                           type="button"
                           onClick={() => setSelectedContractId(contract.id)}
                         >
                           {t("common.viewDetails")}
                         </button>
                         <button
-                          className="rounded-full bg-primary px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-full bg-secondary px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-on-secondary transition-opacity hover:bg-[#d9590f] disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={!canGenerate || busyId === contract.id}
                           type="button"
                           onClick={() => handleGenerate(contract)}
@@ -396,8 +391,8 @@ export function ContractsWorkspace({
       </section>
 
       <aside className="xl:sticky xl:top-32 self-start">
-        <section className="overflow-hidden rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest shadow-[0_12px_40px_rgba(15,61,62,0.06)]">
-          <div className="flex items-start justify-between gap-4 border-b border-outline-variant/30 p-5 sm:p-6">
+        <section className="overflow-hidden rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest shadow-[0_12px_40px_rgba(17,24,39,0.06)]">
+          <div className="flex items-start justify-between gap-4 border-b border-outline-variant/60 p-5 sm:p-6">
             <div>
               <h2 className="font-h2 text-h2 text-primary">
                 {selectedContract?.listingTitle ?? t("contracts.noSelected")}
@@ -410,7 +405,7 @@ export function ContractsWorkspace({
             </div>
             {selectedContract ? (
               <a
-                className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors"
+                className="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors"
                 href={downloadHref(selectedContract.id)}
                 aria-label={t("contracts.download")}
                 download={selectedContract.generatedFileName}
@@ -419,7 +414,7 @@ export function ContractsWorkspace({
               </a>
             ) : (
               <button
-                className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors"
+                className="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors"
                 type="button"
               >
                 close
@@ -431,7 +426,7 @@ export function ContractsWorkspace({
             <div className="pdf-preview-canvas absolute inset-0 opacity-40" />
 
             {selectedContract ? (
-              <div className="relative z-10 flex h-[260px] w-[82%] max-w-[360px] flex-col gap-4 rounded-[20px] bg-white p-6 shadow-xl sm:h-[340px] sm:max-w-[420px] sm:p-8">
+              <div className="relative z-10 flex h-[260px] w-[82%] max-w-[360px] flex-col gap-4 rounded-[20px] border border-outline-variant/60 bg-surface p-6 shadow-[0_20px_50px_rgba(17,24,39,0.12)] sm:h-[340px] sm:max-w-[420px] sm:p-8">
                 <div className="h-10 w-2/3 rounded-sm bg-surface-container" />
 
                 <div className="space-y-2">
@@ -456,14 +451,14 @@ export function ContractsWorkspace({
                 </div>
 
                 <div className="absolute inset-0 flex cursor-pointer items-center justify-center group">
-                  <div className="flex items-center gap-2 rounded-full bg-primary/90 px-5 py-3 font-label-caps text-[11px] uppercase tracking-[0.18em] text-on-primary opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="flex items-center gap-2 rounded-full bg-secondary/90 px-5 py-3 font-label-caps text-[11px] uppercase tracking-[0.18em] text-on-secondary opacity-0 transition-opacity group-hover:opacity-100">
                     <span className="material-symbols-outlined">zoom_in</span>
                     {t("contracts.fullscreenPreview")}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="relative z-10 flex h-[260px] w-[82%] max-w-[360px] flex-col items-center justify-center gap-4 rounded-[20px] bg-white p-6 text-center shadow-xl sm:h-[340px] sm:max-w-[420px] sm:p-8">
+              <div className="relative z-10 flex h-[260px] w-[82%] max-w-[360px] flex-col items-center justify-center gap-4 rounded-[20px] border border-outline-variant/60 bg-surface p-6 text-center shadow-[0_20px_50px_rgba(17,24,39,0.12)] sm:h-[340px] sm:max-w-[420px] sm:p-8">
                 <p className="font-body-md text-body-md text-on-surface-variant">
                   {t("contracts.generatedPreview")}
                 </p>
@@ -478,7 +473,7 @@ export function ContractsWorkspace({
 
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                className={`flex-1 rounded-full bg-primary-container py-3 text-center text-sm font-bold text-on-primary transition-opacity ${selectedContract ? "" : "pointer-events-none opacity-50"}`}
+                className={`flex-1 rounded-full bg-secondary py-3 text-center text-sm font-bold text-on-secondary transition-opacity ${selectedContract ? "" : "pointer-events-none opacity-50"}`}
                 href={
                   selectedContract
                     ? downloadHref(selectedContract.id)
@@ -490,7 +485,7 @@ export function ContractsWorkspace({
               </a>
 
               <button
-                className="flex-1 rounded-full border border-outline-variant py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-50"
+                className="flex-1 rounded-full border border-outline-variant/60 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low disabled:opacity-50"
                 disabled={!selectedContract || !canGenerate || busyId === selectedContract?.id}
                 type="button"
                 onClick={() => {
@@ -505,7 +500,7 @@ export function ContractsWorkspace({
 
             {selectedContract ? (
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="rounded-2xl border border-outline-variant/20 bg-white/70 p-4">
+                <div className="rounded-2xl border border-outline-variant/60 bg-surface/70 p-4">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">
                     {t("contracts.bookingLink")}
                   </p>
@@ -513,7 +508,7 @@ export function ContractsWorkspace({
                     {selectedContract.bookingNumber}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-outline-variant/20 bg-white/70 p-4">
+                <div className="rounded-2xl border border-outline-variant/60 bg-surface/70 p-4">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface-variant">
                     {t("contracts.generated")}
                   </p>

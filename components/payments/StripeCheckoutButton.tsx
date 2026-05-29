@@ -13,7 +13,7 @@ type Props = {
 export default function StripeCheckoutButton({
   bookingId,
   invoiceId,
-  className = "bg-primary text-on-primary",
+  className = "bg-secondary text-on-secondary",
   label,
 }: Props) {
   const { t } = useTranslation();

@@ -45,7 +45,7 @@ const LocationPickerMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full min-h-[320px] sm:min-h-[380px] xl:min-h-[520px] rounded-[28px] animate-pulse border border-outline-variant/30 bg-surface-container" />
+      <div className="w-full min-h-[320px] sm:min-h-[380px] xl:min-h-[520px] rounded-[28px] animate-pulse border border-outline-variant/60 bg-surface-container" />
     ),
   },
 );
@@ -255,7 +255,7 @@ function StatRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-outline-variant/30 bg-background/60 px-4 py-3">
+    <div className="flex items-start justify-between gap-4 rounded-2xl border border-outline-variant/60 bg-background/60 px-4 py-3">
       <span className="font-label-caps text-[11px] uppercase tracking-[0.22em] text-on-surface-variant">
         {label}
       </span>
@@ -685,11 +685,11 @@ export default function ListYourCavePage() {
   return (
     <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-24 sm:pt-28 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-8">
-        <section className="overflow-hidden rounded-[32px] border border-outline-variant/30 bg-surface-container-lowest/95 shadow-[0_12px_50px_rgba(15,61,62,0.05)] backdrop-blur">
+        <section className="overflow-hidden rounded-[32px] border border-outline-variant/60 bg-surface shadow-[0_16px_54px_rgba(17,24,39,0.06)] backdrop-blur">
           <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:p-10">
             <div className="space-y-6">
               <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary-container/30 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-secondary">
+                <div className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary-container/25 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-secondary">
                   <span className="material-symbols-outlined text-[16px]">edit_square</span>
                   {t("createListing.stepProgress", {
                     current: step + 1,
@@ -714,10 +714,10 @@ export default function ListYourCavePage() {
                     <button
                       className={`group flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[22px] border px-3 py-3 text-center transition-all ${
                         isActive
-                          ? "border-primary bg-primary-fixed text-primary shadow-[0_12px_28px_rgba(15,61,62,0.08)]"
+                        ? "border-secondary bg-secondary-container/20 text-secondary shadow-[0_12px_28px_rgba(242,106,27,0.12)]"
                           : isComplete
-                            ? "border-secondary/35 bg-secondary-container/30 text-secondary hover:border-secondary/55"
-                            : "border-outline-variant/40 bg-background/70 text-on-surface-variant hover:border-primary/30 hover:bg-surface-container-low"
+                            ? "border-secondary/35 bg-secondary-container/25 text-secondary hover:border-secondary/55"
+                            : "border-outline-variant/40 bg-surface-container-low text-on-surface-variant hover:border-secondary/30 hover:bg-surface-container-low"
                       } disabled:cursor-default disabled:opacity-80`}
                       disabled={index > step || isSubmitting}
                       key={item.labelKey}
@@ -744,7 +744,7 @@ export default function ListYourCavePage() {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-outline-variant/30 bg-background/70 p-5 sm:p-6">
+            <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-secondary">
@@ -754,7 +754,7 @@ export default function ListYourCavePage() {
                     {formState.title.trim() || t("createListing.overview.untitledListing")}
                   </h3>
                 </div>
-                <div className="rounded-full bg-primary/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+                <div className="rounded-full bg-secondary/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">
                   {step + 1}/{steps.length}
                 </div>
               </div>
@@ -795,7 +795,7 @@ export default function ListYourCavePage() {
         </section>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="rounded-[32px] border border-outline-variant/30 bg-surface-container-lowest/95 p-5 shadow-[0_10px_40px_rgba(15,61,62,0.04)] sm:p-8 lg:p-10">
+        <section className="rounded-[32px] border border-outline-variant/60 bg-surface p-5 shadow-[0_10px_40px_rgba(17,24,39,0.05)] sm:p-8 lg:p-10">
             {isLoadingExisting ? (
               <div className="space-y-5">
                 <div className="h-8 w-56 rounded-full bg-surface-container animate-pulse" />
@@ -885,14 +885,14 @@ export default function ListYourCavePage() {
             )}
 
             {errorMessage ? (
-              <div className="mt-8 rounded-[22px] border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+            <div className="mt-8 rounded-[22px] border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3 text-sm text-[#8f3d12]">
                 {errorMessage}
               </div>
             ) : null}
           </section>
 
-          <aside className="space-y-6 xl:sticky xl:top-32 self-start">
-            <div className="rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest/95 p-5 shadow-[0_10px_40px_rgba(15,61,62,0.04)] sm:p-6">
+        <aside className="space-y-6 xl:sticky xl:top-32 self-start">
+            <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-5 shadow-[0_10px_40px_rgba(17,24,39,0.05)] sm:p-6">
               <p className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-secondary">
                 {t(currentStep.labelKey)}
               </p>
@@ -941,7 +941,7 @@ export default function ListYourCavePage() {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-outline-variant/30 bg-secondary-container/15 p-5 shadow-[0_10px_40px_rgba(15,61,62,0.04)] sm:p-6">
+            <div className="rounded-[28px] border border-secondary/15 bg-secondary-container/15 p-5 shadow-[0_10px_40px_rgba(17,24,39,0.05)] sm:p-6">
               <p className="font-label-caps text-[11px] uppercase tracking-[0.24em] text-secondary">
                 {t("createListing.location.title")}
               </p>
@@ -953,10 +953,10 @@ export default function ListYourCavePage() {
           </aside>
         </div>
 
-        <section className="rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest/95 p-4 shadow-[0_8px_30px_rgba(15,61,62,0.04)] sm:p-5">
+        <section className="rounded-[28px] border border-outline-variant/60 bg-surface p-4 shadow-[0_8px_30px_rgba(17,24,39,0.05)] sm:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant px-5 py-3 font-label-caps text-label-caps uppercase text-on-surface-variant transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/70 bg-surface-container-low px-5 py-3 font-label-caps text-label-caps uppercase text-on-surface-variant transition-colors hover:border-secondary hover:text-secondary disabled:cursor-not-allowed disabled:opacity-40"
               disabled={isFirstStep || isSubmitting}
               onClick={() => setStep((current) => Math.max(current - 1, 0))}
               type="button"
@@ -967,7 +967,7 @@ export default function ListYourCavePage() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center md:justify-end">
               <button
-                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-outline px-6 py-3 font-label-caps text-label-caps uppercase text-primary transition-all hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-outline-variant/70 bg-surface-container-low px-6 py-3 font-label-caps text-label-caps uppercase text-primary transition-all hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 disabled={isSubmitting}
                 onClick={() => persistListing("DRAFT")}
                 type="button"
@@ -975,7 +975,7 @@ export default function ListYourCavePage() {
                 {t("common.saveDraft")}
               </button>
               <button
-                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-7 py-3 font-label-caps text-label-caps uppercase text-white shadow-lg shadow-primary/10 transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-secondary px-7 py-3 font-label-caps text-label-caps uppercase text-white shadow-lg shadow-secondary/15 transition-all hover:bg-[#d9590f] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 disabled={isSubmitting}
                 type="submit"
                 form="create-listing-form"
@@ -1078,7 +1078,7 @@ function StorageTypeOption({
   return (
     <label className="cursor-pointer">
       <input className="peer sr-only" name="type" type="radio" checked={checked} onChange={onSelect} />
-      <div className="flex min-h-[122px] flex-col items-center justify-center gap-3 rounded-2xl border border-outline-variant/60 bg-background px-3 py-4 text-center transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary-fixed peer-checked:text-primary hover:border-primary/50 hover:shadow-[0_10px_24px_rgba(15,61,62,0.04)]">
+          <div className="flex min-h-[122px] flex-col items-center justify-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low px-3 py-4 text-center transition-all duration-200 peer-checked:border-secondary peer-checked:bg-secondary-container/20 peer-checked:text-secondary hover:border-secondary/50 hover:shadow-[0_10px_24px_rgba(17,24,39,0.04)]">
         <span className="material-symbols-outlined text-[28px]">
           {icon}
         </span>
@@ -1128,12 +1128,12 @@ function VisualDocumentationStep({
       />
 
       <button
-        className="group relative overflow-hidden rounded-[28px] border border-dashed border-outline-variant/70 bg-gradient-to-br from-surface-container-low via-background to-surface-container-low p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_12px_28px_rgba(15,61,62,0.05)] sm:p-6"
+        className="group relative overflow-hidden rounded-[28px] border border-dashed border-outline-variant/70 bg-gradient-to-br from-surface-container-low via-background to-surface-container-low p-5 text-left transition-all hover:border-secondary/40 hover:shadow-[0_12px_28px_rgba(17,24,39,0.05)] sm:p-6"
         type="button"
         onClick={onFileClick}
       >
         <div className="flex flex-col items-center justify-center gap-4 py-6 text-center sm:py-10">
-          <span className="material-symbols-outlined text-[44px] text-primary/35 transition-colors group-hover:text-primary">
+            <span className="material-symbols-outlined text-[44px] text-secondary/40 transition-colors group-hover:text-secondary">
             cloud_upload
           </span>
           <div className="space-y-2">
@@ -1144,17 +1144,17 @@ function VisualDocumentationStep({
               {t("createListing.visual.uploadHint")}
             </p>
           </div>
-          <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-primary px-6 py-3 font-label-caps text-label-caps uppercase text-primary transition-all group-hover:bg-primary group-hover:text-white">
+          <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-secondary px-6 py-3 font-label-caps text-label-caps uppercase text-secondary transition-all group-hover:bg-secondary group-hover:text-white">
             {t("createListing.visual.browseFiles")}
           </span>
         </div>
       </button>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-[#cfa7a7]/50 bg-[#fff6f6] px-4 py-3 text-error">
+      <div className="flex items-start gap-3 rounded-2xl border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3 text-[#8f3d12]">
         <span className="material-symbols-outlined text-[20px]">error</span>
         <div className="space-y-1">
           <p className="text-sm font-semibold">{t("createListing.visual.minImages")}</p>
-          <p className="text-xs text-[#7b2d2d]/80">
+          <p className="text-xs text-[#8f3d12]/80">
             {usingUploadedImages
               ? t("createListing.visual.previewAlt")
               : t("createListing.visual.uploadHint")}
@@ -1174,7 +1174,7 @@ function VisualDocumentationStep({
           />
         ))}
         <button
-          className="group flex aspect-[4/3] items-center justify-center rounded-[24px] border-2 border-dashed border-outline-variant/60 bg-surface-container-low/60 transition-colors hover:border-primary/50 hover:bg-surface-container-low"
+          className="group flex aspect-[4/3] items-center justify-center rounded-[24px] border-2 border-dashed border-outline-variant/60 bg-surface-container-low/60 transition-colors hover:border-secondary/50 hover:bg-surface-container-low"
           type="button"
           onClick={onFileClick}
         >
@@ -1202,7 +1202,7 @@ function ImagePreview({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="group relative aspect-[4/3] overflow-hidden rounded-[24px] border border-outline-variant/50 bg-surface-container shadow-[0_8px_24px_rgba(15,61,62,0.04)]">
+      <div className="group relative aspect-[4/3] overflow-hidden rounded-[24px] border border-outline-variant/50 bg-surface-container-low shadow-[0_8px_24px_rgba(17,24,39,0.04)]">
       <img alt={t("createListing.visual.previewAlt")} className="h-full w-full object-cover" src={src} />
 
       <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/20 to-transparent opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
@@ -1225,8 +1225,8 @@ function ImagePreview({
           <button
             className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-2 text-[10px] font-label-caps uppercase tracking-[0.18em] text-white backdrop-blur-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
               primary
-                ? "bg-primary/80"
-                : "border border-white/50 bg-white/10 hover:bg-white/20"
+                ? "bg-secondary/80"
+                : "border border-white/20 bg-white/8 hover:bg-white/12"
             }`}
             type="button"
             disabled={disableActions}
@@ -1259,7 +1259,7 @@ function PricingStep({
 
       <div className="max-w-xl space-y-4">
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">
             €
           </span>
           <input
@@ -1271,7 +1271,7 @@ function PricingStep({
           />
         </div>
 
-        <div className="rounded-2xl border border-secondary/15 bg-secondary-container/20 p-4">
+      <div className="rounded-2xl border border-secondary/15 bg-secondary-container/20 p-4">
           <div className="flex items-start gap-3">
             <span className="material-symbols-outlined text-secondary">info</span>
             <p className="text-body-sm text-on-secondary-container">
@@ -1336,10 +1336,10 @@ function LocationStep({
         description={t("createListing.location.description")}
       />
 
-      <div className="rounded-[28px] border border-outline-variant/30 bg-background p-4 shadow-[0_8px_30px_rgba(15,61,62,0.03)] sm:p-5">
+      <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-4 shadow-[0_8px_30px_rgba(17,24,39,0.04)] sm:p-5">
         <div className="grid gap-3 sm:grid-cols-2">
           <button
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-secondary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#d9590f] disabled:opacity-60"
             disabled={isFindingLocation || isUsingCurrentLocation}
             type="button"
             onClick={onFindOnMap}
@@ -1348,7 +1348,7 @@ function LocationStep({
             {isFindingLocation ? t("createListing.location.finding") : t("createListing.location.findOnMap")}
           </button>
           <button
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-outline-variant px-5 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-outline-variant/70 bg-surface-container-low px-5 py-3 text-sm font-bold text-primary transition-colors hover:bg-secondary-container disabled:opacity-60"
             disabled={isFindingLocation || isUsingCurrentLocation}
             type="button"
             onClick={onUseCurrentLocation}
@@ -1367,7 +1367,7 @@ function LocationStep({
         ) : null}
 
         {locationErrorMessage ? (
-          <div className="mt-4 rounded-2xl border border-[#cfa7a7] bg-[#fff6f6] px-4 py-3 text-sm text-[#7b2d2d]">
+          <div className="mt-4 rounded-2xl border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3 text-sm text-[#8f3d12]">
             {locationErrorMessage}
           </div>
         ) : null}
@@ -1375,7 +1375,7 @@ function LocationStep({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="space-y-6">
-          <div className="grid gap-5 rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest p-4 sm:p-6">
+      <div className="grid gap-5 rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-4 sm:p-6">
             <div className="flex flex-col gap-2">
               <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
                 {t("createListing.location.addressLabel")}
@@ -1472,14 +1472,14 @@ function LocationStep({
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+              <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
                 {t("createListing.location.manualHint")}
               </div>
             )}
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[28px] border border-outline-variant/30 bg-surface-container-lowest shadow-[0_8px_30px_rgba(15,61,62,0.03)]">
+        <div className="overflow-hidden rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest shadow-[0_8px_30px_rgba(17,24,39,0.04)]">
           <div className="min-h-[320px] sm:min-h-[380px] xl:min-h-[560px]">
             <LocationPickerMap
               address={address}
@@ -1546,7 +1546,7 @@ function AmenityOption({
   return (
     <label className="group cursor-pointer">
       <input className="peer sr-only" type="checkbox" checked={checked} onChange={onToggle} />
-      <div className="flex min-h-[88px] items-center gap-4 rounded-2xl border border-outline-variant/60 bg-background px-4 py-4 transition-all hover:border-secondary/60 hover:shadow-[0_8px_22px_rgba(15,61,62,0.04)] peer-checked:border-secondary peer-checked:bg-secondary-container/25">
+      <div className="flex min-h-[88px] items-center gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-low px-4 py-4 transition-all hover:border-secondary/60 hover:shadow-[0_8px_22px_rgba(17,24,39,0.04)] peer-checked:border-secondary peer-checked:bg-secondary-container/25">
         <span className="material-symbols-outlined text-primary transition-transform group-hover:scale-105">
           {icon}
         </span>

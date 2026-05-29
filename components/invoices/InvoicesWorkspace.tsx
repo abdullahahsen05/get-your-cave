@@ -65,7 +65,7 @@ function StatCard({
   icon: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+    <div className="rounded-[24px] border border-outline-variant/60 bg-surface-container-lowest p-5 sm:p-6 shadow-[0_8px_28px_rgba(17,24,39,0.05)]">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="mb-2 text-[10px] font-label-caps uppercase tracking-widest text-outline">
@@ -93,7 +93,7 @@ function InvoiceCard({
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   return (
-    <article className="rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] transition-transform hover:-translate-y-0.5">
+    <article className="rounded-[24px] border border-outline-variant/60 bg-surface-container-lowest p-5 shadow-[0_8px_28px_rgba(17,24,39,0.05)] transition-transform hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-body-md font-semibold text-primary">{invoice.invoiceNumber}</p>
@@ -207,7 +207,7 @@ export default function InvoicesWorkspace({
     .reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0);
 
   return (
-    <main className="mx-auto min-h-screen max-w-[1380px] bg-background px-4 pb-24 pt-28 text-on-background sm:px-6 sm:pb-28 sm:pt-32 lg:px-8">
+    <main className="mx-auto min-h-screen max-w-[1380px] bg-background px-4 pb-24 pt-28 text-on-surface sm:px-6 sm:pb-28 sm:pt-32 lg:px-8">
       <section className="mb-8 flex flex-col gap-4 lg:mb-10 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           <p className="font-label-caps text-label-caps uppercase tracking-[0.24em] text-secondary">
@@ -224,7 +224,7 @@ export default function InvoicesWorkspace({
         </div>
 
         <div className="flex flex-wrap gap-3 text-body-sm font-body-sm text-on-surface-variant">
-          <span className="rounded-full border border-outline-variant bg-surface-container-low px-4 py-2">
+          <span className="rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2">
             {t("invoices.records", { count: pagination.totalItems })}
           </span>
           <span className="rounded-full border border-outline-variant bg-surface-container-low px-4 py-2">
@@ -251,14 +251,14 @@ export default function InvoicesWorkspace({
         />
       </section>
 
-      <section className="mb-6 rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-4 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6">
+      <section className="mb-6 rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-[0_8px_28px_rgba(17,24,39,0.05)] sm:p-6">
         <form className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-end" method="get">
           <div className="lg:col-span-5">
             <label className="mb-2 block text-[10px] uppercase tracking-widest text-on-surface-variant">
               {t("common.search")}
             </label>
             <input
-              className="w-full rounded-full border border-outline-variant bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant/50 focus:border-primary"
+              className="w-full rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant/50 focus:border-secondary"
               defaultValue={currentSearch}
               name="q"
               placeholder={t("invoices.searchPlaceholder")}
@@ -271,7 +271,7 @@ export default function InvoicesWorkspace({
               {t("common.status")}
             </label>
             <select
-              className="w-full rounded-full border border-outline-variant bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface outline-none transition-colors focus:border-primary"
+              className="w-full rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface outline-none transition-colors focus:border-secondary"
               defaultValue={currentStatus}
               name="status"
             >
@@ -288,7 +288,7 @@ export default function InvoicesWorkspace({
               {t("common.sortBy")}
             </label>
             <select
-              className="w-full rounded-full border border-outline-variant bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface outline-none transition-colors focus:border-primary"
+              className="w-full rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-3 font-body-sm text-body-sm text-on-surface outline-none transition-colors focus:border-secondary"
               defaultValue={currentSort}
               name="sort"
             >
@@ -299,13 +299,13 @@ export default function InvoicesWorkspace({
 
           <div className="flex flex-col gap-3 sm:flex-row lg:col-span-2">
             <button
-              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-primary px-5 py-3 font-label-caps text-label-caps text-white transition-colors hover:bg-primary-container"
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-secondary px-5 py-3 font-label-caps text-label-caps text-white transition-colors hover:bg-[#d9590f]"
               type="submit"
             >
               {t("common.apply")}
             </button>
             <Link
-              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-outline-variant px-5 py-3 font-label-caps text-label-caps text-primary transition-colors hover:bg-surface-container-low"
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-outline-variant/60 bg-surface-container-low px-5 py-3 font-label-caps text-label-caps text-primary transition-colors hover:bg-secondary-container/20"
               href="/invoices"
             >
               {t("common.reset")}
@@ -320,17 +320,17 @@ export default function InvoicesWorkspace({
             <InvoiceCard key={invoice.id} invoice={invoice} locale={locale} t={t} />
           ))
         ) : (
-          <div className="rounded-[24px] border border-[#EBEBE8] bg-surface-container-lowest px-6 py-16 text-center text-on-surface-variant shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+          <div className="rounded-[24px] border border-outline-variant/60 bg-surface-container-lowest px-6 py-16 text-center text-on-surface-variant shadow-[0_8px_28px_rgba(17,24,39,0.05)]">
             {t("invoices.noInvoices")}
           </div>
         )}
       </section>
 
-      <section className="hidden overflow-hidden rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest shadow-[0_4px_20px_rgba(15,61,62,0.04)] lg:block">
+      <section className="hidden overflow-hidden rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest shadow-[0_8px_28px_rgba(17,24,39,0.05)] lg:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>
-              <tr className="border-b border-[#EBEBE8] bg-surface-container-low">
+              <tr className="border-b border-outline-variant/60 bg-surface-container-low">
                 <th className="px-6 py-4 font-label-caps text-label-caps uppercase tracking-widest text-outline">
                   {t("invoices.invoiceNumber")}
                 </th>
@@ -354,10 +354,10 @@ export default function InvoicesWorkspace({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBEBE8]">
+            <tbody className="divide-y divide-outline-variant/60">
               {invoices.length ? (
                 invoices.map((invoice) => (
-                  <tr className="transition-colors hover:bg-surface-container-low" key={invoice.id}>
+                  <tr className="transition-colors hover:bg-secondary-container/10" key={invoice.id}>
                     <td className="px-6 py-5">
                       <div className="flex flex-col">
                         <span className="font-body-md font-semibold text-primary">
@@ -430,8 +430,8 @@ export default function InvoicesWorkspace({
           {t("invoices.showing", { visible: invoices.length, total: pagination.totalItems })}
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <Link
-            className={`rounded-full border border-outline-variant px-4 py-2 text-sm font-bold text-primary transition-colors ${
+            <Link
+            className={`rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2 text-sm font-bold text-primary transition-colors ${
               pagination.page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-surface-container"
             }`}
             href={buildPageHref(Math.max(1, pagination.page - 1))}
@@ -441,8 +441,8 @@ export default function InvoicesWorkspace({
           <span className="text-body-sm font-body-sm text-on-surface-variant">
             {t("common.pageOf", { page: pagination.page, totalPages: pagination.totalPages || 1 })}
           </span>
-          <Link
-            className={`rounded-full border border-outline-variant px-4 py-2 text-sm font-bold text-primary transition-colors ${
+            <Link
+            className={`rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2 text-sm font-bold text-primary transition-colors ${
               pagination.page >= pagination.totalPages
                 ? "pointer-events-none opacity-40"
                 : "hover:bg-surface-container"

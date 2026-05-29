@@ -583,17 +583,17 @@ export default function AdminDashboardWorkspace() {
       ];
 
   return (
-    <div className="min-h-screen bg-[#fcf9f8] font-['Manrope',sans-serif] text-[#1c1b1b] antialiased">
+    <div className="min-h-screen bg-background font-['Manrope',sans-serif] text-on-surface antialiased">
       <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 pt-24 sm:px-6 sm:pt-28 md:space-y-8 lg:space-y-10 lg:px-10 xl:px-12 lg:pt-32">
-        <div className="mb-2 flex flex-col gap-3 rounded-[2rem] border border-[#EBEBE8] bg-white/70 px-5 py-6 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:px-7 sm:py-8 lg:px-10">
-          <h1 className="max-w-[760px] text-[30px] font-bold leading-[1.08] tracking-[-0.03em] text-[#0F3D3E] sm:text-[40px] lg:text-[50px]">
+        <div className="mb-2 flex flex-col gap-3 rounded-[2rem] border border-outline-variant/60 bg-surface/75 px-5 py-6 shadow-[0_12px_40px_rgba(17,24,39,0.06)] sm:px-7 sm:py-8 lg:px-10">
+          <h1 className="max-w-[760px] text-[30px] font-bold leading-[1.08] tracking-[-0.03em] text-primary sm:text-[40px] lg:text-[50px]">
             {t("dashboard.admin.title")}
           </h1>
-          <p className="max-w-[760px] text-sm font-medium leading-6 text-stone-500 sm:text-base">
+          <p className="max-w-[760px] text-sm font-medium leading-6 text-on-surface-variant sm:text-base">
             {t("dashboard.admin.subtitle")}
           </p>
           {error ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            <div className="rounded-2xl border border-secondary/20 bg-secondary-container/15 px-4 py-3 text-sm font-medium text-primary">
               {error}
             </div>
           ) : null}
@@ -601,17 +601,17 @@ export default function AdminDashboardWorkspace() {
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           {statCards.map((item) => (
-            <div key={item.label} className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:p-7">
+            <div key={item.label} className="tonal-card rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 p-5 shadow-[0_12px_40px_rgba(17,24,39,0.05)] sm:p-6 lg:p-7">
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848]">
+                <p className="text-xs font-semibold uppercase leading-none tracking-[0.05em] text-on-surface-variant">
                   {item.label}
                 </p>
-                <span className="material-symbols-outlined text-[#4b6547]">{item.icon}</span>
+                <span className="material-symbols-outlined text-secondary">{item.icon}</span>
               </div>
-              <h2 className="text-[32px] font-bold leading-none tracking-[-0.03em] text-[#0f3d3e] sm:text-[38px]">
+              <h2 className="text-[32px] font-bold leading-none tracking-[-0.03em] text-primary sm:text-[38px]">
                 {item.value}
               </h2>
-              <p className="mt-2 text-sm font-medium italic leading-[1.5] text-[#4b6547]">
+              <p className="mt-2 text-sm font-medium italic leading-[1.5] text-secondary">
                 <span className="inline-flex items-center">{item.note}</span>
               </p>
             </div>
@@ -619,9 +619,9 @@ export default function AdminDashboardWorkspace() {
         </section>
 
         <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-          <div className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:col-span-8 lg:p-8">
+          <div className="tonal-card rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 p-5 shadow-[0_12px_40px_rgba(17,24,39,0.05)] sm:p-6 lg:col-span-8 lg:p-8">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-12">
-              <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
+              <h3 className="text-[22px] font-semibold leading-[1.4] text-primary">
                 {t("dashboard.admin.revenueActivity")}
               </h3>
               <div className="flex gap-2">
@@ -632,8 +632,8 @@ export default function AdminDashboardWorkspace() {
                     onClick={() => setRange(option)}
                     className={`rounded-full border px-3 py-1 text-sm leading-[1.5] transition-colors ${
                       range === option
-                        ? "border-[#0f3d3e] bg-[#0f3d3e] text-white"
-                        : "border-[#c0c8c8] bg-white text-[#404848]"
+                        ? "border-secondary bg-secondary text-on-secondary"
+                        : "border-outline-variant/60 bg-surface text-on-surface-variant"
                     }`}
                   >
                     {option === "7d" ? t("dashboard.admin.range7d") : t("dashboard.admin.range30d")}
@@ -679,12 +679,12 @@ export default function AdminDashboardWorkspace() {
             </div>
           </div>
 
-          <div className="tonal-card flex flex-col justify-between gap-6 rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:col-span-4 lg:p-8">
+          <div className="tonal-card flex flex-col justify-between gap-6 rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 p-5 shadow-[0_12px_40px_rgba(17,24,39,0.05)] sm:p-6 lg:col-span-4 lg:p-8">
             <div>
-              <h3 className="mb-4 text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
+              <h3 className="mb-4 text-[22px] font-semibold leading-[1.4] text-primary">
                 {t("dashboard.admin.marketInsights")}
               </h3>
-              <p className="text-base leading-relaxed text-[#404848]">
+              <p className="text-base leading-relaxed text-on-surface-variant">
                 {dashboard?.marketInsights?.[0]
                   ? t("dashboard.admin.marketInsightSentence", {
                       label: dashboard.marketInsights[0].label,
@@ -704,13 +704,13 @@ export default function AdminDashboardWorkspace() {
               ).map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center justify-between rounded-2xl border border-[#EBEBE8] bg-white p-4"
+                  className="flex items-center justify-between rounded-2xl border border-outline-variant/60 bg-surface p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#4b6547]">trending_up</span>
+                    <span className="material-symbols-outlined text-secondary">trending_up</span>
                     <span className="text-sm font-semibold leading-[1.5]">{item.label}</span>
                   </div>
-                  <span className="text-sm font-bold leading-[1.5] text-[#4b6547]">{item.value}</span>
+                  <span className="text-sm font-bold leading-[1.5] text-secondary">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -728,51 +728,51 @@ export default function AdminDashboardWorkspace() {
         </section>
 
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          <div className="tonal-card rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 p-5 shadow-[0_8px_32px_rgba(15,61,62,0.035)] sm:p-6 lg:p-7">
+          <div className="tonal-card rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 p-5 shadow-[0_12px_40px_rgba(17,24,39,0.05)] sm:p-6 lg:p-7">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-[22px] font-semibold leading-[1.4] text-[#0f3d3e]">
+              <h3 className="text-[22px] font-semibold leading-[1.4] text-primary">
                 {t("dashboard.admin.pendingListings")}
               </h3>
-              <span className="rounded-full border border-[#EBEBE8] bg-white px-3 py-1 text-xs font-semibold text-[#404848]">
+              <span className="rounded-full border border-outline-variant/60 bg-surface px-3 py-1 text-xs font-semibold text-on-surface-variant">
                 {t("dashboard.admin.queuedCount", { count: pendingListings.length })}
               </span>
             </div>
 
             {moderationError ? (
-              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              <div className="mb-4 rounded-2xl border border-secondary/20 bg-secondary-container/15 px-4 py-3 text-sm font-medium text-primary">
                 {moderationError}
               </div>
             ) : null}
 
             {moderationLoading ? (
-              <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
+              <p className="text-sm font-medium text-on-surface-variant">{t("dashboard.admin.loadingModeration")}</p>
             ) : pendingListings.length ? (
               <div className="-mx-2 overflow-x-auto px-2">
                 <table className="w-full min-w-[640px] text-left">
-                  <thead className="border-b border-[#EBEBE8]">
+                  <thead className="border-b border-outline-variant/60">
                     <tr>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
                         {t("dashboard.admin.listing")}
                       </th>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
                         {t("dashboard.admin.owner")}
                       </th>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
                         {t("dashboard.admin.status")}
                       </th>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant text-right">
                         {t("dashboard.admin.actions")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBEBE8]">
+                  <tbody className="divide-y divide-outline-variant/60">
                     {pendingListings.map((listing) => (
                       <tr key={listing.id}>
                         <td className="py-4 pr-4">
-                          <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
+                          <p className="text-sm font-semibold leading-[1.5] text-primary">
                             {listing.title}
                           </p>
-                          <p className="text-xs leading-[1.5] text-[#404848]">
+                          <p className="text-xs leading-[1.5] text-on-surface-variant">
                             {listing.city} • {formatCurrency(listing.pricePerMonth, "EUR")}
                           </p>
                         </td>
@@ -876,10 +876,10 @@ export default function AdminDashboardWorkspace() {
                     {verificationRows.map((row) => (
                       <tr key={row.userId}>
                         <td className="py-4 pr-4">
-                          <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
+                          <p className="text-sm font-semibold leading-[1.5] text-primary">
                             {row.fullName}
                           </p>
-                          <p className="text-xs leading-[1.5] text-[#404848]">{row.email}</p>
+                          <p className="text-xs leading-[1.5] text-on-surface-variant">{row.email}</p>
                         </td>
                         <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
                           {row.role}
@@ -889,8 +889,8 @@ export default function AdminDashboardWorkspace() {
                             <a
                               className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
                                 row.documents.idCard
-                                  ? "bg-[#0f3d3e] text-white hover:opacity-90"
-                                  : "cursor-not-allowed border border-outline-variant text-primary opacity-60"
+                                  ? "bg-secondary text-on-secondary hover:bg-[#d9590f]"
+                                  : "cursor-not-allowed border border-outline-variant/60 text-primary opacity-60"
                               }`}
                               href={row.documents.idCard ? `/api/verification-documents/${row.documents.idCard.id}` : "#"}
                               rel="noreferrer"
@@ -907,8 +907,8 @@ export default function AdminDashboardWorkspace() {
                               <a
                                 className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
                                   row.documents.ownershipProof
-                                    ? "border border-outline-variant text-primary hover:bg-white"
-                                    : "cursor-not-allowed border border-outline-variant text-primary opacity-60"
+                                    ? "border border-outline-variant/60 text-primary hover:bg-surface-container-low"
+                                    : "cursor-not-allowed border border-outline-variant/60 text-primary opacity-60"
                                 }`}
                                 href={
                                   row.documents.ownershipProof
@@ -926,7 +926,7 @@ export default function AdminDashboardWorkspace() {
                                 {t("dashboard.admin.viewOwnershipProof")}
                               </a>
                             ) : (
-                              <span className="inline-flex w-full items-center justify-center rounded-full border border-dashed border-outline-variant px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                              <span className="inline-flex w-full items-center justify-center rounded-full border border-dashed border-outline-variant/60 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary/70">
                                 {t("verification.notRequiredForRenters")}
                               </span>
                             )}
@@ -962,40 +962,40 @@ export default function AdminDashboardWorkspace() {
             </div>
 
             {moderationError ? (
-              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              <div className="mb-4 rounded-2xl border border-secondary/20 bg-secondary-container/15 px-4 py-3 text-sm font-medium text-primary">
                 {moderationError}
               </div>
             ) : null}
 
             {moderationLoading ? (
-              <p className="text-sm font-medium text-stone-500">{t("dashboard.admin.loadingModeration")}</p>
+              <p className="text-sm font-medium text-on-surface-variant">{t("dashboard.admin.loadingModeration")}</p>
             ) : (
               <div className="-mx-2 overflow-x-auto px-2">
                 <table className="w-full min-w-[640px] text-left">
-                  <thead className="border-b border-[#EBEBE8]">
+                  <thead className="border-b border-outline-variant/60">
                     <tr>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
                         {t("dashboard.admin.user")}
                       </th>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
                         {t("dashboard.admin.role")}
                       </th>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848]">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
                         {t("dashboard.admin.status")}
                       </th>
-                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#404848] text-right">
+                      <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant text-right">
                         {t("dashboard.admin.actions")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBEBE8]">
+                  <tbody className="divide-y divide-outline-variant/60">
                     {pendingUsers.map((user) => (
                       <tr key={user.id}>
                         <td className="py-4 pr-4">
-                          <p className="text-sm font-semibold leading-[1.5] text-[#0f3d3e]">
+                          <p className="text-sm font-semibold leading-[1.5] text-primary">
                             {user.fullName}
                           </p>
-                          <p className="text-xs leading-[1.5] text-[#404848]">{user.email}</p>
+                          <p className="text-xs leading-[1.5] text-on-surface-variant">{user.email}</p>
                         </td>
                         <td className="py-4 pr-4 text-sm leading-[1.5] text-[#404848]">
                           {user.role}
@@ -1007,7 +1007,7 @@ export default function AdminDashboardWorkspace() {
                         </td>
                         <td className="py-4 text-right">
                           <button
-                            className="rounded-full bg-[#0f3d3e] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                            className="rounded-full bg-secondary px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-on-secondary transition-opacity hover:bg-[#d9590f] disabled:opacity-60"
                             disabled={
                               busyAction?.kind === "user" &&
                               busyAction.id === user.id
@@ -1031,16 +1031,16 @@ export default function AdminDashboardWorkspace() {
           </section>
         ) : null}
 
-        <section className="tonal-card overflow-hidden rounded-[1.75rem] border border-[#EBEBE8] bg-white/75 shadow-[0_8px_32px_rgba(15,61,62,0.035)]">
-          <div className="flex flex-col gap-4 border-b border-[#EBEBE8] px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-12">
-            <h2 className="text-[28px] font-bold leading-[1.3] text-[#0f3d3e]">{t("dashboard.admin.recentActivity")}</h2>
+        <section className="tonal-card overflow-hidden rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 shadow-[0_12px_40px_rgba(17,24,39,0.05)]">
+          <div className="flex flex-col gap-4 border-b border-outline-variant/60 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-12">
+            <h2 className="text-[28px] font-bold leading-[1.3] text-primary">{t("dashboard.admin.recentActivity")}</h2>
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#404848]">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">
                   search
                 </span>
                 <input
-                  className="w-full rounded-full border border-[#EBEBE8] bg-white py-2.5 pl-10 pr-4 text-sm leading-[1.5] focus:border-[#4b6547] focus:ring-0 sm:w-64"
+                  className="w-full rounded-full border border-outline-variant/60 bg-surface py-2.5 pl-10 pr-4 text-sm leading-[1.5] focus:border-secondary focus:ring-0 sm:w-64"
                 placeholder={t("dashboard.admin.filterActivity")}
                   type="text"
                   value={search}
@@ -1052,7 +1052,7 @@ export default function AdminDashboardWorkspace() {
               </div>
               <button
                 aria-label={t("dashboard.admin.filterActivity")}
-                className="material-symbols-outlined rounded-full p-2 text-[#404848] transition-colors hover:bg-white"
+                className="material-symbols-outlined rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low"
                 type="button"
               >
                 filter_list
@@ -1062,12 +1062,12 @@ export default function AdminDashboardWorkspace() {
 
           <div className="-mx-2 overflow-x-auto px-2">
             <table className="w-full min-w-[760px] text-left">
-              <thead className="bg-[#f6f3f2]">
+              <thead className="bg-surface-container-low">
                 <tr>
                   {[t("dashboard.admin.nameId"), t("dashboard.admin.type"), t("dashboard.admin.status"), t("dashboard.admin.date")].map((heading) => (
                     <th
                       key={heading}
-                      className="px-4 py-4 text-xs font-semibold uppercase leading-none tracking-[0.05em] text-[#404848] sm:px-6 lg:px-12"
+                      className="px-4 py-4 text-xs font-semibold uppercase leading-none tracking-[0.05em] text-on-surface-variant sm:px-6 lg:px-12"
                     >
                       {heading}
                     </th>
@@ -1078,13 +1078,13 @@ export default function AdminDashboardWorkspace() {
               <tbody className="divide-y divide-[#EBEBE8]">
                 {activityRows.length ? (
                   activityRows.map((activity) => (
-                    <tr key={activity.id} className="transition-colors hover:bg-white/50">
+                    <tr key={activity.id} className="transition-colors hover:bg-surface-container-low">
                       <td className="px-4 py-4 sm:px-6 lg:px-12">
                         <div className="flex flex-col">
-                          <span className="text-base font-bold leading-[1.6] text-[#0f3d3e]">
+                          <span className="text-base font-bold leading-[1.6] text-primary">
                             {activity.name}
                           </span>
-                          <span className="text-sm leading-[1.5] text-[#404848]">
+                          <span className="text-sm leading-[1.5] text-on-surface-variant">
                             {activity.entityId}
                           </span>
                         </div>
@@ -1102,11 +1102,11 @@ export default function AdminDashboardWorkspace() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-sm leading-[1.5] text-[#404848] sm:px-6 lg:px-12">
+                      <td className="px-4 py-4 text-sm leading-[1.5] text-on-surface-variant sm:px-6 lg:px-12">
                         {activity.date}
                       </td>
                       <td className="px-4 py-4 text-right sm:px-6 lg:px-12">
-                        <button className="material-symbols-outlined text-[#404848] hover:text-[#0f3d3e]">
+                        <button className="material-symbols-outlined text-on-surface-variant hover:text-secondary">
                           more_horiz
                         </button>
                       </td>
@@ -1114,7 +1114,7 @@ export default function AdminDashboardWorkspace() {
                   ))
                 ) : (
                   <tr>
-                    <td className="px-4 py-8 text-sm text-[#404848] sm:px-6 lg:px-12" colSpan={5}>
+                    <td className="px-4 py-8 text-sm text-on-surface-variant sm:px-6 lg:px-12" colSpan={5}>
                       {t("dashboard.admin.noActivityFound")}
                     </td>
                   </tr>
@@ -1123,19 +1123,19 @@ export default function AdminDashboardWorkspace() {
             </table>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-[#EBEBE8] bg-white px-4 sm:px-6 lg:px-12 py-4">
-            <span className="text-sm leading-[1.5] text-[#404848]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-outline-variant/60 bg-surface px-4 sm:px-6 lg:px-12 py-4">
+            <span className="text-sm leading-[1.5] text-on-surface-variant">
               {t("dashboard.admin.showingActivities", {
                 visible: activityRows.length,
                 total: formatCompactNumber(totalItems),
               })}
             </span>
             <div className="flex items-center gap-2">
-              <button className="rounded p-1 opacity-30 hover:bg-stone-100" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+              <button className="rounded p-1 opacity-30 hover:bg-surface-container-low" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
                 <span className="material-symbols-outlined">chevron_left</span>
               </button>
               <button
-                className="rounded p-1 hover:bg-stone-100"
+                className="rounded p-1 hover:bg-surface-container-low"
                 disabled={page >= totalPages}
                 onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
               >

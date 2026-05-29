@@ -39,7 +39,7 @@ const fallbackImage =
 const ListingsMap = dynamic(() => import("@/components/maps/ListingsMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-[420px] rounded-2xl border border-[#EBEBE8] bg-surface-container animate-pulse" />
+    <div className="h-[420px] rounded-2xl border border-outline-variant/60 bg-surface-container animate-pulse" />
   ),
 });
 
@@ -156,12 +156,12 @@ export default function BrowseStoragePage() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-on-surface font-body-md antialiased selection:bg-primary-fixed">
+    <div className="min-h-screen overflow-x-hidden bg-background text-on-surface font-body-md antialiased selection:bg-secondary-container">
       <section className="mx-auto mt-28 max-w-6xl px-4 sm:mt-32 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-3 rounded-[28px] border border-outline-variant/40 bg-white p-4 shadow-[0_18px_60px_-24px_rgba(0,38,39,0.35)] lg:flex-row lg:items-center lg:gap-0 lg:p-2">
+        <div className="flex flex-col gap-3 rounded-[28px] border border-outline-variant/60 bg-surface p-4 shadow-[0_18px_60px_-24px_rgba(17,24,39,0.18)] lg:flex-row lg:items-center lg:gap-0 lg:p-2">
           <div className="flex min-h-14 min-w-0 flex-1 items-center rounded-2xl bg-surface-container-lowest px-4 lg:bg-transparent lg:px-5">
             <span
-              className="material-symbols-outlined text-primary-container/60 mr-3"
+              className="material-symbols-outlined text-secondary/60 mr-3"
               data-icon="location_on"
             >
               location_on
@@ -181,7 +181,7 @@ export default function BrowseStoragePage() {
           <div className="hidden h-8 w-px bg-outline-variant/30 lg:block"></div>
           <div className="flex min-h-14 min-w-0 flex-1 items-center rounded-2xl bg-surface-container-lowest px-4 lg:bg-transparent lg:px-5">
             <span
-              className="material-symbols-outlined text-primary-container/60 mr-3"
+              className="material-symbols-outlined text-secondary/60 mr-3"
               data-icon="straighten"
             >
               straighten
@@ -203,7 +203,7 @@ export default function BrowseStoragePage() {
           <div className="hidden h-8 w-px bg-outline-variant/30 lg:block"></div>
           <div className="flex min-h-14 min-w-0 flex-1 items-center rounded-2xl bg-surface-container-lowest px-4 lg:bg-transparent lg:px-5">
             <span
-              className="material-symbols-outlined text-primary-container/60 mr-3"
+              className="material-symbols-outlined text-secondary/60 mr-3"
               data-icon="calendar_month"
             >
               calendar_month
@@ -215,7 +215,7 @@ export default function BrowseStoragePage() {
             />
           </div>
           <button
-            className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-8 text-white shadow-md transition-all hover:bg-primary-container active:scale-95 lg:w-auto lg:min-w-[220px]"
+            className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-8 text-white shadow-md transition-all hover:bg-[#d9590f] active:scale-95 lg:w-auto lg:min-w-[220px]"
             type="button"
             onClick={() => setPage(1)}
           >
@@ -229,7 +229,7 @@ export default function BrowseStoragePage() {
 
       {error ? (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-          <div className="rounded-lg border border-error/20 bg-error-container/20 px-4 py-3 text-sm text-error">
+          <div className="rounded-lg border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3 text-sm text-[#8f3d12]">
             {error}
           </div>
         </section>
@@ -237,7 +237,7 @@ export default function BrowseStoragePage() {
 
       <section className="mx-auto mt-12 mb-8 flex max-w-7xl flex-col gap-5 border-b border-outline-variant/20 px-4 pb-6 sm:px-6 md:flex-row md:items-end md:justify-between lg:px-8">
         <div>
-          <h2 className="flex flex-col gap-3 font-h1 text-h2 text-primary-container sm:flex-row sm:items-center">
+          <h2 className="flex flex-col gap-3 font-h1 text-h2 text-primary sm:flex-row sm:items-center">
             {loading ? t("common.loading") : t("storage.storageCavesWithCount", { count: total })}
             <span className="w-fit rounded-full bg-surface-container px-3 py-1 text-body-sm font-normal text-on-surface-variant italic-emphasis">
               {location || city || t("storage.region")}
@@ -246,7 +246,7 @@ export default function BrowseStoragePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3 md:gap-6">
           <button
-            className="flex items-center gap-2 text-primary font-bold text-body-sm hover:underline"
+            className="flex items-center gap-2 text-secondary font-bold text-body-sm hover:underline"
             type="button"
             onClick={() => setShowMap((current) => !current)}
           >
@@ -289,7 +289,7 @@ export default function BrowseStoragePage() {
 
       <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-4 pb-28 sm:px-6 md:pb-8 lg:flex-row lg:px-8">
         <aside className="w-full flex-shrink-0 space-y-6 lg:w-[300px]">
-          <div className="rounded-[24px] border border-outline-variant/20 bg-surface-container-low/40 p-5 shadow-[0_10px_40px_-28px_rgba(0,38,39,0.35)] sm:p-6 lg:sticky lg:top-28">
+          <div className="rounded-[24px] border border-outline-variant/60 bg-surface-container-low p-5 shadow-[0_10px_40px_-28px_rgba(17,24,39,0.18)] sm:p-6 lg:sticky lg:top-28">
             <h3 className="font-label-caps text-label-caps text-primary mb-6 tracking-widest uppercase">
               {t("storage.refineSearch")}
             </h3>
@@ -300,8 +300,8 @@ export default function BrowseStoragePage() {
               </label>
               <div className="relative w-full h-1 bg-surface-container-high rounded-full mt-4 mb-3">
                 <div className="absolute h-full w-2/3 bg-secondary rounded-full left-1/4"></div>
-                <div className="absolute -top-1.5 left-1/4 w-4 h-4 bg-primary rounded-full shadow-md border-2 border-white"></div>
-                <div className="absolute -top-1.5 left-[91%] w-4 h-4 bg-primary rounded-full shadow-md border-2 border-white"></div>
+                <div className="absolute -top-1.5 left-1/4 w-4 h-4 bg-secondary rounded-full shadow-md border-2 border-white"></div>
+                <div className="absolute -top-1.5 left-[91%] w-4 h-4 bg-secondary rounded-full shadow-md border-2 border-white"></div>
               </div>
               <div className="flex justify-between text-[13px] font-semibold text-on-surface-variant">
                 <span>{t("storage.priceRangeMin")}</span>
@@ -351,8 +351,8 @@ export default function BrowseStoragePage() {
                   <button
                     className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wider transition-all ${
                       storageType === value
-                        ? "border-2 border-primary text-primary font-bold bg-primary/5"
-                        : "border border-outline-variant/40 text-on-surface-variant font-medium hover:border-primary"
+                      ? "border-2 border-secondary text-secondary font-bold bg-secondary-container/15"
+                        : "border border-outline-variant/40 text-on-surface-variant font-medium hover:border-secondary"
                     }`}
                     key={value}
                     type="button"
@@ -371,7 +371,7 @@ export default function BrowseStoragePage() {
               <label className="font-bold text-[13px] text-on-surface mb-5 block">
                 {t("storage.distance")}
               </label>
-              <select className="w-full bg-white border border-outline-variant/30 rounded-lg p-2.5 text-body-sm focus:border-primary focus:ring-0">
+              <select className="w-full bg-surface border border-outline-variant/30 rounded-lg p-2.5 text-body-sm focus:border-secondary focus:ring-0">
                 <option>{t("storage.within5")}</option>
                 <option value="Within 10 miles">{t("storage.within10")}</option>
                 <option>{t("storage.within25")}</option>
@@ -382,7 +382,7 @@ export default function BrowseStoragePage() {
 
         <div className="min-w-0 flex-1">
           {!loading && !error && listings.length === 0 ? (
-            <div className="mb-6 rounded-lg border border-outline-variant/20 bg-white px-6 py-8 text-center text-on-surface-variant">
+            <div className="mb-6 rounded-lg border border-outline-variant/60 bg-surface px-6 py-8 text-center text-on-surface-variant">
               <p className="font-semibold text-primary">{t("storage.noResultsTitle")}</p>
               <p className="mt-2 text-sm">{t("storage.noResultsDescription")}</p>
             </div>
@@ -393,7 +393,7 @@ export default function BrowseStoragePage() {
               <Link
                 href={`/storage/${listing.id}`}
                 key={listing.id}
-                className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-outline-variant/20 bg-white card-shadow card-hover transition-all duration-300"
+                className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-outline-variant/60 bg-surface card-shadow card-hover transition-all duration-300"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-surface-container">
                   <img
@@ -406,9 +406,9 @@ export default function BrowseStoragePage() {
                       {formatStorageType(listing.storageType)}
                     </span>
                   </div>
-                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
+                  <div className="absolute top-4 right-4 bg-surface/95 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
                     <span
-                      className="material-symbols-outlined text-yellow-500 text-[16px]"
+                      className="material-symbols-outlined text-secondary text-[16px]"
                       style={{ fontVariationSettings: '"FILL" 1' }}
                     >
                       star
@@ -430,13 +430,13 @@ export default function BrowseStoragePage() {
                   </p>
                   <div className="mt-auto grid grid-cols-2 gap-3 border-t border-outline-variant/20 pt-4 sm:flex sm:items-center sm:gap-4">
                     <div className="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
-                      <span className="material-symbols-outlined text-[18px] text-primary">
+                      <span className="material-symbols-outlined text-[18px] text-secondary">
                         square_foot
                       </span>
                       {listing.sizeSqFt ?? "—"} {t("storage.sqFt")}
                     </div>
                     <div className="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-medium">
-                      <span className="material-symbols-outlined text-[18px] text-primary">
+                      <span className="material-symbols-outlined text-[18px] text-secondary">
                         verified
                       </span>
                       {listing.amenityNames[0]
@@ -460,7 +460,7 @@ export default function BrowseStoragePage() {
           <div className="flex justify-center py-16 sm:py-20">
             <nav className="flex items-center gap-3 sm:gap-4">
               <button
-                className="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant hover:text-primary transition-all bg-white shadow-sm disabled:opacity-40"
+                className="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-secondary text-on-surface-variant hover:text-secondary transition-all bg-surface shadow-sm disabled:opacity-40"
                 disabled={page <= 1}
                 type="button"
                 onClick={() => setPage((current) => Math.max(current - 1, 1))}
@@ -476,8 +476,8 @@ export default function BrowseStoragePage() {
                     <button
                       className={`w-12 h-12 rounded-full font-extrabold text-body-md transition-all ${
                         page === currentPage
-                          ? "bg-primary text-white shadow-lg shadow-primary/20"
-                          : "bg-white border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant font-bold"
+                          ? "bg-secondary text-white shadow-lg shadow-secondary/20"
+                          : "bg-surface border border-outline-variant/40 flex items-center justify-center hover:border-secondary text-on-surface-variant font-bold"
                       }`}
                       key={currentPage}
                       type="button"
@@ -489,7 +489,7 @@ export default function BrowseStoragePage() {
                 })}
               </div>
               <button
-                className="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-primary text-on-surface-variant hover:text-primary transition-all bg-white shadow-sm disabled:opacity-40"
+                className="w-12 h-12 rounded-full border border-outline-variant/40 flex items-center justify-center hover:border-secondary text-on-surface-variant hover:text-secondary transition-all bg-surface shadow-sm disabled:opacity-40"
                 disabled={page >= totalPages}
                 type="button"
                 onClick={() => setPage((current) => Math.min(current + 1, totalPages))}
@@ -503,9 +503,9 @@ export default function BrowseStoragePage() {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-[32px] border-t border-outline-variant/20 bg-white/90 px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl md:hidden">
+      <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-[32px] border-t border-outline-variant/20 bg-surface/90 px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(17,24,39,0.05)] backdrop-blur-xl md:hidden">
         <a
-          className="flex flex-col items-center justify-center text-primary bg-primary/5 rounded-full px-5 py-1.5"
+          className="flex flex-col items-center justify-center text-secondary bg-secondary-container/20 rounded-full px-5 py-1.5"
           href="#"
         >
           <span className="material-symbols-outlined" data-icon="search">
@@ -516,7 +516,7 @@ export default function BrowseStoragePage() {
           </span>
         </a>
         <a
-          className="flex flex-col items-center justify-center text-on-surface-variant/50"
+          className="flex flex-col items-center justify-center text-on-surface-variant/60"
           href="#"
         >
           <span className="material-symbols-outlined" data-icon="favorite">
@@ -527,7 +527,7 @@ export default function BrowseStoragePage() {
           </span>
         </a>
         <a
-          className="flex flex-col items-center justify-center text-on-surface-variant/50"
+          className="flex flex-col items-center justify-center text-on-surface-variant/60"
           href="#"
         >
           <span className="material-symbols-outlined" data-icon="person">

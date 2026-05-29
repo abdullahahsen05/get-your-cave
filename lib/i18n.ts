@@ -4,7 +4,7 @@ import frCommon from "@/locales/fr/common.json";
 export const supportedLocales = ["en", "fr"] as const;
 export type Locale = (typeof supportedLocales)[number];
 
-export const defaultLocale: Locale = "en";
+export const defaultLocale: Locale = "fr";
 export const languageCookieName = "gyc_locale";
 
 export const resources = {

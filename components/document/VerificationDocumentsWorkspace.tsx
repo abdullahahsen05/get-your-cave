@@ -285,7 +285,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
       </header>
 
       {currentUser.status !== "ACTIVE" ? (
-        <section className="mb-8 sm:mb-10 lg:mb-12 rounded-[28px] border border-secondary-fixed-dim/30 bg-secondary-container/25 p-5 sm:p-7 lg:p-8 shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+        <section className="mb-8 sm:mb-10 lg:mb-12 rounded-[28px] border border-secondary-fixed-dim/20 bg-secondary-container/15 p-5 sm:p-7 lg:p-8 shadow-[0_10px_30px_rgba(15,61,62,0.06)]">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-secondary-fixed-variant">
@@ -300,7 +300,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                   : t("verification.bannerRenterDescription")}
               </p>
             </div>
-            <div className="flex shrink-0 items-center justify-center gap-3 rounded-full bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm w-fit">
+            <div className="flex shrink-0 items-center justify-center gap-3 rounded-full border border-outline-variant/60 bg-surface px-4 py-3 text-sm font-semibold text-primary shadow-[0_8px_20px_rgba(15,61,62,0.06)] w-fit">
               <span className="material-symbols-outlined text-base">upload_file</span>
               <span>{t("verification.bannerAction")}</span>
             </div>
@@ -310,7 +310,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_390px] gap-8 lg:gap-10 xl:gap-12 items-start">
         <div className="space-y-8 sm:space-y-10 lg:space-y-12 min-w-0">
-          <section className="bg-surface-container-lowest border border-surface-variant p-5 sm:p-6 lg:p-8 rounded-2xl shadow-[0_4px_20px_rgba(15,61,62,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <section className="bg-surface-container-lowest border border-outline-variant/60 p-5 sm:p-6 lg:p-8 rounded-[26px] shadow-[0_10px_30px_rgba(15,61,62,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div>
               <h3 className="font-h3 text-h3 text-primary leading-tight">{t("verification.accountStatusTitle")}</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
@@ -327,7 +327,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
             </span>
           </section>
 
-          <section className="bg-secondary-container/20 border border-secondary-fixed-dim/30 p-5 sm:p-6 rounded-2xl flex gap-4 items-start">
+          <section className="bg-secondary-container/15 border border-secondary-fixed-dim/20 p-5 sm:p-6 rounded-[26px] flex gap-4 items-start">
             <span className="material-symbols-outlined text-secondary scale-125 mt-1">
               verified_user
             </span>
@@ -355,12 +355,12 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <button
-                className="group min-h-[260px] border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-6 sm:p-8 lg:p-10 rounded-2xl text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="group min-h-[260px] border-2 border-dashed border-outline-variant/70 hover:border-secondary bg-surface-container-low transition-colors duration-300 p-6 sm:p-8 lg:p-10 rounded-[26px] text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_10px_28px_rgba(15,61,62,0.04)]"
                 type="button"
                 disabled={!canUploadDocuments || isUploading}
                 onClick={() => openUploadDialog("ID_CARD")}
               >
-                <span className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary-fixed transition-colors">
+                <span className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
                   <span className="material-symbols-outlined">upload</span>
                 </span>
                 <span>
@@ -377,12 +377,12 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
               </button>
 
               <button
-                className="group min-h-[260px] border-2 border-dashed border-outline-variant hover:border-primary bg-surface-container-low transition-colors duration-300 p-6 sm:p-8 lg:p-10 rounded-2xl text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="group min-h-[260px] border-2 border-dashed border-outline-variant/70 hover:border-secondary bg-surface-container-low transition-colors duration-300 p-6 sm:p-8 lg:p-10 rounded-[26px] text-center flex flex-col items-center justify-center gap-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_10px_28px_rgba(15,61,62,0.04)]"
                 type="button"
                 disabled={!canUploadProofOfOwnership || isUploading}
                 onClick={() => openUploadDialog("PROOF_OF_OWNERSHIP")}
               >
-                <span className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary-fixed transition-colors">
+                <span className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
                   <span className="material-symbols-outlined">home_storage</span>
                 </span>
                 <span>
@@ -410,9 +410,9 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
               {t("verification.recentDocuments")}
             </h2>
 
-            <div className="bg-surface-container-lowest border border-surface-variant rounded-lg overflow-x-auto">
+            <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-[24px] overflow-x-auto shadow-[0_10px_30px_rgba(15,61,62,0.04)]">
               <table className="w-full min-w-[760px] text-left">
-                <thead className="bg-surface-container font-label-caps text-label-caps text-on-surface-variant">
+                <thead className="bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant">
                   <tr>
                     <th className="px-6 py-4">{t("verification.type")}</th>
                     <th className="px-6 py-4">{t("verification.status")}</th>
@@ -462,7 +462,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                           </td>
                           <td className="px-6 py-6 text-right space-x-4">
                             <a
-                              className="text-primary hover:underline"
+                              className="text-secondary hover:underline"
                               href={`/api/verification-documents/${document.id}`}
                               rel="noreferrer"
                               target="_blank"
@@ -471,7 +471,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                             </a>
                             {document.status === "REJECTED" ? (
                               <button
-                                className="text-primary hover:underline disabled:opacity-60"
+                                className="text-secondary hover:underline disabled:opacity-60"
                                 disabled={isUploading}
                                 type="button"
                                 onClick={() => openUploadDialog(document.type)}
@@ -507,14 +507,14 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
         </div>
 
         <aside className="space-y-12">
-          <section className="bg-primary-container text-on-primary p-6 sm:p-8 lg:p-9 xl:p-10 rounded-2xl shadow-xl lg:sticky lg:top-[120px]">
+          <section className="bg-[#181d28] text-white p-6 sm:p-8 lg:p-9 xl:p-10 rounded-[28px] shadow-[0_20px_50px_rgba(15,61,62,0.22)] lg:sticky lg:top-[120px]">
             <h3 className="font-h3 text-h3 mb-4">{t("verification.readyTitle")}</h3>
             <p className="font-body-md text-body-md mb-8 sm:mb-10 lg:mb-12 opacity-80">
               {t("verification.readyDescription")}
             </p>
 
             <button
-              className="w-full bg-white text-primary font-bold py-4 px-6 sm:px-8 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-3 disabled:opacity-70"
+              className="w-full bg-secondary text-on-secondary font-bold py-4 px-6 sm:px-8 rounded-full hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-3 disabled:opacity-70 shadow-[0_10px_22px_rgba(242,106,27,0.2)]"
               disabled={isSubmitting || loading || !verification.canSubmit}
               type="button"
               onClick={() => {
@@ -527,7 +527,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
 
             <div className="mt-8 sm:mt-10 lg:mt-12 pt-6 border-t border-white/10 space-y-4">
               <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-[20px] text-on-primary-container">
+                <span className="material-symbols-outlined text-[20px] text-secondary">
                   contact_support
                 </span>
                 <span className="font-body-sm text-body-sm">
@@ -535,7 +535,7 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
                 </span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-[20px] text-on-primary-container">
+                <span className="material-symbols-outlined text-[20px] text-secondary">
                   lock_reset
                 </span>
                 <span className="font-body-sm text-body-sm">
@@ -553,13 +553,13 @@ export default function VerificationDocumentsWorkspace({ currentUser }: Props) {
             </div>
           </section>
 
-          <section className="rounded-2xl overflow-hidden h-56 sm:h-64 lg:h-[280px] relative shadow-[0_4px_20px_rgba(15,61,62,0.04)]">
+          <section className="rounded-[28px] overflow-hidden h-56 sm:h-64 lg:h-[280px] relative shadow-[0_10px_30px_rgba(15,61,62,0.08)]">
             <img
               alt={t("home.featuredTitle")}
               className="w-full h-full object-cover"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVuMKlAGqph302zWz7GYOacx2lOwa1QsfZ2Dgy1wsqmhCrtDaGqIBXoXVpETBKXrmOukCzSgGwsqNwnN-gMHmgDFWWx-yD8YVfXfIWSRisi3qZPRn3E3T5Lw8J4pGI5n8qkby2pTkZ8B1Km2KORWrE3eMiQZ-09K5LnNkojMdSJbN4QFFuyMqZPEtXARnavjikoo5_1yJqtOm4mWz7j4RKzjTsoBMAnGeVoIpradJdhP4X3nG51hhq-QZdrttHrUMpYxlhs_AyhYM"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent flex items-end p-6">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#181d28]/70 to-transparent flex items-end p-6">
               <p className="text-white font-body-sm italic">
                 {t("verification.quote")}
               </p>

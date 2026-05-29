@@ -35,7 +35,7 @@ export default function OwnerBookingDetails({
   return (
     <div className="pt-1">
       <button
-        className="inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-full border border-outline-variant px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container sm:w-auto"
+        className="inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-full border border-outline-variant/70 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container-low sm:w-auto"
         type="button"
         onClick={() => setOpen((v) => !v)}
       >
@@ -46,7 +46,7 @@ export default function OwnerBookingDetails({
       </button>
 
       {open ? (
-        <div className="mt-3 space-y-3 rounded-[20px] border border-outline-variant/30 bg-surface-container-low px-4 py-4 text-body-sm font-body-sm text-on-surface-variant sm:px-5">
+        <div className="mt-3 space-y-3 rounded-[20px] border border-outline-variant/60 bg-surface-container-low px-4 py-4 text-body-sm font-body-sm text-on-surface-variant sm:px-5">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4">
             <span>{t("dashboard.owner.duration")}</span>
             <span className="font-semibold text-on-surface">

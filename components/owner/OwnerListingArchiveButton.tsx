@@ -65,8 +65,8 @@ export default function OwnerListingArchiveButton({
         aria-label={ariaLabel}
         className={`inline-flex min-h-9 items-center justify-center rounded-full px-3 py-1.5 text-label-caps font-label-caps transition-opacity ${
           archived
-            ? "bg-secondary-container text-on-secondary-fixed hover:opacity-90"
-            : "bg-primary text-white hover:opacity-90"
+            ? "bg-secondary-container text-on-secondary-container hover:opacity-90"
+            : "bg-secondary text-on-secondary hover:bg-[#d9590f]"
         } disabled:opacity-60`}
         disabled={isArchiving}
         title={buttonLabel}
@@ -83,7 +83,7 @@ export default function OwnerListingArchiveButton({
   return (
     <div className="flex flex-col items-start gap-1">
       <button
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant/70 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container-low disabled:opacity-60 sm:w-auto"
         disabled={isArchiving}
         title={buttonLabel}
         type="button"

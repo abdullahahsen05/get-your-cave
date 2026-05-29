@@ -83,7 +83,7 @@ export default function OwnerBookingActions({ bookingId, status }: Props) {
   return (
     <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
       <button
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant/70 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container-low disabled:opacity-60 sm:w-auto"
         disabled={busyStatus !== null || isMessaging}
         type="button"
         onClick={() => {
@@ -93,7 +93,7 @@ export default function OwnerBookingActions({ bookingId, status }: Props) {
         {isMessaging ? t("common.loading") : t("dashboard.owner.messageRenter")}
       </button>
       <button
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-secondary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary transition-opacity hover:bg-[#d9590f] disabled:opacity-60 sm:w-auto"
         disabled={busyStatus !== null || isMessaging}
         type="button"
         onClick={() => {
@@ -103,7 +103,7 @@ export default function OwnerBookingActions({ bookingId, status }: Props) {
         {busyStatus === "APPROVED" ? t("common.loading") : t("common.approve")}
       </button>
       <button
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant/70 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container-low disabled:opacity-60 sm:w-auto"
         disabled={busyStatus !== null}
         type="button"
         onClick={() => {

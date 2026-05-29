@@ -31,7 +31,7 @@ export default function LocationPreviewMap({ latitude, longitude }: Props) {
 
   if (!hasValidCoordinates) {
     return (
-      <div className="flex h-full min-h-[180px] items-center justify-center overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container px-4 py-4 text-center sm:min-h-[200px] sm:px-6">
+      <div className="flex h-full min-h-[180px] items-center justify-center overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-low px-4 py-4 text-center sm:min-h-[200px] sm:px-6">
         <div className="max-w-xs space-y-2">
           <p className="font-h3 text-h3 text-primary">{t("maps.previewTitle")}</p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
@@ -47,7 +47,7 @@ export default function LocationPreviewMap({ latitude, longitude }: Props) {
   const position = toLatLng(safeLatitude, safeLongitude);
 
   return (
-    <div className="h-full min-h-[180px] overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container sm:min-h-[200px]">
+    <div className="h-full min-h-[180px] overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-low sm:min-h-[200px]">
       <MapContainer
         center={position}
         className="h-full min-h-[180px] w-full sm:min-h-[200px]"

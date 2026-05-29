@@ -45,13 +45,13 @@ export default function OwnerActiveBookingActions({ bookingId }: Props) {
   return (
     <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
       <Link
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container sm:w-auto"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-outline-variant/70 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface-container-low sm:w-auto"
         href="/invoices"
       >
         {t("dashboard.owner.viewAllInvoices")}
       </Link>
       <button
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-secondary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary transition-opacity hover:bg-[#d9590f] disabled:opacity-60 sm:w-auto"
         disabled={isMessaging}
         type="button"
         onClick={() => {

@@ -44,7 +44,7 @@ function InfoBlock({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl bg-surface-container-low p-4 sm:p-5">
+    <div className="rounded-2xl bg-surface-container-low p-4 sm:p-5 border border-outline-variant/60">
       <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">{label}</p>
       <p className="mt-2 text-body-sm font-semibold text-primary">{value}</p>
     </div>
@@ -56,11 +56,11 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
   const locale = normalizeLocale(i18n.language);
 
   return (
-    <main className="mx-auto min-h-screen max-w-[1380px] bg-background px-4 pb-24 pt-28 text-on-background sm:px-6 sm:pb-28 sm:pt-32 lg:px-8">
+    <main className="mx-auto min-h-screen max-w-[1380px] bg-background px-4 pb-24 pt-28 text-on-surface sm:px-6 sm:pb-28 sm:pt-32 lg:px-8">
       <section className="mb-8 flex flex-col gap-4 lg:mb-10 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           <Link
-            className="inline-flex items-center gap-2 text-body-sm font-body-sm text-primary transition-colors hover:underline"
+            className="inline-flex items-center gap-2 text-body-sm font-body-sm text-secondary transition-colors hover:underline"
             href="/invoices"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -90,7 +90,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             {getInvoiceStatusLabel(invoice.status, locale)}
           </span>
           <a
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-outline-variant px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-secondary-container/20"
             href={`/api/invoices/${invoice.id}/pdf`}
           >
             <span className="material-symbols-outlined text-sm">download</span>
@@ -99,14 +99,14 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
           {canGenerate ? (
             <GenerateInvoiceButton
               bookingId={invoice.bookingId}
-              className="w-full rounded-full bg-primary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-container sm:w-auto"
+              className="w-full rounded-full bg-secondary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#d9590f] sm:w-auto"
               label={t("invoiceDetail.generateRefresh")}
             />
           ) : null}
           {canPay ? (
             <StripeCheckoutButton
               bookingId={invoice.bookingId}
-              className="w-full rounded-full bg-primary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-container sm:w-auto"
+              className="w-full rounded-full bg-secondary px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#d9590f] sm:w-auto"
               invoiceId={invoice.id}
               label={t("invoiceDetail.payNow")}
             />
@@ -116,7 +116,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
 
       <section className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.35fr)_420px] xl:items-start">
         <div className="space-y-6">
-          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+          <section className="rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest p-5 shadow-[0_8px_28px_rgba(17,24,39,0.05)] sm:p-6 lg:p-8">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <InfoBlock
                 label={t("invoiceDetail.booking")}
@@ -151,7 +151,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+          <section className="rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest p-5 shadow-[0_8px_28px_rgba(17,24,39,0.05)] sm:p-6 lg:p-8">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.paymentBreakdown")}</h2>
@@ -173,7 +173,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             <div className="space-y-4">
               {invoice.items.map((item) => (
                 <article
-                  className="rounded-[24px] border border-outline-variant/20 bg-surface-container-low p-4 sm:p-5"
+                  className="rounded-[24px] border border-outline-variant/60 bg-surface-container-low p-4 sm:p-5"
                   key={item.id}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -185,7 +185,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                     </div>
 
                     <div className="flex items-center gap-3 self-start sm:self-auto">
-                      <span className="rounded-full border border-outline-variant/30 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                      <span className="rounded-full border border-outline-variant/60 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                         {t("invoiceDetail.quantity")} {item.quantity}
                       </span>
                       <div className="text-right">
@@ -205,7 +205,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
         </div>
 
         <aside className="space-y-6 xl:sticky xl:top-[120px]">
-          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+          <section className="rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest p-5 shadow-[0_8px_28px_rgba(17,24,39,0.05)] sm:p-6 lg:p-8">
             <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.summary")}</h2>
             <div className="mt-6 space-y-4">
               <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-container-low p-4">
@@ -219,7 +219,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+          <section className="rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest p-5 shadow-[0_8px_28px_rgba(17,24,39,0.05)] sm:p-6 lg:p-8">
             <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.people")}</h2>
 
             <div className="mt-6 space-y-4">
@@ -241,7 +241,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-8">
+          <section className="rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest p-5 shadow-[0_8px_28px_rgba(17,24,39,0.05)] sm:p-6 lg:p-8">
             <h2 className="font-h3 text-h3 text-primary">{t("invoiceDetail.timeline")}</h2>
             <div className="mt-6 space-y-4">
               {invoice.timeline.map((item) => (
