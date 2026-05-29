@@ -6,6 +6,7 @@ import {
   type Listing,
 } from "@prisma/client";
 
+import { haversineDistance } from "./geo";
 import { prisma } from "@/lib/prisma";
 import type {
   ListingDraftInput,
@@ -75,12 +76,18 @@ export type ListingListFilters = {
   page: number;
   limit: number;
   location?: string | null;
+  address?: string | null;
   city?: string | null;
+  postalCode?: string | null;
   storageType?: StorageType | null;
   minPrice?: number | null;
   maxPrice?: number | null;
   minSize?: number | null;
   maxSize?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusKm?: number | null;
+  amenities?: string[] | null;
   publicOnly?: boolean;
   includeArchived?: boolean;
 };
@@ -258,13 +265,37 @@ function buildPublicWhere(filters: ListingListFilters): Prisma.ListingWhereInput
             mode: "insensitive",
           },
         },
+        {
+          postalCode: {
+            contains: filters.location,
+            mode: "insensitive",
+          },
+        },
       ],
+    });
+  }
+
+  if (filters.address) {
+    and.push({
+      address: {
+        contains: filters.address,
+        mode: "insensitive",
+      },
     });
   }
 
   if (filters.storageType) {
     and.push({
       storageType: filters.storageType,
+    });
+  }
+
+  if (filters.postalCode) {
+    and.push({
+      postalCode: {
+        contains: filters.postalCode,
+        mode: "insensitive",
+      },
     });
   }
 
@@ -282,6 +313,51 @@ function buildPublicWhere(filters: ListingListFilters): Prisma.ListingWhereInput
         lte: new Prisma.Decimal(filters.maxPrice),
       },
     });
+  }
+
+  if (filters.latitude !== null && filters.latitude !== undefined) {
+    and.push({
+      latitude: {
+        gte: filters.latitude - 5,
+        lte: filters.latitude + 5,
+      },
+    });
+  }
+
+  if (filters.longitude !== null && filters.longitude !== undefined) {
+    and.push({
+      longitude: {
+        gte: filters.longitude - 5,
+        lte: filters.longitude + 5,
+      },
+    });
+  }
+
+  if (filters.radiusKm !== null && filters.radiusKm !== undefined) {
+    const safeRadius = Math.max(0, filters.radiusKm);
+    const latitude = filters.latitude ?? null;
+    const longitude = filters.longitude ?? null;
+
+    if (latitude !== null && longitude !== null) {
+      const latDelta = safeRadius / 111.32;
+      const lonDelta =
+        safeRadius /
+        (111.32 * Math.max(Math.cos((latitude * Math.PI) / 180), 0.01));
+
+      and.push({
+        latitude: {
+          gte: latitude - latDelta,
+          lte: latitude + latDelta,
+        },
+      });
+
+      and.push({
+        longitude: {
+          gte: longitude - lonDelta,
+          lte: longitude + lonDelta,
+        },
+      });
+    }
   }
 
   if (filters.minSize !== null && filters.minSize !== undefined) {
@@ -315,6 +391,20 @@ function buildPublicWhere(filters: ListingListFilters): Prisma.ListingWhereInput
           },
         },
       ],
+    });
+  }
+
+  if (filters.amenities?.length) {
+    and.push({
+      amenities: {
+        some: {
+          amenity: {
+            name: {
+              in: filters.amenities,
+            },
+          },
+        },
+      },
     });
   }
 
@@ -644,6 +734,75 @@ export async function listPublicListings(filters: ListingListFilters) {
   const where = buildPublicWhere(filters);
   const skip = (filters.page - 1) * filters.limit;
 
+  const hasGeoOrigin =
+    filters.latitude !== null &&
+    filters.latitude !== undefined &&
+    filters.longitude !== null &&
+    filters.longitude !== undefined;
+
+  if (hasGeoOrigin) {
+    const [, listings] = await prisma.$transaction([
+      prisma.listing.count({ where }),
+      prisma.listing.findMany({
+        where,
+        orderBy: [
+          { isFeatured: "desc" },
+          { updatedAt: "desc" },
+        ],
+        include: listingCardInclude,
+      }),
+    ]);
+
+    const maxRadiusKm =
+      filters.radiusKm !== null && filters.radiusKm !== undefined
+        ? Math.max(0, filters.radiusKm)
+        : null;
+
+    const rankedListings = listings
+      .map((listing) => {
+        const latitude = listing.latitude !== null ? Number(listing.latitude) : null;
+        const longitude = listing.longitude !== null ? Number(listing.longitude) : null;
+
+        const distanceKm =
+          latitude !== null && longitude !== null
+            ? haversineDistance(filters.latitude as number, filters.longitude as number, latitude, longitude)
+            : null;
+
+        return {
+          listing,
+          distanceKm,
+        };
+      })
+      .filter((entry) => {
+        if (maxRadiusKm === null || entry.distanceKm === null) {
+          return true;
+        }
+
+        return entry.distanceKm <= maxRadiusKm;
+      })
+      .sort((a, b) => {
+        const aDistance = a.distanceKm ?? Number.POSITIVE_INFINITY;
+        const bDistance = b.distanceKm ?? Number.POSITIVE_INFINITY;
+
+        if (aDistance !== bDistance) {
+          return aDistance - bDistance;
+        }
+
+        if (a.listing.isFeatured !== b.listing.isFeatured) {
+          return a.listing.isFeatured ? -1 : 1;
+        }
+
+        return b.listing.updatedAt.getTime() - a.listing.updatedAt.getTime();
+      });
+
+    return {
+      total: rankedListings.length,
+      listings: rankedListings
+        .slice(skip, skip + filters.limit)
+        .map((entry) => serializeBaseListing(entry.listing)),
+    };
+  }
+
   const [total, listings] = await prisma.$transaction([
     prisma.listing.count({ where }),
     prisma.listing.findMany({
@@ -897,14 +1056,31 @@ export function normalizeListingFilters(searchParams: URLSearchParams): ListingL
   const pageValue = Number(searchParams.get("page") ?? "1");
   const limitValue = Number(searchParams.get("limit") ?? "12");
   const storageTypeValue = searchParams.get("storageType");
+  const locationValue = searchParams.get("location")?.trim() || null;
+  const addressValue = searchParams.get("address")?.trim() || null;
+  const cityValue = searchParams.get("city")?.trim() || null;
+  const postalCodeValue = searchParams.get("postalCode")?.trim() || null;
   const minPriceRaw = searchParams.get("minPrice");
   const maxPriceRaw = searchParams.get("maxPrice");
   const minSizeRaw = searchParams.get("minSize");
   const maxSizeRaw = searchParams.get("maxSize");
+  const latitudeRaw = searchParams.get("latitude");
+  const longitudeRaw = searchParams.get("longitude");
+  const radiusKmRaw = searchParams.get("radiusKm");
+  const amenitiesRaw = searchParams.get("amenities");
   const minPriceValue = minPriceRaw === null || minPriceRaw === "" ? null : Number(minPriceRaw);
   const maxPriceValue = maxPriceRaw === null || maxPriceRaw === "" ? null : Number(maxPriceRaw);
   const minSizeValue = minSizeRaw === null || minSizeRaw === "" ? null : Number(minSizeRaw);
   const maxSizeValue = maxSizeRaw === null || maxSizeRaw === "" ? null : Number(maxSizeRaw);
+  const latitudeValue = latitudeRaw === null || latitudeRaw === "" ? null : Number(latitudeRaw);
+  const longitudeValue = longitudeRaw === null || longitudeRaw === "" ? null : Number(longitudeRaw);
+  const radiusKmValue = radiusKmRaw === null || radiusKmRaw === "" ? null : Number(radiusKmRaw);
+  const amenitiesValue = amenitiesRaw
+    ? amenitiesRaw
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0)
+    : null;
 
   const parsedStorageType =
     storageTypeValue && storageTypeValue in StorageType
@@ -914,13 +1090,19 @@ export function normalizeListingFilters(searchParams: URLSearchParams): ListingL
   return {
     page: Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : 1,
     limit: Number.isFinite(limitValue) && limitValue > 0 ? Math.min(Math.floor(limitValue), 24) : 12,
-    location: searchParams.get("location")?.trim() || null,
-    city: searchParams.get("city")?.trim() || null,
+    location: locationValue,
+    address: addressValue,
+    city: cityValue,
+    postalCode: postalCodeValue,
     storageType: parsedStorageType,
     minPrice: minPriceValue !== null && Number.isFinite(minPriceValue) ? minPriceValue : null,
     maxPrice: maxPriceValue !== null && Number.isFinite(maxPriceValue) ? maxPriceValue : null,
     minSize: minSizeValue !== null && Number.isFinite(minSizeValue) ? minSizeValue : null,
     maxSize: maxSizeValue !== null && Number.isFinite(maxSizeValue) ? maxSizeValue : null,
+    latitude: latitudeValue !== null && Number.isFinite(latitudeValue) ? latitudeValue : null,
+    longitude: longitudeValue !== null && Number.isFinite(longitudeValue) ? longitudeValue : null,
+    radiusKm: radiusKmValue !== null && Number.isFinite(radiusKmValue) ? radiusKmValue : null,
+    amenities: amenitiesValue,
     publicOnly: searchParams.get("publicOnly") !== "false",
     includeArchived: searchParams.get("includeArchived") === "true",
   };

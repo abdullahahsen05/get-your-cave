@@ -1,5 +1,5 @@
 {
-  "appName": "GETYOURCAVE",
+  "appName": "GetYourCave",
   "tagline": "Sérénité architecturale dans le stockage",
   "common": {
     "search": "Rechercher",
@@ -136,13 +136,13 @@
     "hostGuarantee": "Garantie hôte",
     "safety": "Sécurité",
     "cookies": "Cookies",
-    "bottomLeft": "© 2026 GrenierCave — Tous droits réservés.",
+    "bottomLeft": "© 2026 GetYourCave — Tous droits réservés.",
     "bottomRight": "Fait avec ♥ en France",
     "social": {
       "share": "Partager",
       "globe": "Monde"
     },
-    "copyright": "© 2024 GETYOURCAVE. Sérénité architecturale dans le stockage.",
+    "copyright": "© 2024 GetYourCave. Sérénité architecturale dans le stockage.",
     "tagline": "Pensé pour les minimalistes exigeants."
   },
   "status": {
@@ -338,7 +338,7 @@
     "availableTitle": "Espaces disponibles",
     "availableDescription": "Explorez des espaces premium.",
     "exploreMore": "Voir toutes les annonces",
-    "statsTitle": "Pourquoi choisir GETYOURCAVE",
+    "statsTitle": "Pourquoi choisir GetYourCave",
     "statsDescription": "Une expérience de stockage sécurisée.",
     "ctaTitle": "Prêt à libérer de l’espace é",
     "ctaDescription": "Publiez ou réservez facilement.",
@@ -346,14 +346,14 @@
     "ctaSecondary": "Parcourir les espaces",
     "mapBadge": "approuvée",
     "userAvatarAlt": "Avatar utilisateur",
-    "sampleListing1Title": "Garage des Hauteurs",
-    "sampleListing1Location": "Pacific Heights, San Francisco",
-    "sampleListing1Price": "120 $/mois",
-    "sampleListing1Size": "150 pi²",
-    "sampleListing2Title": "Stockage de Mission Loft",
-    "sampleListing2Location": "District de Mission, San Francisco",
-    "sampleListing2Price": "85 $/mois",
-    "sampleListing2Size": "75 pi²"
+    "sampleListing1Title": "Cave Bastille",
+    "sampleListing1Location": "Paris 11e",
+    "sampleListing1Price": "€120/mois",
+    "sampleListing1Size": "14 m²",
+    "sampleListing2Title": "Box Part-Dieu",
+    "sampleListing2Location": "Lyon",
+    "sampleListing2Price": "€85/mois",
+    "sampleListing2Size": "7 m²"
   },
   "landing": {
     "eyebrow": "Espace de stockage entre particuliers",
@@ -496,10 +496,10 @@
       "title": "Des espaces qui vous ressemblent",
       "subtitle": "Choisissez le format de stockage qui vous convient le mieux.",
       "action": "Explorer",
-      "card1": { "title": "Cave / Placard", "meta": "1 à 4 m²" },
-      "card2": { "title": "Box moyen", "meta": "4 à 10 m²" },
-      "card3": { "title": "Grand box", "meta": "10 à 20 m²" },
-      "card4": { "title": "Garage", "meta": "15 m² et +" }
+      "card1": { "title": "Cave / cellier", "meta": "1 à 4 m²" },
+      "card2": { "title": "Box", "meta": "4 à 10 m²" },
+      "card3": { "title": "Local de stockage", "meta": "10 à 20 m²" },
+      "card4": { "title": "Autres espaces de stockage", "meta": "15 m² et +" }
     },
     "simulator": {
       "eyebrow": "Propriétaires",
@@ -535,7 +535,7 @@
       "result": {
         "label": "Estimation mensuelle",
         "perMonth": "/ mois",
-        "note": "Après commission GrenierCave (8%)"
+        "note": "Après commission GetYourCave (8%)"
       },
       "metrics": { "year": "Par an", "fiveYear": "Sur 5 ans" },
       "ownerTitle": "Publication",
@@ -563,13 +563,23 @@
     },
     "cta": {
       "title": "Prêt à libérer de l'espace… ou à en trouver ?",
-      "description": "Rejoignez les 870 propriétaires et milliers de locataires qui utilisent GrenierCave.",
+      "description": "Rejoignez les 870 propriétaires et milliers de locataires qui utilisent GetYourCave.",
       "primaryAction": "Trouver un espace",
       "secondaryAction": "Louer mon espace"
     }
   },
   "storage": {
     "searchPlaceholder": "De quel espace avez-vous besoin é",
+    "searchType": "Type de recherche",
+    "searchModeAll": "Tous les emplacements",
+    "searchModeAddress": "Adresse",
+    "searchModePostalCode": "Code postal",
+    "searchModeCity": "Ville",
+    "searchModeGeolocation": "Géolocalisation",
+    "searchAddressPlaceholder": "Adresse complète",
+    "searchPostalCodePlaceholder": "Code postal",
+    "searchCityPlaceholder": "Ville",
+    "searchGeolocationPlaceholder": "Rechercher un lieu ou un quartier",
     "sizePlaceholder": "Toutes tailles",
     "sizeSmall": "Petit (5x5 pi)",
     "sizeMedium": "Moyen (10x10 pi)",
@@ -577,7 +587,7 @@
     "moveInDate": "Date d’emménagement",
     "loadingCaves": "Chargement...",
     "storageCaves": "Espaces de stockage",
-    "region": "Zone de San Francisco",
+    "region": "Région parisienne",
     "mapView": "Vue carte",
     "approvedListings": "Les annonces approuvées avec coordonnées sont affichées ci-dessous.",
     "refineSearch": "Affiner la recherche",
@@ -585,24 +595,44 @@
     "unitSize": "Taille de l’unité",
     "storageType": "Type de stockage",
     "distance": "Distance",
-    "within5": "Jusqu’à 5 miles",
-    "within10": "Jusqu’à 10 miles",
-    "within25": "Jusqu’à 25 miles",
+    "within5": "Jusqu’à 5 km",
+    "within1": "Jusqu’à 1 km",
+    "within10": "Jusqu’à 10 km",
+    "within25": "Jusqu’à 25 km",
+    "within50": "Jusqu’à 50 km",
+    "priceMin": "Min €",
+    "priceMax": "Max €",
+    "sizeMin": "Min m²",
+    "sizeMax": "Max m²",
+    "filters": "Fonctionnalités",
+    "filterSecurity": "Sécurité",
+    "filter247": "Accès 24/7",
+    "filterElevator": "Ascenseur",
+    "filterVentilation": "Ventilation",
+    "filterHumidity": "Contrôle de léhumiditée",
+    "latitudeLabel": "Latitude",
+    "longitudeLabel": "Longitude",
+    "useCurrentLocation": "Utiliser ma position",
+    "clearFilters": "Réinitialiser les filtres",
+    "geoLookupFailed": "Impossible de localiser cet emplacement.",
+    "geoUnsupported": "La géolocalisation n’est pas prise en charge par ce navigateur.",
+    "locationUnavailable": "Impossible de déterminer votre position actuelle.",
     "anyAmenity": "Vérifié",
     "anySize": "Toutes tailles",
     "storageCavesWithCount": "Espaces ({{count}})",
-    "priceRangeMin": "50 $",
-    "priceRangeMax": "1 200 $+",
-    "rangeSmall": "Petit (jusqu’à 50 pi²)",
-    "rangeMedium": "Moyen (50-150 pi²)",
-    "rangeLarge": "Grand (150 pi² et plus)",
-    "typeGarage": "Garage",
-    "typeRoom": "Pièce",
-    "typeWarehouse": "Entrepôt",
-    "typeBasement": "Sous-sol",
+    "priceRangeMin": "50 €",
+    "priceRangeMax": "1 200 €+",
+    "rangeSmall": "Petit (jusqu’à 5 m²)",
+    "rangeMedium": "Moyen (5-15 m²)",
+    "rangeLarge": "Grand (15+ m²)",
+    "typeGarage": "Cave / cellier",
+    "typeRoom": "Box",
+    "typeWarehouse": "Local de stockage",
+    "typeBasement": "Placard",
     "verified": "Vérifié",
-    "sqFt": "pi²",
+    "sqFt": "m²",
     "sortRecommended": "Recommandé",
+    "sortNearest": "Plus proche d’abord",
     "sortPriceLowHigh": "Prix : du plus bas au plus élevé",
     "sortSizeLargest": "Taille : du plus grand au plus petit",
     "noResultsTitle": "Aucune annonce correspondante.",
@@ -614,7 +644,7 @@
     "bookNow": "Réserver",
     "bookingRequest": "Réservation",
     "monthly": "/mois",
-    "sqFt": "pi²",
+    "sqFt": "m²",
     "availableNow": "Disponible maintenant",
     "unavailable": "Cet espace n’est pas actuellement disponible à la réservation.",
     "messageOwner": "Contacter",
@@ -675,10 +705,11 @@
     "city": "Ville",
     "postalCode": "Code postal",
       "storageTypes": {
-        "garage": "Garage",
-        "basement": "Sous-sol",
-        "room": "Pièce",
-        "warehouse": "Entrepôt"
+        "cellarCave": "Cave / cellier",
+        "box": "Box",
+        "closet": "Placard",
+        "storageRoom": "Local de stockage",
+        "otherStorageSpaces": "Autres espaces de stockage"
       },
       "amenities": {
         "securityCamera": "Caméra de sécurité",
@@ -743,13 +774,13 @@
       "useCurrentLocation": "Utiliser ma position actuelle",
       "usingLocation": "Utilisation de ma position...",
       "addressLabel": "Adresse",
-      "addressPlaceholder": "Adresse",
+      "addressPlaceholder": "12 rue de Rivoli, Paris",
       "cityLabel": "Ville",
-      "cityPlaceholder": "Ville",
+      "cityPlaceholder": "Paris, Lyon, Marseille...",
       "zipLabel": "Code postal",
       "zipPlaceholder": "Code postal",
-      "sizeLabel": "Taille (pi²)",
-      "sizePlaceholder": "Taille facultative",
+      "sizeLabel": "Surface (m²)",
+      "sizePlaceholder": "Surface facultative en m²",
       "hideManualCoordinates": "Masquer les coordonnées manuelles",
       "showManualCoordinates": "Afficher les coordonnées manuelles",
       "latitudeLabel": "Latitude",
@@ -1178,7 +1209,7 @@
     "protectedByCaveShield": "Protégé par CaveShield",
     "protectionDescription": "Chaque réservation bénéficie de la protection de la plateforme et de contrôles déaccés sécurisés.",
     "perMonth": "par mois",
-    "sqFt": "pi²",
+    "sqFt": "m²",
     "loadError": "Impossible de charger l’annonce.",
     "bookingError": "Impossible de créer la réservation pour le moment.",
     "conversationError": "Impossible de lancer la conversation pour le moment.",
@@ -1227,7 +1258,7 @@
     },
     "layout": {
       "metadata": {
-        "title": "GETYOURCAVE",
+        "title": "GetYourCave",
         "description": "Sérénité architecturale dans le stockage"
       }
     },
@@ -1264,7 +1295,7 @@
           "f03e77a2": "56+"
         },
         "85": {
-          "3c590424": "$85"
+          "3c590424": "€85"
         },
         "99": {
           "9": {
@@ -1272,15 +1303,15 @@
           }
         },
         "120": {
-          "85ee8a8e": "$120"
+          "85ee8a8e": "€120"
         },
         "196": {
           "000": {
-            "35d964b2": "$196,000"
+            "35d964b2": "€196,000"
           }
         },
         "210": {
-          "280b18c7": "$210"
+          "280b18c7": "€210"
         },
         "architectural": {
           "digest": {
@@ -1344,7 +1375,7 @@
       "page": {
         "text": {
           "text": {
-            "33403ca3": "$"
+            "33403ca3": "€"
           }
         }
       }
@@ -1395,7 +1426,7 @@
       "Footer": {
         "text": {
           "getyourcave": {
-            "823e3085": "GETYOURCAVE"
+            "823e3085": "GetYourCave"
           }
         }
       },
@@ -1419,7 +1450,7 @@
           "get": {
             "your": {
               "cave": {
-                "5c627b86": "GETYOURCAVE"
+                "5c627b86": "GetYourCave"
               }
             }
           }
@@ -1431,7 +1462,7 @@
         "text": {
           "text": {
             "17e45d65": ", ",
-            "d4dc8bb5": "$"
+            "d4dc8bb5": "€"
           }
         }
       }

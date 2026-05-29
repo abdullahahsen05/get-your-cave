@@ -1,5 +1,5 @@
 {
-  "appName": "GETYOURCAVE",
+  "appName": "GetYourCave",
   "tagline": "Architectural Serenity in Storage",
   "common": {
     "search": "Search",
@@ -135,13 +135,13 @@
     "hostGuarantee": "Host Guarantee",
     "safety": "Safety",
     "cookies": "Cookies",
-    "bottomLeft": "© 2026 GrenierCave — All rights reserved.",
+    "bottomLeft": "© 2026 GetYourCave — All rights reserved.",
     "bottomRight": "Made with ♥ in France",
     "social": {
       "share": "Share",
       "globe": "World"
     },
-    "copyright": "Â© 2024 GETYOURCAVE. Architectural Serenity in Storage.",
+    "copyright": "Â© 2024 GetYourCave. Architectural Serenity in Storage.",
     "tagline": "Designed for the discerning minimalist."
   },
   "status": {
@@ -337,7 +337,7 @@
     "availableTitle": "Available Caves",
     "availableDescription": "Explore premium spaces chosen for reliability and elegance.",
     "exploreMore": "Explore all listings",
-    "statsTitle": "Why people choose GETYOURCAVE",
+    "statsTitle": "Why people choose GetYourCave",
     "statsDescription": "A polished, secure storage experience for every booking.",
     "ctaTitle": "Ready to unlock more space?",
     "ctaDescription": "Whether you're listing or renting, the workflow stays clean and secure.",
@@ -345,14 +345,14 @@
     "ctaSecondary": "Browse Storage",
     "mapBadge": "approved",
     "userAvatarAlt": "User avatar",
-    "sampleListing1Title": "The Heights Garage",
-    "sampleListing1Location": "Pacific Heights, SF",
-    "sampleListing1Price": "$120/mo",
-    "sampleListing1Size": "150 sq ft",
-    "sampleListing2Title": "Mission Loft Storage",
-    "sampleListing2Location": "Mission District, SF",
-    "sampleListing2Price": "$85/mo",
-    "sampleListing2Size": "75 sq ft"
+    "sampleListing1Title": "Cave Bastille",
+    "sampleListing1Location": "Paris 11e",
+    "sampleListing1Price": "€120/mo",
+    "sampleListing1Size": "14 m²",
+    "sampleListing2Title": "Box Part-Dieu",
+    "sampleListing2Location": "Lyon",
+    "sampleListing2Price": "€85/mo",
+    "sampleListing2Size": "7 m²"
   },
   "landing": {
     "eyebrow": "Peer-to-peer storage space",
@@ -495,10 +495,10 @@
       "title": "Spaces that feel like yours",
       "subtitle": "Choose the storage format that fits your life best.",
       "action": "Explore",
-      "card1": { "title": "Cellar / Closet", "meta": "1 to 4 m²" },
-      "card2": { "title": "Medium box", "meta": "4 to 10 m²" },
-      "card3": { "title": "Large box", "meta": "10 to 20 m²" },
-      "card4": { "title": "Garage", "meta": "15 m² and up" }
+      "card1": { "title": "Cellar / Cave", "meta": "1 to 4 m²" },
+      "card2": { "title": "Box", "meta": "4 to 10 m²" },
+      "card3": { "title": "Storage room", "meta": "10 to 20 m²" },
+      "card4": { "title": "Other storage spaces", "meta": "15 m² and up" }
     },
     "simulator": {
       "eyebrow": "For hosts",
@@ -534,7 +534,7 @@
       "result": {
         "label": "Estimated monthly income",
         "perMonth": "/ month",
-        "note": "After GETYOURCAVE’s 8% commission"
+        "note": "After GetYourCave’s 8% commission"
       },
       "metrics": { "year": "Per year", "fiveYear": "Over 5 years" },
       "ownerTitle": "Publishing",
@@ -562,13 +562,23 @@
     },
     "cta": {
       "title": "Ready to free up space… or find some?",
-      "description": "Join the 870 hosts and thousands of renters already using GETYOURCAVE.",
+      "description": "Join the 870 hosts and thousands of renters already using GetYourCave.",
       "primaryAction": "Find storage",
       "secondaryAction": "Rent my space"
     }
   },
   "storage": {
     "searchPlaceholder": "Where do you need storage?",
+    "searchType": "Search type",
+    "searchModeAll": "Any location",
+    "searchModeAddress": "Address",
+    "searchModePostalCode": "Postal code",
+    "searchModeCity": "City",
+    "searchModeGeolocation": "Geolocation",
+    "searchAddressPlaceholder": "Street address",
+    "searchPostalCodePlaceholder": "Postal code",
+    "searchCityPlaceholder": "City",
+    "searchGeolocationPlaceholder": "Search a place or neighborhood",
     "sizePlaceholder": "Any Size",
     "anySize": "Any Size",
     "sizeSmall": "Small (5x5 ft)",
@@ -578,30 +588,50 @@
     "loadingCaves": "Loading...",
     "storageCaves": "Storage Caves",
     "storageCavesWithCount": "Storage Caves ({{count}})",
-    "region": "Greater San Francisco Area",
+    "region": "Paris Area",
     "mapView": "Map view",
     "approvedListings": "Approved listings with coordinates are shown below.",
     "refineSearch": "Refine Search",
     "priceRange": "Price Range (Monthly)",
-    "priceRangeMin": "$50",
-    "priceRangeMax": "$1,200+",
+    "priceRangeMin": "€50",
+    "priceRangeMax": "€1,200+",
+    "priceMin": "Min €",
+    "priceMax": "Max €",
     "unitSize": "Unit Size",
-    "rangeSmall": "Small (up to 50 sq ft)",
-    "rangeMedium": "Medium (50-150 sq ft)",
-    "rangeLarge": "Large (150+ sq ft)",
+    "sizeMin": "Min m²",
+    "sizeMax": "Max m²",
+    "rangeSmall": "Small (up to 5 m²)",
+    "rangeMedium": "Medium (5-15 m²)",
+    "rangeLarge": "Large (15+ m²)",
     "storageType": "Storage Type",
-    "typeGarage": "Garage",
-    "typeRoom": "Room",
-    "typeWarehouse": "Warehouse",
-    "typeBasement": "Basement",
+    "typeGarage": "Cellar / Cave",
+    "typeRoom": "Box",
+    "typeWarehouse": "Storage room",
+    "typeBasement": "Closet",
     "distance": "Distance",
-    "within5": "Within 5 miles",
-    "within10": "Within 10 miles",
-    "within25": "Within 25 miles",
+    "within5": "Within 5 km",
+    "within1": "Within 1 km",
+    "within10": "Within 10 km",
+    "within25": "Within 25 km",
+    "within50": "Within 50 km",
+    "filters": "Features",
+    "filterSecurity": "Security",
+    "filter247": "24/7 access",
+    "filterElevator": "Elevator",
+    "filterVentilation": "Ventilation",
+    "filterHumidity": "Humidity control",
+    "latitudeLabel": "Latitude",
+    "longitudeLabel": "Longitude",
+    "useCurrentLocation": "Use my location",
+    "clearFilters": "Clear filters",
+    "geoLookupFailed": "Unable to look up that location.",
+    "geoUnsupported": "Geolocation is not supported by this browser.",
+    "locationUnavailable": "Unable to determine your current location.",
     "anyAmenity": "Verified",
     "verified": "Verified",
-    "sqFt": "sq ft",
+    "sqFt": "m²",
     "sortRecommended": "Recommended",
+    "sortNearest": "Nearest first",
     "sortPriceLowHigh": "Price: low to high",
     "sortSizeLargest": "Size: largest first",
     "noResultsTitle": "No matching listings found.",
@@ -613,7 +643,7 @@
     "bookNow": "Book now",
     "bookingRequest": "Booking request",
     "monthly": "/mo",
-    "sqFt": "sq ft",
+    "sqFt": "m²",
     "availableNow": "Available now",
     "unavailable": "This space is currently unavailable for booking.",
     "messageOwner": "Message owner",
@@ -675,7 +705,7 @@
     "protectedByCaveShield": "Protected by CaveShield",
     "protectionDescription": "Every booking is covered with platform protection and secure access controls.",
     "perMonth": "per month",
-    "sqFt": "sq ft",
+    "sqFt": "m²",
     "loadError": "Unable to load listing.",
     "bookingError": "Unable to create booking right now.",
     "conversationError": "Unable to start a conversation right now.",
@@ -743,12 +773,13 @@
       "selectedCount": "{{value}} selected",
       "countValue": "{{value}}"
     },
-    "storageTypes": {
-      "garage": "Garage",
-      "basement": "Basement",
-      "room": "Room",
-      "warehouse": "Warehouse"
-    },
+      "storageTypes": {
+        "cellarCave": "Cellar / Cave",
+        "box": "Box",
+        "closet": "Closet",
+        "storageRoom": "Storage room",
+        "otherStorageSpaces": "Other storage spaces"
+      },
     "amenities": {
       "title": "Amenities",
       "description": "Highlight the features that make your space stand out.",
@@ -799,13 +830,13 @@
       "useCurrentLocation": "Use my current location",
       "usingLocation": "Using my location...",
       "addressLabel": "Address",
-      "addressPlaceholder": "Street address",
+      "addressPlaceholder": "12 rue de Rivoli, Paris",
       "cityLabel": "City",
-      "cityPlaceholder": "City",
+      "cityPlaceholder": "Paris, Lyon, Marseille...",
       "zipLabel": "Postal code",
       "zipPlaceholder": "Postal code",
-      "sizeLabel": "Size (sq ft)",
-      "sizePlaceholder": "Optional size",
+      "sizeLabel": "Size (m²)",
+      "sizePlaceholder": "Optional size in m²",
       "hideManualCoordinates": "Hide manual coordinates",
       "showManualCoordinates": "Show manual coordinates",
       "latitudeLabel": "Latitude",
@@ -1226,7 +1257,7 @@
     },
     "layout": {
       "metadata": {
-        "title": "GETYOURCAVE",
+        "title": "GetYourCave",
         "description": "Architectural Serenity in Storage"
       }
     },
@@ -1263,7 +1294,7 @@
           "f03e77a2": "56+"
         },
         "85": {
-          "3c590424": "$85"
+          "3c590424": "€85"
         },
         "99": {
           "9": {
@@ -1271,15 +1302,15 @@
           }
         },
         "120": {
-          "85ee8a8e": "$120"
+          "85ee8a8e": "€120"
         },
         "196": {
           "000": {
-            "35d964b2": "$196,000"
+            "35d964b2": "€196,000"
           }
         },
         "210": {
-          "280b18c7": "$210"
+          "280b18c7": "€210"
         },
         "architectural": {
           "digest": {
@@ -1343,7 +1374,7 @@
       "page": {
         "text": {
           "text": {
-            "33403ca3": "$"
+            "33403ca3": "€"
           }
         }
       }
@@ -1394,7 +1425,7 @@
       "Footer": {
         "text": {
           "getyourcave": {
-            "823e3085": "GETYOURCAVE"
+            "823e3085": "GetYourCave"
           }
         }
       },
@@ -1418,7 +1449,7 @@
           "get": {
             "your": {
               "cave": {
-                "5c627b86": "GETYOURCAVE"
+                "5c627b86": "GetYourCave"
               }
             }
           }
@@ -1430,7 +1461,7 @@
         "text": {
           "text": {
             "17e45d65": ", ",
-            "d4dc8bb5": "$"
+            "d4dc8bb5": "€"
           }
         }
       }

@@ -24,6 +24,14 @@ type NominatimSearchResult = {
   address?: NominatimAddress;
 };
 
+type GeocodeSuggestion = {
+  latitude: number;
+  longitude: number;
+  displayName: string;
+  address: string;
+  city: string | null;
+};
+
 function pickCity(address?: NominatimAddress) {
   return (
     address?.city ??
@@ -45,7 +53,7 @@ async function fetchNominatimJson(url: string) {
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "GETYOURCAVE/1.0 (local demo)",
+      "User-Agent": "GetYourCave/1.0 (local demo)",
       Referer: "http://localhost:3000",
     },
     cache: "no-store",
@@ -63,6 +71,7 @@ export async function GET(request: Request) {
   const query = url.searchParams.get("q")?.trim() ?? "";
   const latitude = url.searchParams.get("lat")?.trim() ?? "";
   const longitude = url.searchParams.get("lon")?.trim() ?? "";
+  const suggest = url.searchParams.get("suggest") === "1";
 
   if (!query && (!latitude || !longitude)) {
     return NextResponse.json(
@@ -73,12 +82,21 @@ export async function GET(request: Request) {
 
   try {
     if (query) {
+      const limit = suggest ? 5 : 1;
       const payload = await fetchNominatimJson(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`,
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=${limit}&q=${encodeURIComponent(query)}`,
       );
 
       const results = Array.isArray(payload) ? (payload as NominatimSearchResult[]) : [];
-      const result = results[0];
+      const suggestions = results.map((result) => ({
+        latitude: Number(result.lat),
+        longitude: Number(result.lon),
+        displayName: pickAddressLabel(result),
+        address: pickAddressLabel(result),
+        city: pickCity(result.address),
+      })) satisfies GeocodeSuggestion[];
+
+      const result = suggestions[0];
 
       if (!result) {
         return NextResponse.json(
@@ -87,12 +105,18 @@ export async function GET(request: Request) {
         );
       }
 
+      if (suggest) {
+        return NextResponse.json({
+          suggestions,
+        });
+      }
+
       return NextResponse.json({
-        latitude: Number(result.lat),
-        longitude: Number(result.lon),
-        displayName: pickAddressLabel(result),
-        address: pickAddressLabel(result),
-        city: pickCity(result.address),
+        latitude: result.latitude,
+        longitude: result.longitude,
+        displayName: result.displayName,
+        address: result.address,
+        city: result.city,
       });
     }
 

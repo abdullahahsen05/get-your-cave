@@ -119,6 +119,7 @@ export const listingPublishSchema = listingDraftSchemaBase.extend({
   pricePerMonth: z.coerce
     .number()
     .positive("Please add a monthly price."),
+  sizeM2: z.coerce.number().positive().optional(),
   sizeSqFt: z.coerce.number().positive().optional(),
   amenityNames: z.array(z.string().trim().min(1)).optional().default([]),
   imageUrls: z.array(z.string().trim().min(1)).optional().default([]),

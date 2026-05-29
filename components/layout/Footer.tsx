@@ -43,13 +43,13 @@ export default function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.1fr_repeat(3,minmax(0,1fr))] lg:gap-16">
           <div className="max-w-sm">
             <div className="mb-4 flex items-center gap-3 text-xl font-extrabold text-white sm:text-2xl">
-            <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-white text-[#F26A1B]">
-              <Home className="h-4 w-4" />
-            </span>
-            <span className="text-[18px]">
-              Grenier<b className="text-[#F26A1B]">Cave</b>
-            </span>
-          </div>
+              <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-white text-[#F26A1B]">
+                <Home className="h-4 w-4" />
+              </span>
+              <span className="text-[18px] tracking-[0.14em]">
+                GetYour<b className="text-[#F26A1B]">Cave</b>
+              </span>
+            </div>
             <p className="text-sm leading-relaxed text-[#aeb6c4]">{t("footer.description")}</p>
           </div>
 

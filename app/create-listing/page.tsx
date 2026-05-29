@@ -25,10 +25,11 @@ const steps = [
 ];
 
 const storageTypes = [
-  { value: StorageType.GARAGE, labelKey: "createListing.storageTypes.garage", icon: "garage" },
-  { value: StorageType.BASEMENT, labelKey: "createListing.storageTypes.basement", icon: "house_siding" },
-  { value: StorageType.ROOM, labelKey: "createListing.storageTypes.room", icon: "meeting_room" },
-  { value: StorageType.WAREHOUSE, labelKey: "createListing.storageTypes.warehouse", icon: "warehouse" },
+  { value: StorageType.BASEMENT, labelKey: "createListing.storageTypes.cellarCave", icon: "home_storage" },
+  { value: StorageType.LOCKER, labelKey: "createListing.storageTypes.box", icon: "inventory_2" },
+  { value: StorageType.LOFT, labelKey: "createListing.storageTypes.closet", icon: "door_sliding" },
+  { value: StorageType.WAREHOUSE, labelKey: "createListing.storageTypes.storageRoom", icon: "warehouse" },
+  { value: StorageType.OTHER, labelKey: "createListing.storageTypes.otherStorageSpaces", icon: "more_horiz" },
 ] as const;
 
 const amenityOptions = [
@@ -66,7 +67,7 @@ type FormState = {
   postalCode: string;
   latitude: string;
   longitude: string;
-  sizeSqFt: string;
+  sizeM2: string;
   amenityNames: string[];
   imageUrls: string[];
   primaryImageIndex: number;
@@ -106,7 +107,7 @@ const initialState: FormState = {
   postalCode: "",
   latitude: "",
   longitude: "",
-  sizeSqFt: "",
+  sizeM2: "",
   amenityNames: [],
   imageUrls: [],
   primaryImageIndex: 0,
@@ -203,6 +204,7 @@ function parseListingToState(listing: {
   postalCode: string | null;
   latitude: number | null;
   longitude: number | null;
+  sizeM2: number | null;
   sizeSqFt: number | null;
   amenityNames: string[];
   images: Array<{ url: string; isPrimary: boolean }>;
@@ -222,7 +224,12 @@ function parseListingToState(listing: {
     postalCode: listing.postalCode ?? "",
     latitude: listing.latitude !== null ? String(listing.latitude) : "",
     longitude: listing.longitude !== null ? String(listing.longitude) : "",
-    sizeSqFt: listing.sizeSqFt !== null ? String(listing.sizeSqFt) : "",
+    sizeM2:
+      listing.sizeM2 !== null
+        ? formatAreaInput(listing.sizeM2)
+        : listing.sizeSqFt !== null
+          ? formatAreaInput(squareFeetToSquareMeters(listing.sizeSqFt))
+          : "",
     amenityNames: listing.amenityNames,
     imageUrls: listing.images.map((image) => image.url),
     primaryImageIndex: primaryIndex,
@@ -242,9 +249,31 @@ function formatMoney(value: string) {
   }).format(parsed);
 }
 
+const SQUARE_FEET_TO_SQUARE_METERS = 0.09290304;
+
+function squareFeetToSquareMeters(value: number) {
+  return value * SQUARE_FEET_TO_SQUARE_METERS;
+}
+
+function formatAreaInput(value: number) {
+  return Number(value.toFixed(2)).toString();
+}
+
+function formatAreaDisplay(value: string) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "—";
+  }
+
+  return `${new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 2,
+  }).format(parsed)} m²`;
+}
+
 function getStorageTypeLabel(storageType: FormState["storageType"], t: (key: string) => string) {
   const match = storageTypes.find((item) => item.value === storageType);
-  return match ? t(match.labelKey) : "—";
+  return match ? t(match.labelKey) : t("createListing.storageTypes.otherStorageSpaces");
 }
 
 function StatRow({
@@ -355,6 +384,7 @@ export default function ListYourCavePage() {
             postalCode: string | null;
             latitude: number | null;
             longitude: number | null;
+            sizeM2: number | null;
             sizeSqFt: number | null;
             amenityNames: string[];
             images: Array<{ url: string; isPrimary: boolean }>;
@@ -603,7 +633,7 @@ export default function ListYourCavePage() {
       postalCode: formState.postalCode,
       latitude: parseCoordinateInput(formState.latitude),
       longitude: parseCoordinateInput(formState.longitude),
-      sizeSqFt: formState.sizeSqFt ? Number(formState.sizeSqFt) : undefined,
+      sizeM2: formState.sizeM2 ? Number(formState.sizeM2) : undefined,
       amenityNames: formState.amenityNames,
       imageUrls: reorderImages(formState.imageUrls, formState.primaryImageIndex),
       status,
@@ -854,13 +884,13 @@ export default function ListYourCavePage() {
                     postalCode={formState.postalCode}
                     latitude={formState.latitude}
                     longitude={formState.longitude}
-                    sizeSqFt={formState.sizeSqFt}
+                    sizeM2={formState.sizeM2}
                     onAddressChange={(value) => updateField("address", value)}
                     onCityChange={(value) => updateField("city", value)}
                     onLatitudeChange={(value) => updateField("latitude", value)}
                     onLongitudeChange={(value) => updateField("longitude", value)}
                     onPostalCodeChange={(value) => updateField("postalCode", value)}
-                    onSizeChange={(value) => updateField("sizeSqFt", value)}
+                    onSizeChange={(value) => updateField("sizeM2", value)}
                     onFindOnMap={() => {
                       void geocodeLocation();
                     }}
@@ -928,7 +958,7 @@ export default function ListYourCavePage() {
                 />
                 <StatRow
                   label={t("createListing.location.sizeLabel")}
-                  value={formState.sizeSqFt.trim() ? `${formState.sizeSqFt} sq ft` : "—"}
+                  value={formatAreaDisplay(formState.sizeM2)}
                 />
                 <StatRow
                   label={t("createListing.overview.photosLabel")}
@@ -1290,7 +1320,7 @@ function LocationStep({
   postalCode,
   latitude,
   longitude,
-  sizeSqFt,
+  sizeM2,
   onAddressChange,
   onCityChange,
   onLatitudeChange,
@@ -1311,7 +1341,7 @@ function LocationStep({
   postalCode: string;
   latitude: string;
   longitude: string;
-  sizeSqFt: string;
+  sizeM2: string;
   onAddressChange: (value: string) => void;
   onCityChange: (value: string) => void;
   onLatitudeChange: (value: string) => void;
@@ -1328,6 +1358,73 @@ function LocationStep({
   onToggleManualCoordinates: () => void;
 }) {
   const { t } = useTranslation();
+  const [locationSuggestions, setLocationSuggestions] = useState<GeocodeResponse[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const geocodeQuery = useMemo(
+    () => formatGeocodeQuery({ address, city, postalCode }),
+    [address, city, postalCode],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSuggestions() {
+      const query = geocodeQuery.trim();
+      if (query.length < 3) {
+        setLocationSuggestions([]);
+        return;
+      }
+
+      setIsLoadingSuggestions(true);
+
+      try {
+        const response = await fetch(
+          `/api/geocode?q=${encodeURIComponent(query)}&suggest=1`,
+          {
+            headers: { Accept: "application/json" },
+          },
+        );
+
+        const data = (await response.json().catch(() => null)) as
+          | { suggestions?: GeocodeResponse[]; error?: string }
+          | null;
+
+        if (!response.ok || !data?.suggestions) {
+          throw new Error(data?.error ?? t("createListing.location.noResults"));
+        }
+
+        if (!cancelled) {
+          setLocationSuggestions(data.suggestions);
+        }
+      } catch {
+        if (!cancelled) {
+          setLocationSuggestions([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingSuggestions(false);
+        }
+      }
+    }
+
+    const timeout = window.setTimeout(() => {
+      void loadSuggestions();
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [geocodeQuery, t]);
+
+  function applySuggestion(suggestion: GeocodeResponse) {
+    onAddressChange(suggestion.address);
+    onCityChange(suggestion.city ?? city);
+    onLatitudeChange(suggestion.latitude.toFixed(6));
+    onLongitudeChange(suggestion.longitude.toFixed(6));
+    setLocationSuggestions([]);
+  }
+
   return (
     <section className="space-y-8">
       <SectionHeading
@@ -1371,11 +1468,35 @@ function LocationStep({
             {locationErrorMessage}
           </div>
         ) : null}
+
+        {isLoadingSuggestions ? (
+          <p className="mt-3 text-xs text-on-surface-variant">{t("common.loading")}</p>
+        ) : null}
+
+        {locationSuggestions.length > 0 ? (
+          <div className="mt-3 overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface shadow-[0_12px_30px_rgba(17,24,39,0.08)]">
+            {locationSuggestions.map((suggestion, index) => (
+              <button
+                className="flex w-full flex-col gap-1 border-b border-outline-variant/10 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-secondary-container/20"
+                key={`${suggestion.latitude}-${suggestion.longitude}-${suggestion.displayName}-${index}`}
+                type="button"
+                onClick={() => applySuggestion(suggestion)}
+              >
+                <span className="text-body-sm font-semibold text-primary">
+                  {suggestion.displayName}
+                </span>
+                <span className="text-[11px] text-on-surface-variant">
+                  {suggestion.city ?? suggestion.address}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="space-y-6">
-      <div className="grid gap-5 rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-4 sm:p-6">
+          <div className="grid gap-5 rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-4 sm:p-6">
             <div className="flex flex-col gap-2">
               <label className="ml-1 font-label-caps text-[11px] uppercase tracking-[0.24em] text-primary">
                 {t("createListing.location.addressLabel")}
@@ -1424,7 +1545,7 @@ function LocationStep({
                 className="min-h-12 rounded-2xl border border-outline-variant/60 bg-background px-4 py-3 text-body-md outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
                 placeholder={t("createListing.location.sizePlaceholder")}
                 type="number"
-                value={sizeSqFt}
+                value={sizeM2}
                 onChange={(event) => onSizeChange(event.target.value)}
               />
             </div>
@@ -1480,10 +1601,12 @@ function LocationStep({
         </div>
 
         <div className="overflow-hidden rounded-[28px] border border-outline-variant/60 bg-surface-container-lowest shadow-[0_8px_30px_rgba(17,24,39,0.04)]">
-          <div className="min-h-[320px] sm:min-h-[380px] xl:min-h-[560px]">
+          <div className="h-[360px] sm:h-[420px] xl:h-[560px]">
             <LocationPickerMap
               address={address}
               city={city}
+              onAddressChange={onAddressChange}
+              onCityChange={onCityChange}
               latitude={latitude}
               longitude={longitude}
               onLatitudeChange={onLatitudeChange}

@@ -30,7 +30,7 @@ export default function Navbar() {
               <Home className="h-5 w-5" />
             </span>
             <span className="hidden whitespace-nowrap text-[14px] font-extrabold tracking-[0.2em] text-[#212733] sm:block">
-              GETYOURCAVE
+              GetYour<b className="text-[#F26A1B]">Cave</b>
             </span>
           </Link>
 

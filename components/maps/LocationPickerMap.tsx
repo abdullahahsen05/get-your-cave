@@ -15,6 +15,8 @@ type Props = {
   city: string;
   latitude: string;
   longitude: string;
+  onAddressChange: (value: string) => void;
+  onCityChange: (value: string) => void;
   onLatitudeChange: (value: string) => void;
   onLongitudeChange: (value: string) => void;
 };
@@ -35,18 +37,50 @@ function parseCoordinate(value: string) {
 function MapSelectionController({
   hasSelection,
   position,
+  onAddressChange,
+  onCityChange,
   onLatitudeChange,
   onLongitudeChange,
 }: Pick<Props, "onLatitudeChange" | "onLongitudeChange"> & {
   hasSelection: boolean;
   position: [number, number];
+  onAddressChange: (value: string) => void;
+  onCityChange: (value: string) => void;
 }) {
   const map = useMapEvents({
     click(event) {
       onLatitudeChange(event.latlng.lat.toFixed(6));
       onLongitudeChange(event.latlng.lng.toFixed(6));
+      void reverseGeocode(event.latlng.lat, event.latlng.lng);
     },
   });
+
+  async function reverseGeocode(latitude: number, longitude: number) {
+    try {
+      const response = await fetch(
+        `/api/geocode?lat=${encodeURIComponent(String(latitude))}&lon=${encodeURIComponent(String(longitude))}`,
+        {
+          headers: { Accept: "application/json" },
+        },
+      );
+
+      const data = (await response.json().catch(() => null)) as
+        | { address?: string; city?: string | null }
+        | null;
+
+      if (response.ok && data) {
+        if (data.address) {
+          onAddressChange(data.address);
+        }
+
+        if (data.city) {
+          onCityChange(data.city);
+        }
+      }
+    } catch {
+      // Keep coordinates even if reverse geocoding fails.
+    }
+  }
 
   useEffect(() => {
     map.setView(position, hasSelection ? SELECTED_ZOOM : DEFAULT_ZOOM);
@@ -60,6 +94,8 @@ function SelectedLocationMarker({
   longitude,
   address,
   city,
+  onAddressChange,
+  onCityChange,
   onLatitudeChange,
   onLongitudeChange,
 }: Props) {
@@ -92,6 +128,7 @@ function SelectedLocationMarker({
           const latLng = event.target.getLatLng();
           onLatitudeChange(latLng.lat.toFixed(6));
           onLongitudeChange(latLng.lng.toFixed(6));
+          void reverseGeocode(latLng.lat, latLng.lng);
         },
       }}
       icon={createListingMarkerIcon()}
@@ -107,6 +144,33 @@ function SelectedLocationMarker({
       </Popup>
     </Marker>
   );
+
+  async function reverseGeocode(latitude: number, longitude: number) {
+    try {
+      const response = await fetch(
+        `/api/geocode?lat=${encodeURIComponent(String(latitude))}&lon=${encodeURIComponent(String(longitude))}`,
+        {
+          headers: { Accept: "application/json" },
+        },
+      );
+
+      const data = (await response.json().catch(() => null)) as
+        | { address?: string; city?: string | null }
+        | null;
+
+      if (response.ok && data) {
+        if (data.address) {
+          onAddressChange(data.address);
+        }
+
+        if (data.city) {
+          onCityChange(data.city);
+        }
+      }
+    } catch {
+      // Keep coordinates even if reverse geocoding fails.
+    }
+  }
 }
 
 export default function LocationPickerMap({
@@ -114,6 +178,8 @@ export default function LocationPickerMap({
   city,
   latitude,
   longitude,
+  onAddressChange,
+  onCityChange,
   onLatitudeChange,
   onLongitudeChange,
 }: Props) {
@@ -131,10 +197,10 @@ export default function LocationPickerMap({
   );
 
   return (
-    <div className="relative h-full min-h-[240px] overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-low sm:min-h-[280px]">
+    <div className="relative h-full min-h-0 overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-low">
       <MapContainer
         center={center}
-        className="h-full min-h-[240px] w-full sm:min-h-[280px]"
+        className="h-full w-full"
         scrollWheelZoom={false}
         zoom={hasSelection ? SELECTED_ZOOM : DEFAULT_ZOOM}
       >
@@ -145,6 +211,8 @@ export default function LocationPickerMap({
         <MapSelectionController
           hasSelection={hasSelection}
           position={center}
+          onAddressChange={onAddressChange}
+          onCityChange={onCityChange}
           onLatitudeChange={onLatitudeChange}
           onLongitudeChange={onLongitudeChange}
         />
@@ -152,6 +220,8 @@ export default function LocationPickerMap({
           <SelectedLocationMarker
             address={address}
             city={city}
+            onAddressChange={onAddressChange}
+            onCityChange={onCityChange}
             latitude={latitude}
             longitude={longitude}
             onLatitudeChange={onLatitudeChange}
