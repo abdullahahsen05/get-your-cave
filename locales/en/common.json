@@ -54,8 +54,8 @@
   },
   "nav": {
     "home": "Home",
-    "browseStorage": "Browse Storage",
-    "howItWorks": "How it Works",
+    "browseStorage": "Find storage",
+    "howItWorks": "How it works",
     "pricing": "Pricing",
     "dashboard": "Dashboard",
     "listings": "Listings",
@@ -66,10 +66,11 @@
     "messages": "Messages",
     "invoices": "Invoices",
     "admin": "Admin",
-    "joinNow": "Join Now",
-    "login": "Log In",
+    "joinNow": "Sign Up",
+    "login": "Sign in",
     "logout": "Logout",
-    "listYourSpace": "List Your Space",
+    "listYourSpace": "Rent your space",
+    "about": "About",
     "quickLinks": "Quick Links",
     "forOwners": "For Owners",
     "forRenters": "For Renters",
@@ -113,16 +114,33 @@
     "publicPitch": "Turn your unused space into a steady income."
   },
   "footer": {
-    "description": "Curating the world's most secure and beautiful private storage networks.",
+    "description": "The peer-to-peer storage marketplace. Find or rent a space near you with confidence.",
     "platform": "Platform",
+    "company": "Company",
+    "legal": "Legal",
+    "findStorage": "Find storage",
+    "listYourSpace": "Rent your space",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "about": "About",
+    "careers": "Careers",
+    "blog": "Blog",
+    "contact": "Contact",
     "trust": "Trust",
     "resources": "Resources",
     "support": "Support",
     "privacy": "Privacy",
     "terms": "Terms",
+    "mentions": "Legal notice",
     "hostGuarantee": "Host Guarantee",
     "safety": "Safety",
     "cookies": "Cookies",
+    "bottomLeft": "© 2026 GrenierCave — All rights reserved.",
+    "bottomRight": "Made with ♥ in France",
+    "social": {
+      "share": "Share",
+      "globe": "World"
+    },
     "copyright": "Â© 2024 GETYOURCAVE. Architectural Serenity in Storage.",
     "tagline": "Designed for the discerning minimalist."
   },
@@ -335,6 +353,219 @@
     "sampleListing2Location": "Mission District, SF",
     "sampleListing2Price": "$85/mo",
     "sampleListing2Size": "75 sq ft"
+  },
+  "landing": {
+    "eyebrow": "Peer-to-peer storage space",
+    "hero": {
+      "badge": "Peer-to-peer storage space",
+      "titlePrefix": "A storage space",
+      "titleAccent": "right near you",
+      "description": "Rent a cellar, box, or storage room from a private host just around the corner. Simple, secure, and up to 3× cheaper than a professional storage unit.",
+      "bullet1": "Find storage in your neighborhood, just a few minutes away",
+      "bullet2": "Secure, insured, and verified spaces",
+      "bullet3": "Peer to peer, with no costly middleman",
+      "searchPlaceholder": "Enter your city, neighborhood, postal code…",
+      "searchAction": "Search",
+      "primaryAction": "Find storage",
+      "trustline": "Trusted by discerning homeowners, renters, and businesses.",
+      "avatarAlt": "User avatar",
+      "badgeTitle": "3 minutes from you",
+      "badgeSubtitle": "1,240 spaces available",
+      "tileTwoNumber": "1,240",
+      "tileTwoSubtitle": "Available spaces",
+      "tileThreeSubtitle": "Safe, verified spaces",
+      "tileFourNumber": "870+",
+      "tileFourSubtitle": "Active hosts"
+    },
+    "stats": {
+      "one": { "value": "1,240", "label": "Available spaces" },
+      "two": { "value": "870", "label": "Active hosts" },
+      "three": { "value": "48", "label": "Cities covered" },
+      "four": { "value": "65%", "label": "Average savings" }
+    },
+    "how": {
+      "eyebrow": "Simple & fast",
+      "title": "How it works",
+      "subtitle": "Finding neighborhood storage has never been easier.",
+      "tabs": { "find": "I need storage", "rent": "I want to rent my space" },
+      "find": {
+        "step1": {
+          "title": "Search",
+          "description": "Enter your address and filter by size, price, and storage type."
+        },
+        "step2": {
+          "title": "Reserve",
+          "description": "Contact the host in one click and reserve your space in a few steps."
+        },
+        "step3": {
+          "title": "Store",
+          "description": "Pick up the key, drop off your belongings, and enjoy a nearby space."
+        }
+      },
+      "rent": {
+        "step1": {
+          "title": "Publish",
+          "description": "Describe your cellar, box, or garage in minutes. It’s free."
+        },
+        "step2": {
+          "title": "Connect",
+          "description": "Receive requests from nearby renters and choose who you host."
+        },
+        "step3": {
+          "title": "Earn",
+          "description": "Collect your earnings every month with complete peace of mind."
+        }
+      }
+    },
+    "listing": {
+      "eyebrow": "Publishing",
+      "titlePrefix": "Publish",
+      "titleAccent": "your listing",
+      "description": "A few quick steps and your listing is live.",
+      "action": "Publish my listing",
+      "imageAlt": "Storage space"
+    },
+    "featured": {
+      "eyebrow": "Available now",
+      "title": "Featured spaces",
+      "subtitle": "Cellars, boxes, and garages available near you today.",
+      "viewAll": "View all listings",
+      "save": "Save to favorites",
+      "details": "View details",
+      "perMonth": "per month",
+      "imageAlt": "Storage space",
+      "cards": {
+        "card1": {
+          "badge": "Secure",
+          "title": "Haussmann apartment cellar",
+          "location": "Paris 9th · Rue de la Fayette",
+          "price": "€40",
+          "size": "5 m²",
+          "type": "Cellar",
+          "amenity": "Dry"
+        },
+        "card2": {
+          "badge": "Cameras",
+          "title": "Secure underground parking box",
+          "location": "Lyon 3rd · Cours Lafayette",
+          "price": "€79",
+          "size": "9 m²",
+          "type": "Box",
+          "amenity": "24/7 access"
+        },
+        "card3": {
+          "badge": "Great price",
+          "title": "Vaulted cellar with hallway access",
+          "location": "Bordeaux · Chartrons",
+          "price": "€30",
+          "size": "4 m²",
+          "type": "Cellar",
+          "amenity": "Dry"
+        },
+        "card4": {
+          "badge": "Residence",
+          "title": "Mid-height box in gated residence",
+          "location": "Marseille 8th · Bonneveine",
+          "price": "€55",
+          "size": "7 m²",
+          "type": "Box",
+          "amenity": "24/7 access"
+        },
+        "card5": {
+          "badge": "Spacious",
+          "title": "Closed garage in a residence",
+          "location": "Paris 15th · Convention",
+          "price": "€130",
+          "size": "15 m²",
+          "type": "Garage",
+          "amenity": "Electricity"
+        },
+        "card6": {
+          "badge": "Available",
+          "title": "Healthy cellar in an old building",
+          "location": "Bordeaux · Saint-Michel",
+          "price": "€36",
+          "size": "4 m²",
+          "type": "Cellar",
+          "amenity": "Dry"
+        }
+      }
+    },
+    "categories": {
+      "title": "Spaces that feel like yours",
+      "subtitle": "Choose the storage format that fits your life best.",
+      "action": "Explore",
+      "card1": { "title": "Cellar / Closet", "meta": "1 to 4 m²" },
+      "card2": { "title": "Medium box", "meta": "4 to 10 m²" },
+      "card3": { "title": "Large box", "meta": "10 to 20 m²" },
+      "card4": { "title": "Garage", "meta": "15 m² and up" }
+    },
+    "simulator": {
+      "eyebrow": "For hosts",
+      "title": "How much could you earn?",
+      "description": "Estimate your earnings in seconds by renting out unused space.",
+      "bullets": {
+        "one": "No listing fee",
+        "two": "Insurance included",
+        "three": "Guaranteed monthly payments",
+        "four": "You choose your renter"
+      },
+      "action": "Rent my space",
+      "cardTitle": "Revenue simulator",
+      "fields": {
+        "spaceType": "Space type",
+        "city": "City",
+        "surface": "Area",
+        "ownerSpaceType": "Space type",
+        "ownerCity": "City",
+        "ownerSurface": "Area"
+      },
+      "options": {
+        "cave": "Cellar / Closet",
+        "box": "Medium box",
+        "grand": "Large box",
+        "garage": "Garage",
+        "paris": "Paris",
+        "idf": "Île-de-France",
+        "lyon": "Lyon",
+        "marseille": "Marseille",
+        "other": "Other city"
+      },
+      "result": {
+        "label": "Estimated monthly income",
+        "perMonth": "/ month",
+        "note": "After GETYOURCAVE’s 8% commission"
+      },
+      "metrics": { "year": "Per year", "fiveYear": "Over 5 years" },
+      "ownerTitle": "Publishing",
+      "ownerResult": { "label": "Estimated income" }
+    },
+    "testimonials": {
+      "eyebrow": "People trust us",
+      "title": "What they say",
+      "subtitle": "Private hosts and renters storing with total peace of mind.",
+      "quote1": {
+        "quote": "“I found a cellar 200m from home in less than 24 hours. 3 times cheaper than a storage unit and much more convenient.”",
+        "name": "Marie L.",
+        "role": "Renter · Paris 11th"
+      },
+      "quote2": {
+        "quote": "“My garage was just extra clutter. Today it earns me €120 a month without me having to manage anything.”",
+        "name": "Thomas B.",
+        "role": "Host · Lyon"
+      },
+      "quote3": {
+        "quote": "“Simple, secure platform. The host contact was immediate and the insurance is genuinely reassuring.”",
+        "name": "Sophie D.",
+        "role": "Renter · Bordeaux"
+      }
+    },
+    "cta": {
+      "title": "Ready to free up space… or find some?",
+      "description": "Join the 870 hosts and thousands of renters already using GETYOURCAVE.",
+      "primaryAction": "Find storage",
+      "secondaryAction": "Rent my space"
+    }
   },
   "storage": {
     "searchPlaceholder": "Where do you need storage?",

@@ -55,7 +55,7 @@
   },
   "nav": {
     "home": "Accueil",
-    "browseStorage": "Parcourir les espaces",
+    "browseStorage": "Trouver un espace",
     "howItWorks": "Comment ça marche",
     "pricing": "Tarifs",
     "dashboard": "Tableau de bord",
@@ -67,10 +67,11 @@
     "messages": "Messages",
     "invoices": "Factures",
     "admin": "Admin",
-    "joinNow": "Rejoindre",
-    "login": "Connexion",
+    "joinNow": "S'inscrire",
+    "login": "Se connecter",
     "logout": "Déconnexion",
-    "listYourSpace": "Lister votre espace",
+    "listYourSpace": "Louer son espace",
+    "about": "À propos",
     "quickLinks": "Raccourcis",
     "forOwners": "Pour les propriétaires",
     "forRenters": "Pour les locataires",
@@ -114,16 +115,33 @@
     "publicPitch": "Transformez votre espace en revenu."
   },
   "footer": {
-    "description": "Nous sélectionnons les réseaux de stockage privés les plus sûrs et les plus élégants du monde.",
+    "description": "La marketplace du stockage entre particuliers. Trouvez ou louez un espace près de chez vous, en toute confiance.",
     "platform": "Plateforme",
+    "company": "Entreprise",
+    "legal": "Légal",
+    "findStorage": "Trouver un espace",
+    "listYourSpace": "Louer son espace",
+    "howItWorks": "Comment ça marche",
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "careers": "Carrières",
+    "blog": "Blog",
+    "contact": "Contact",
     "trust": "Confiance",
     "resources": "Ressources",
     "support": "Assistance",
     "privacy": "Confidentialité",
     "terms": "Conditions",
+    "mentions": "Mentions légales",
     "hostGuarantee": "Garantie hôte",
     "safety": "Sécurité",
     "cookies": "Cookies",
+    "bottomLeft": "© 2026 GrenierCave — Tous droits réservés.",
+    "bottomRight": "Fait avec ♥ en France",
+    "social": {
+      "share": "Partager",
+      "globe": "Monde"
+    },
     "copyright": "© 2024 GETYOURCAVE. Sérénité architecturale dans le stockage.",
     "tagline": "Pensé pour les minimalistes exigeants."
   },
@@ -336,6 +354,219 @@
     "sampleListing2Location": "District de Mission, San Francisco",
     "sampleListing2Price": "85 $/mois",
     "sampleListing2Size": "75 pi²"
+  },
+  "landing": {
+    "eyebrow": "Espace de stockage entre particuliers",
+    "hero": {
+      "badge": "Espace de stockage entre particuliers",
+      "titlePrefix": "Un espace de stockage",
+      "titleAccent": "tout près de chez vous",
+      "description": "Louez la cave, le box ou le local de stockage d'un particulier à deux pas de chez vous. Simple, sécurisé et jusqu'à 3× moins cher qu'un garde-meuble professionnel.",
+      "bullet1": "Trouvez votre quartier, à quelques minutes à pied",
+      "bullet2": "Espaces sécurisés, assurés et vérifiés",
+      "bullet3": "Entre particuliers, sans intermédiaire coûteux",
+      "searchPlaceholder": "Entrez votre ville, quartier, code postal…",
+      "searchAction": "Rechercher",
+      "primaryAction": "Trouver un espace",
+      "trustline": "Approuvé par des propriétaires, locataires et entreprises exigeants.",
+      "avatarAlt": "Avatar utilisateur",
+      "badgeTitle": "À 3 min de chez vous",
+      "badgeSubtitle": "1 240 espaces disponibles",
+      "tileTwoNumber": "1 240",
+      "tileTwoSubtitle": "Espaces disponibles",
+      "tileThreeSubtitle": "Espaces sûrs et vérifiés",
+      "tileFourNumber": "870+",
+      "tileFourSubtitle": "Propriétaires actifs"
+    },
+    "stats": {
+      "one": { "value": "1 240", "label": "Espaces disponibles" },
+      "two": { "value": "870", "label": "Propriétaires actifs" },
+      "three": { "value": "48", "label": "Villes couvertes" },
+      "four": { "value": "65%", "label": "Économie moyenne" }
+    },
+    "how": {
+      "eyebrow": "Simple & rapide",
+      "title": "Comment ça marche ?",
+      "subtitle": "Trouver un espace de stockage de quartier n'a jamais été aussi simple.",
+      "tabs": { "find": "Je cherche un espace", "rent": "Je loue mon espace" },
+      "find": {
+        "step1": {
+          "title": "Cherchez",
+          "description": "Entrez votre adresse et filtrez par taille, prix et type d'espace."
+        },
+        "step2": {
+          "title": "Réservez",
+          "description": "Contactez le propriétaire en un clic et réservez votre espace en quelques clics."
+        },
+        "step3": {
+          "title": "Stockez",
+          "description": "Récupérez la clé, posez vos affaires et profitez d'un espace tout proche."
+        }
+      },
+      "rent": {
+        "step1": {
+          "title": "Publiez",
+          "description": "Décrivez votre cave, box ou garage en quelques minutes. C'est gratuit."
+        },
+        "step2": {
+          "title": "Échangez",
+          "description": "Recevez les demandes des locataires proches et choisissez votre locataire."
+        },
+        "step3": {
+          "title": "Gagnez",
+          "description": "Encaissez vos revenus chaque mois en toute sécurité."
+        }
+      }
+    },
+    "listing": {
+      "eyebrow": "Publication",
+      "titlePrefix": "Publiez",
+      "titleAccent": "votre annonce",
+      "description": "Quelques étapes rapides et votre annonce est en ligne.",
+      "action": "Publier mon annonce",
+      "imageAlt": "Espace de stockage"
+    },
+    "featured": {
+      "eyebrow": "Disponibles maintenant",
+      "title": "Espaces à la une",
+      "subtitle": "Caves, box et garages disponibles dès aujourd'hui près de chez vous.",
+      "viewAll": "Voir toutes les annonces",
+      "save": "Ajouter aux favoris",
+      "details": "Voir le détail",
+      "perMonth": "par mois",
+      "imageAlt": "Espace de stockage",
+      "cards": {
+        "card1": {
+          "badge": "Sécurisé",
+          "title": "Cave d'immeuble haussmannien",
+          "location": "Paris 9e · Rue de la Fayette",
+          "price": "40€",
+          "size": "5 m²",
+          "type": "Cave",
+          "amenity": "Sec"
+        },
+        "card2": {
+          "badge": "Caméras",
+          "title": "Box sécurisé sous-sol parking",
+          "location": "Lyon 3e · Cours Lafayette",
+          "price": "79€",
+          "size": "9 m²",
+          "type": "Box",
+          "amenity": "Accès 24/7"
+        },
+        "card3": {
+          "badge": "Bon prix",
+          "title": "Cave voûtée accès couloir",
+          "location": "Bordeaux · Chartrons",
+          "price": "30€",
+          "size": "4 m²",
+          "type": "Cave",
+          "amenity": "Sec"
+        },
+        "card4": {
+          "badge": "Résidence",
+          "title": "Box mi-hauteur résidence fermée",
+          "location": "Marseille 8e · Bonneveine",
+          "price": "55€",
+          "size": "7 m²",
+          "type": "Box",
+          "amenity": "Accès 24/7"
+        },
+        "card5": {
+          "badge": "Spacieux",
+          "title": "Garage box fermé résidence",
+          "location": "Paris 15e · Convention",
+          "price": "130€",
+          "size": "15 m²",
+          "type": "Garage",
+          "amenity": "Électricité"
+        },
+        "card6": {
+          "badge": "Disponible",
+          "title": "Cave saine immeuble ancien",
+          "location": "Bordeaux · Saint-Michel",
+          "price": "36€",
+          "size": "4 m²",
+          "type": "Cave",
+          "amenity": "Sec"
+        }
+      }
+    },
+    "categories": {
+      "title": "Des espaces qui vous ressemblent",
+      "subtitle": "Choisissez le format de stockage qui vous convient le mieux.",
+      "action": "Explorer",
+      "card1": { "title": "Cave / Placard", "meta": "1 à 4 m²" },
+      "card2": { "title": "Box moyen", "meta": "4 à 10 m²" },
+      "card3": { "title": "Grand box", "meta": "10 à 20 m²" },
+      "card4": { "title": "Garage", "meta": "15 m² et +" }
+    },
+    "simulator": {
+      "eyebrow": "Propriétaires",
+      "title": "Combien pouvez-vous gagner ?",
+      "description": "Estimez vos revenus en quelques secondes en mettant votre espace inutilisé en location.",
+      "bullets": {
+        "one": "Aucun frais de mise en ligne",
+        "two": "Assurance incluse",
+        "three": "Paiement mensuel garanti",
+        "four": "Vous choisissez votre locataire"
+      },
+      "action": "Louer mon espace",
+      "cardTitle": "Simulateur de revenus",
+      "fields": {
+        "spaceType": "Type d'espace",
+        "city": "Ville",
+        "surface": "Surface",
+        "ownerSpaceType": "Type d'espace",
+        "ownerCity": "Ville",
+        "ownerSurface": "Surface"
+      },
+      "options": {
+        "cave": "Cave / Placard",
+        "box": "Box moyen",
+        "grand": "Grand box",
+        "garage": "Garage",
+        "paris": "Paris",
+        "idf": "Île-de-France",
+        "lyon": "Lyon",
+        "marseille": "Marseille",
+        "other": "Autre ville"
+      },
+      "result": {
+        "label": "Estimation mensuelle",
+        "perMonth": "/ mois",
+        "note": "Après commission GrenierCave (8%)"
+      },
+      "metrics": { "year": "Par an", "fiveYear": "Sur 5 ans" },
+      "ownerTitle": "Publication",
+      "ownerResult": { "label": "Revenu estimé" }
+    },
+    "testimonials": {
+      "eyebrow": "Ils nous font confiance",
+      "title": "Ce qu'ils en disent",
+      "subtitle": "Des particuliers qui stockent et louent en toute sérénité.",
+      "quote1": {
+        "quote": "« J'ai trouvé une cave à 200m de chez moi en moins de 24h. 3 fois moins cher qu'un garde-meuble et bien plus pratique. »",
+        "name": "Marie L.",
+        "role": "Locataire · Paris 11e"
+      },
+      "quote2": {
+        "quote": "« Mon garage servait de débarras. Aujourd'hui il me rapporte 120€ par mois sans que j'aie à m'en occuper. »",
+        "name": "Thomas B.",
+        "role": "Propriétaire · Lyon"
+      },
+      "quote3": {
+        "quote": "« Plateforme simple et sécurisée. Le contact avec le propriétaire a été immédiat et l'assurance rassure vraiment. »",
+        "name": "Sophie D.",
+        "role": "Locataire · Bordeaux"
+      }
+    },
+    "cta": {
+      "title": "Prêt à libérer de l'espace… ou à en trouver ?",
+      "description": "Rejoignez les 870 propriétaires et milliers de locataires qui utilisent GrenierCave.",
+      "primaryAction": "Trouver un espace",
+      "secondaryAction": "Louer mon espace"
+    }
   },
   "storage": {
     "searchPlaceholder": "De quel espace avez-vous besoin é",

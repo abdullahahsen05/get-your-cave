@@ -1,109 +1,285 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  Building2,
+  Car,
+  Check,
+  ChevronRight,
+  Globe,
+  Heart,
+  MapPin,
+  Package,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Warehouse,
+} from "lucide-react";
 
-import { createTranslator } from "@/lib/i18n";
-import { getServerLocale } from "@/lib/i18n.server";
+import { getBrowserStoredLocale, setBrowserLocale } from "@/lib/i18n";
 
-export default async function HomeLandingPageScalableExact() {
-  const locale = await getServerLocale();
-  const t = createTranslator(locale);
+type HowMode = "find" | "rent";
+
+const featuredImages = [
+  "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=600&q=70",
+  "https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=600&q=70",
+  "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=600&q=70",
+  "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=600&q=70",
+  "https://images.unsplash.com/photo-1597844808175-cd86e0ce6f8c?auto=format&fit=crop&w=600&q=70",
+  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=70",
+] as const;
+
+const categoryIcons = [Package, Warehouse, Sparkles, Car] as const;
+
+const heroBullets = [
+  "landing.hero.bullet1",
+  "landing.hero.bullet2",
+  "landing.hero.bullet3",
+] as const;
+
+const listingData = [
+  {
+    image: featuredImages[0],
+    badge: "landing.featured.cards.card1.badge",
+    title: "landing.featured.cards.card1.title",
+    location: "landing.featured.cards.card1.location",
+    price: "landing.featured.cards.card1.price",
+    size: "landing.featured.cards.card1.size",
+    type: "landing.featured.cards.card1.type",
+    amenity: "landing.featured.cards.card1.amenity",
+    icon: ShieldCheck,
+  },
+  {
+    image: featuredImages[1],
+    badge: "landing.featured.cards.card2.badge",
+    title: "landing.featured.cards.card2.title",
+    location: "landing.featured.cards.card2.location",
+    price: "landing.featured.cards.card2.price",
+    size: "landing.featured.cards.card2.size",
+    type: "landing.featured.cards.card2.type",
+    amenity: "landing.featured.cards.card2.amenity",
+    icon: BadgeCheck,
+  },
+  {
+    image: featuredImages[2],
+    badge: "landing.featured.cards.card3.badge",
+    title: "landing.featured.cards.card3.title",
+    location: "landing.featured.cards.card3.location",
+    price: "landing.featured.cards.card3.price",
+    size: "landing.featured.cards.card3.size",
+    type: "landing.featured.cards.card3.type",
+    amenity: "landing.featured.cards.card3.amenity",
+    icon: Star,
+  },
+  {
+    image: featuredImages[3],
+    badge: "landing.featured.cards.card4.badge",
+    title: "landing.featured.cards.card4.title",
+    location: "landing.featured.cards.card4.location",
+    price: "landing.featured.cards.card4.price",
+    size: "landing.featured.cards.card4.size",
+    type: "landing.featured.cards.card4.type",
+    amenity: "landing.featured.cards.card4.amenity",
+    icon: Building2,
+  },
+  {
+    image: featuredImages[4],
+    badge: "landing.featured.cards.card5.badge",
+    title: "landing.featured.cards.card5.title",
+    location: "landing.featured.cards.card5.location",
+    price: "landing.featured.cards.card5.price",
+    size: "landing.featured.cards.card5.size",
+    type: "landing.featured.cards.card5.type",
+    amenity: "landing.featured.cards.card5.amenity",
+    icon: Sparkles,
+  },
+  {
+    image: featuredImages[5],
+    badge: "landing.featured.cards.card6.badge",
+    title: "landing.featured.cards.card6.title",
+    location: "landing.featured.cards.card6.location",
+    price: "landing.featured.cards.card6.price",
+    size: "landing.featured.cards.card6.size",
+    type: "landing.featured.cards.card6.type",
+    amenity: "landing.featured.cards.card6.amenity",
+    icon: Globe,
+  },
+] as const;
+
+const rateMap: Record<string, number> = {
+  cave: 7.5,
+  box: 8.5,
+  grand: 7.5,
+  garage: 8,
+};
+
+function calcRevenue(type: string, surface: number, multiplier: string) {
+  const gross = (rateMap[type] ?? 7.5) * surface * Number(multiplier);
+  return Math.max(15, Math.round(gross * 0.92));
+}
+
+export default function LandingPage() {
+  const { t, i18n } = useTranslation();
+  const [mode, setMode] = useState<HowMode>("find");
+  const [surface, setSurface] = useState(6);
+  const [cityMultiplier, setCityMultiplier] = useState("1.9");
+  const [spaceType, setSpaceType] = useState("cave");
+
+  const revenue = calcRevenue(spaceType, surface, cityMultiplier);
+
+  useEffect(() => {
+    const storedLocale = getBrowserStoredLocale();
+    if (!storedLocale && i18n.language !== "fr") {
+      setBrowserLocale("fr");
+      void i18n.changeLanguage("fr");
+    }
+  }, [i18n]);
+
+  const howCards =
+    mode === "find"
+      ? [
+          {
+            step: "1",
+            title: t("landing.how.find.step1.title"),
+            description: t("landing.how.find.step1.description"),
+          },
+          {
+            step: "2",
+            title: t("landing.how.find.step2.title"),
+            description: t("landing.how.find.step2.description"),
+          },
+          {
+            step: "3",
+            title: t("landing.how.find.step3.title"),
+            description: t("landing.how.find.step3.description"),
+          },
+        ]
+      : [
+          {
+            step: "1",
+            title: t("landing.how.rent.step1.title"),
+            description: t("landing.how.rent.step1.description"),
+          },
+          {
+            step: "2",
+            title: t("landing.how.rent.step2.title"),
+            description: t("landing.how.rent.step2.description"),
+          },
+          {
+            step: "3",
+            title: t("landing.how.rent.step3.title"),
+            description: t("landing.how.rent.step3.description"),
+          },
+        ];
+
+  const categories = [
+    {
+      icon: categoryIcons[0],
+      title: t("landing.categories.card1.title"),
+      meta: t("landing.categories.card1.meta"),
+    },
+    {
+      icon: categoryIcons[1],
+      title: t("landing.categories.card2.title"),
+      meta: t("landing.categories.card2.meta"),
+    },
+    {
+      icon: categoryIcons[2],
+      title: t("landing.categories.card3.title"),
+      meta: t("landing.categories.card3.meta"),
+    },
+    {
+      icon: categoryIcons[3],
+      title: t("landing.categories.card4.title"),
+      meta: t("landing.categories.card4.meta"),
+    },
+  ] as const;
+
+  const testimonials = [
+    {
+      initials: "ML",
+      quote: t("landing.testimonials.quote1.quote"),
+      name: t("landing.testimonials.quote1.name"),
+      role: t("landing.testimonials.quote1.role"),
+    },
+    {
+      initials: "TB",
+      quote: t("landing.testimonials.quote2.quote"),
+      name: t("landing.testimonials.quote2.name"),
+      role: t("landing.testimonials.quote2.role"),
+    },
+    {
+      initials: "SD",
+      quote: t("landing.testimonials.quote3.quote"),
+      name: t("landing.testimonials.quote3.name"),
+      role: t("landing.testimonials.quote3.role"),
+    },
+  ] as const;
 
   return (
-    <div className="bg-background text-on-surface antialiased overflow-x-hidden">
-      <section className="min-h-screen w-full bg-[#F7F7F5] pb-16 sm:pb-20 lg:pb-24 flex items-center pt-28 sm:pt-32 lg:pt-36">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 xl:gap-12 items-center">
-            <div className="col-span-1 lg:col-span-5 text-center sm:text-left">
-              <span className="text-[11px] sm:text-[12px] font-bold text-stone-400 tracking-[0.18em] uppercase block mb-5 sm:mb-6">
-                {t("home.eyebrow")}
+    <main className="overflow-x-hidden bg-background text-on-surface">
+      <section className="bg-[#1d2330] text-white">
+        <div className="mx-auto max-w-[1180px] px-4 py-16 sm:px-6 sm:py-20 lg:px-6 lg:py-16">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-[50px]">
+            <div>
+              <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#F26A1B]/15 px-4 py-2 text-[13px] font-semibold text-[#ffb27d]">
+                {t("landing.hero.badge")}
               </span>
-              <h1 className="text-[38px] sm:text-[52px] lg:text-[62px] xl:text-[68px] font-bold text-[#0F3D3E] leading-[1.05] tracking-[-0.045em] max-w-full sm:max-w-[560px] mb-6 sm:mb-8">
-                {t("home.heroTitle")}
+              <h1 className="max-w-[560px] text-[46px] font-extrabold leading-[1.08] tracking-[-0.5px] text-white sm:text-[56px] lg:text-[58px]">
+                {t("landing.hero.titlePrefix")} <span className="text-[#F26A1B]">{t("landing.hero.titleAccent")}</span>
               </h1>
-              <p className="text-base sm:text-[18px] leading-[1.75] text-stone-600 max-w-full sm:max-w-[460px] mb-8 sm:mb-10 mx-auto sm:mx-0">
-                {t("home.heroDescription")}
+              <p className="mt-5 max-w-[560px] text-[17px] leading-8 text-[#c4cbd8]">
+                {t("landing.hero.description")}
               </p>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-start gap-4 sm:gap-7">
-                <Link
-                  className="bg-[#0F3D3E] text-white px-8 sm:px-10 h-[50px] flex items-center justify-center rounded-full font-bold text-base sm:text-lg hover:opacity-90 active:scale-95 transition-all shadow-md shadow-[#0F3D3E]/10 whitespace-nowrap"
-                  href="/storage"
+              <ul className="mt-6 flex flex-col gap-2">
+                {heroBullets.map((key) => (
+                  <li className="flex items-center gap-3 text-[15px] text-[#dde2ec]" key={key}>
+                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#F26A1B]">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    {t(key)}
+                  </li>
+                ))}
+              </ul>
+
+              <form className="mt-8 flex max-w-[520px] flex-col gap-3 rounded-[14px] bg-white p-2 shadow-[0_10px_30px_rgba(20,25,40,.08)] sm:flex-row">
+                <div className="flex flex-1 items-center gap-2 px-4 py-3 text-[#212733]">
+                  <Search className="h-4 w-4 text-[#6b7280]" />
+                  <input
+                    aria-label={t("landing.hero.searchPlaceholder")}
+                    className="w-full bg-transparent text-[15px] outline-none placeholder:text-[#8a8f98]"
+                    placeholder={t("landing.hero.searchPlaceholder")}
+                    type="text"
+                  />
+                </div>
+                <button
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#F26A1B] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#d9590f]"
+                  type="submit"
                 >
-                  {t("home.findStorage")}
-                </Link>
-                <div className="flex items-center justify-center sm:justify-start gap-2">
-                  <span className="material-symbols-outlined text-[#FFB800] fill-1">
-                    star
-                  </span>
-                  <span className="text-stone-700 font-medium text-sm sm:text-base leading-snug">
-                    {t("home.trustedBy")}
-                  </span>
-                </div>
-              </div>
+                  {t("landing.hero.searchAction")}
+                </button>
+              </form>
             </div>
-            <div className="hidden lg:block lg:col-span-1"></div>
-            <div className="col-span-1 lg:col-span-6 mt-4 lg:mt-0">
-              <div className="grid grid-cols-2 gap-3 sm:gap-5 items-stretch">
-                <div className="bg-[#ECEBE6] rounded-[18px] sm:rounded-[20px] p-4 sm:p-6 flex items-center justify-center h-[170px] sm:h-[280px] lg:h-[300px] overflow-hidden shadow-sm border border-white/40">
-                  <div className="flex h-[78%] w-[72%] max-w-[180px] flex-col justify-between rounded-t-[20px] border-x-[6px] border-t-[6px] border-stone-800 bg-white p-3 shadow-xl sm:w-[70%] sm:max-w-[220px] sm:p-4">
-                    <div className="mx-auto h-2 w-[70%] rounded-full bg-stone-100 sm:h-2.5"></div>
-                    <div className="mx-auto flex h-full w-full max-w-[72%] flex-1 items-center justify-center rounded-[999px] border border-stone-100 bg-stone-50/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.7)]">
-                      <div className="h-[72%] w-[74%] rounded-[999px] border border-stone-100 bg-white/85 shadow-sm"></div>
-                    </div>
-                    <div className="mx-auto flex w-[62%] items-center justify-center rounded-full bg-stone-100/80 py-2 shadow-sm">
-                      <div className="h-2 w-[52%] rounded-full bg-stone-50"></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-[#E4E9E2] rounded-[18px] sm:rounded-[20px] p-4 sm:p-8 flex flex-col justify-start gap-6 sm:gap-8 h-[170px] sm:h-[280px] lg:h-[300px] shadow-sm border border-white/40">
-                  <span className="material-symbols-outlined text-[#0F3D3E] text-[30px] sm:text-4xl">
-                    public
+
+            <div className="relative">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] shadow-[0_30px_60px_rgba(0,0,0,.4)]">
+                <img
+                  alt={t("landing.hero.imageAlt")}
+                  className="h-full w-full object-cover"
+                  src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=900&q=80"
+                />
+                <div className="absolute left-4 bottom-4 flex items-center gap-3 rounded-[12px] bg-white px-4 py-3 text-[#212733] shadow-[0_10px_30px_rgba(20,25,40,.15)]">
+                  <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#FDEEE4] text-[#F26A1B]">
+                    <Check className="h-4 w-4" />
                   </span>
-                  <div className="mt-auto">
-                    <div className="text-[30px] sm:text-[52px] font-bold text-[#0F3D3E] leading-none mb-1 tracking-[-0.04em]">
-                      {t("app.page.text.56.f03e77a2")}
-                    </div>
-                    <div className="max-w-[130px] sm:max-w-none text-[11px] sm:text-sm leading-[1.35] text-stone-600 font-semibold tracking-[0.04em] uppercase">
-                      {t("home.featuredTitle")}
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-[#F0F0F0] rounded-[18px] sm:rounded-[20px] p-4 sm:p-8 flex flex-col justify-between h-[170px] sm:h-[280px] lg:h-[300px] shadow-sm border border-white/40">
-                  <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[#FFB800] fill-1 text-xl">
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[#FFB800] fill-1 text-xl">
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[#FFB800] fill-1 text-xl">
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[#FFB800] fill-1 text-xl">
-                      star
-                    </span>
-                  </div>
                   <div>
-                    <div className="flex -space-x-3 mb-4">
-                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqHEqt0RWhmdF_GpRoXrBzUY25jLA14ju6LIeSvMPYwZf3H9dZSOASEKdkfqeRScCXFTH4hoq0cfiZlV8EMSm_XclyLCvusTp35SYX2wafIP0p_fd6kpduiv7ukrgHELnd-fDk2Lv7FE-gg3HVUoamT1vdZsHfS3lrrbPXORM0jgfG0QPdr0VMmezeehVf_Ve7Aef3w5vAuh0AnjQd4wedPD7Y5cB3YxVld1n_DcusNzY9XsfNu-rWBU-NWkfLJY4-T3x7HjGyB6M"/>
-                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtKHr5i3U1JF7nJWj1Y0_ygAoHV2Xqn1WPKY67KGjAxE6YlhpeC_NNaNSWDN2kD8PY2b1J5NHdmYx6REoOeWw4X_XyS976X-gOP0piKjZoR3kWhPMGpr7ShEqZ1fspbD2B1Okj_9aKiBKaayQ_yRJJjYU0Vn564XjhFmif_3dQofAZcFzpa4CBZ8au-Z8MxXnC-tC224fxe1_6OHiC8aYvdQ3LyIDeSGurMw8A0zNh6X1JB3Sct6ZkW-ZRMGGV3yZnp2qIGWiJkS8"/>
-                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvXVWmaD5vig7Ze51DeKr0wKkNvGi5zKXto_0M0SUznS8dun3SwmCMhkPVCLW0JobyQNabmMHXLgnEHWrcxAcd3vLZYKudRNf_LsSO3tsCs4Th9ABHygt01te7qxjBW3Wbb_Xcn-f64mAK6Xn-zNnpf_QMIewUpnbIZ3RRzyDwQU5IU5yfLiosQk0heVdf_PeYRPd_Ti9dGi9_Sg3hg6EeuuXdxgjfXJPoNarpFDlCVKA9YuewdG0n2QHu68xupQchZYOCE_NJ74"/>
-                      <img alt={t("home.userAvatarAlt")} className="w-10 h-10 rounded-full border-2 border-[#F0F0F0]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ7anrlDclyUuJJ2JtRK3D_axEqiyEK8DXFTVdqvV3rwSAU2ikktvX_mDbgOc3PL8ZDe-bT3FxQANug1vOrE8j9vCw1qCoOKWPzve63DKrs6EcMsQbav0z7FzsTR8zN7MTniVhMOSdlXyfoi25PiKcCPyaZUZoLO-1JRgc3XXleqpReCLZuZi0rUsPz7J2mFxijBZ37RJVLRebaId7Ji8clKapJF419tTGHl9cQUSgQArmSNE0sxRtQXR1gT7f7r5Rb5f8c45JjxY"/>
-                    </div>
-                    <div className="max-w-[150px] sm:max-w-none text-[11px] sm:text-sm leading-[1.35] text-stone-600 font-semibold tracking-[0.04em] uppercase">
-                      {t("home.availableDescription")}
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-[#0F3D3E] rounded-[18px] sm:rounded-[20px] p-4 sm:p-8 flex flex-col justify-between h-[170px] sm:h-[280px] lg:h-[300px] shadow-sm text-white">
-                  <div className="w-full h-12 flex items-end">
-                    <svg className="w-full h-full" fill="none" viewBox="0 0 100 40">
-                      <path d="M0 35 C20 35, 40 5, 60 20 C80 35, 100 10, 100 10" fill="none" stroke="#7DA8A8" strokeWidth="2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-[30px] sm:text-[40px] font-bold leading-none mb-1 tracking-[-0.04em]">{t("app.page.text.196.000.35d964b2")}</div>
-                    <div className="text-white/60 font-semibold tracking-wide uppercase text-sm">
-                      {t("home.statsTitle")}
-                    </div>
+                    <div className="text-[14px] font-bold">{t("landing.hero.badgeTitle")}</div>
+                    <div className="text-[12px] text-[#5b6573]">{t("landing.hero.badgeSubtitle")}</div>
                   </div>
                 </div>
               </div>
@@ -112,241 +288,376 @@ export default async function HomeLandingPageScalableExact() {
         </div>
       </section>
 
-      <section className="py-12 sm:py-16 bg-surface border-y border-outline-variant/30">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-          <p className="text-center font-label-caps text-label-caps text-outline mb-10 opacity-60">
-            {t("home.featuredTitle")}
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12 lg:gap-16 grayscale opacity-40">
-            <span className="font-display text-body-lg sm:text-h3 font-bold tracking-tighter">{t("app.page.text.architectural.digest.8f4c4f21")}</span>
-            <span className="font-display text-body-lg sm:text-h3 font-bold tracking-tighter">{t("app.page.text.wired.05625cc3")}</span>
-            <span className="font-display text-body-lg sm:text-h3 font-bold tracking-tighter">{t("app.page.text.forbes.67b27ed0")}</span>
-            <span className="font-display text-body-lg sm:text-h3 font-bold tracking-tighter">{t("app.page.text.dwell.3a89ab31")}</span>
-            <span className="font-display text-body-lg sm:text-h3 font-bold tracking-tighter">{t("app.page.text.monocle.3ec56edf")}</span>
-          </div>
+      <section className="bg-[#F26A1B] text-white">
+        <div className="mx-auto grid max-w-[1180px] grid-cols-1 text-center sm:grid-cols-4">
+          {[
+            ["landing.stats.one.value", "landing.stats.one.label"],
+            ["landing.stats.two.value", "landing.stats.two.label"],
+            ["landing.stats.three.value", "landing.stats.three.label"],
+            ["landing.stats.four.value", "landing.stats.four.label"],
+          ].map(([valueKey, labelKey], index) => (
+            <div
+              className={`px-6 py-8 ${index < 3 ? "sm:border-r sm:border-white/25" : ""}`}
+              key={valueKey}
+            >
+              <div className="text-[34px] font-extrabold leading-none">{t(valueKey)}</div>
+              <div className="mt-2 text-[14px] opacity-90">{t(labelKey)}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section className="py-20 sm:py-24 lg:py-xxl bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-12 text-center">
-          <h2 className="font-h1 text-[32px] sm:text-h1 leading-[1.12] tracking-[-0.035em] mb-6 sm:mb-8 text-primary">
-            {t("home.statsTitle")} <span className="italic font-light">{t("home.statsDescription")}</span>
+      <section className="bg-background py-16 sm:py-20 lg:py-[70px]" id="how-it-works">
+        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-6">
+          <span className="mb-2 block text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#F26A1B]">
+            {t("landing.how.eyebrow")}
+          </span>
+          <h2 className="text-center text-[32px] font-extrabold tracking-[-0.4px] text-[#212733]">
+            {t("landing.how.title")}
           </h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant">{t("home.availableDescription")}</p>
+          <p className="mx-auto mt-3 max-w-[560px] text-center text-[16px] text-[#5b6573]">
+            {t("landing.how.subtitle")}
+          </p>
+
+          <div className="mt-7 flex justify-center">
+            <div className="flex gap-2 rounded-full">
+              <button
+                className={`rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors ${
+                  mode === "find"
+                    ? "border-[#F26A1B] bg-[#F26A1B] text-white"
+                    : "border-[#e7e9ee] bg-white text-[#212733]"
+                }`}
+                type="button"
+                onClick={() => setMode("find")}
+              >
+                {t("landing.how.tabs.find")}
+              </button>
+              <button
+                className={`rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors ${
+                  mode === "rent"
+                    ? "border-[#F26A1B] bg-[#F26A1B] text-white"
+                    : "border-[#e7e9ee] bg-white text-[#212733]"
+                }`}
+                type="button"
+                onClick={() => setMode("rent")}
+              >
+                {t("landing.how.tabs.rent")}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-11 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {howCards.map((card) => (
+              <div
+                className="rounded-[14px] bg-white px-3 py-0 text-center"
+                key={card.step}
+              >
+                <div className="mx-auto mb-4 mt-0 grid h-11 w-11 place-items-center rounded-full bg-[#F26A1B] text-[18px] font-extrabold text-white">
+                  {card.step}
+                </div>
+                <h3 className="mb-2 text-[18px] font-semibold text-[#212733]">{card.title}</h3>
+                <p className="text-[14px] leading-6 text-[#5b6573]">{card.description}</p>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 
-      <section className="py-20 sm:py-24 lg:py-xxl bg-surface">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-gutter">
-            <div className="p-6 sm:p-lg flex flex-col items-center text-center group rounded-lg hover:bg-background/60 transition-colors">
-              <div className="w-16 h-16 rounded-full bg-secondary-container/30 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                <span className="material-symbols-outlined text-primary text-3xl">search</span>
-              </div>
-              <h3 className="font-h3 text-h3 mb-4">{t("common.search")}</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                {t("storage.approvedListings")}
-              </p>
+      <section className="bg-[#f5f6f8] py-16 sm:py-20 lg:py-[80px]">
+        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-6">
+          <span className="mb-2 block text-[13px] font-bold uppercase tracking-[1.5px] text-[#F26A1B]">
+            {t("landing.featured.eyebrow")}
+          </span>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-[32px] font-extrabold tracking-[-0.4px] text-[#212733]">
+                {t("landing.featured.title")}
+              </h2>
+              <p className="mt-2 text-[16px] text-[#5b6573]">{t("landing.featured.subtitle")}</p>
             </div>
-            <div className="p-6 sm:p-lg flex flex-col items-center text-center group rounded-lg hover:bg-background/60 transition-colors">
-              <div className="w-16 h-16 rounded-full bg-secondary-container/30 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                <span className="material-symbols-outlined text-primary text-3xl">event_available</span>
-              </div>
-              <h3 className="font-h3 text-h3 mb-4">{t("common.payNow")}</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                {t("home.heroDescription")}
-              </p>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {listingData.map((listing) => {
+              const Icon = listing.icon;
+              return (
+                <article
+                  className="group flex flex-col overflow-hidden rounded-[14px] border border-[#e7e9ee] bg-white shadow-[0_4px_14px_rgba(20,25,40,0.06)] transition-transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(20,25,40,0.08)]"
+                  key={listing.title}
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#f5f6f8]">
+                    <img
+                      alt={t(listing.title)}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                      loading="lazy"
+                      src={listing.image}
+                    />
+                    <span className="absolute left-3 top-3 rounded-full bg-[#F26A1B] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
+                      {t(listing.badge)}
+                    </span>
+                    <button
+                      aria-label={t("landing.featured.save")}
+                      className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-[#5b6573] shadow-sm transition-colors hover:text-[#F26A1B]"
+                      type="button"
+                    >
+                      <Heart className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-1 flex-col gap-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-[16px] font-semibold leading-6 text-[#212733]">
+                          {t(listing.title)}
+                        </h3>
+                        <p className="mt-2 flex items-center gap-2 text-[13px] text-[#5b6573]">
+                          <MapPin className="h-4 w-4 shrink-0" />
+                          {t(listing.location)}
+                        </p>
+                      </div>
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f5f6f8] text-[#212733]">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full border border-[#e7e9ee] bg-[#f5f6f8] px-3 py-1 text-[12px] font-semibold text-[#444e5c]">
+                        {t(listing.type)}
+                      </span>
+                      <span className="rounded-full border border-[#e7e9ee] bg-[#f5f6f8] px-3 py-1 text-[12px] font-semibold text-[#444e5c]">
+                        {t(listing.size)}
+                      </span>
+                      <span className="rounded-full border border-[#e7e9ee] bg-[#f5f6f8] px-3 py-1 text-[12px] font-semibold text-[#444e5c]">
+                        {t(listing.amenity)}
+                      </span>
+                    </div>
+
+                    <div className="mt-auto flex items-end justify-between gap-3 pt-1">
+                      <div>
+                        <div className="text-[20px] font-extrabold tracking-[-0.03em] text-[#F26A1B]">
+                          {t(listing.price)}
+                        </div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8f98]">
+                          {t("landing.featured.perMonth")}
+                        </div>
+                      </div>
+                      <Link
+                        className="inline-flex items-center gap-2 rounded-full border border-[#e7e9ee] px-4 py-2 text-[14px] font-semibold text-[#212733] transition-colors hover:border-[#F26A1B] hover:text-[#F26A1B]"
+                        href="/storage"
+                      >
+                        {t("landing.featured.details")}
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-background py-16 sm:py-20 lg:py-[80px]">
+        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-6 text-center">
+          <h2 className="text-[32px] font-extrabold tracking-[-0.4px] text-[#212733]">
+            {t("landing.categories.title")}
+          </h2>
+          <p className="mx-auto mt-3 max-w-[560px] text-[16px] text-[#5b6573]">
+            {t("landing.categories.subtitle")}
+          </p>
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <article
+                  className="rounded-[14px] border border-[#e7e9ee] bg-white px-6 py-7 shadow-[0_4px_14px_rgba(20,25,40,0.05)] transition-transform hover:-translate-y-1 hover:border-[#F26A1B]"
+                  key={category.title}
+                >
+                  <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-[14px] bg-[#FDEEE4] text-[#F26A1B]">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-[17px] font-semibold text-[#212733]">{category.title}</h3>
+                  <p className="mt-2 text-[13px] text-[#5b6573]">{category.meta}</p>
+                  <Link
+                    className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#e7e9ee] px-4 py-2 text-[14px] font-semibold text-[#212733] transition-colors hover:border-[#F26A1B] hover:text-[#F26A1B]"
+                    href="/storage"
+                  >
+                    {t("landing.categories.action")}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f5f6f8] py-16 sm:py-20 lg:py-[80px]">
+        <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-6 lg:gap-12">
+          <div>
+            <span className="mb-3 block text-[13px] font-bold uppercase tracking-[1.5px] text-[#F26A1B]">
+              {t("landing.simulator.eyebrow")}
+            </span>
+            <h2 className="max-w-[560px] text-[30px] font-extrabold tracking-[-0.4px] text-[#212733] sm:text-[36px]">
+              {t("landing.simulator.title")}
+            </h2>
+            <p className="mt-3 max-w-[560px] text-[16px] leading-7 text-[#5b6573]">
+              {t("landing.simulator.description")}
+            </p>
+            <ul className="mt-6 flex flex-col gap-3">
+              {[
+                t("landing.simulator.bullets.one"),
+                t("landing.simulator.bullets.two"),
+                t("landing.simulator.bullets.three"),
+                t("landing.simulator.bullets.four"),
+              ].map((bullet) => (
+                <li className="flex items-start gap-3 text-[15px] text-[#212733]" key={bullet}>
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#F26A1B] text-white">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className="text-[#5b6573]">{bullet}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              className="mt-7 inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#212733] px-8 text-[15px] font-semibold text-white transition-colors hover:opacity-90"
+              href="/create-listing"
+            >
+              {t("landing.simulator.action")}
+            </Link>
+          </div>
+
+          <div className="rounded-[14px] bg-white p-5 shadow-[0_8px_26px_rgba(20,25,40,0.04)] sm:p-6">
+            <h3 className="mb-5 text-[16px] font-semibold text-[#212733]">
+              {t("landing.simulator.cardTitle")}
+            </h3>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="space-y-2 text-[13px] font-semibold text-[#212733]">
+                <span>{t("landing.simulator.fields.spaceType")}</span>
+                <select
+                  className="w-full rounded-[10px] border border-[#e7e9ee] bg-white px-3 py-2.5 text-[14px] outline-none"
+                  value={spaceType}
+                  onChange={(event) => setSpaceType(event.target.value)}
+                >
+                  <option value="cave">{t("landing.simulator.options.cave")}</option>
+                  <option value="box">{t("landing.simulator.options.box")}</option>
+                  <option value="grand">{t("landing.simulator.options.grand")}</option>
+                  <option value="garage">{t("landing.simulator.options.garage")}</option>
+                </select>
+              </label>
+              <label className="space-y-2 text-[13px] font-semibold text-[#212733]">
+                <span>{t("landing.simulator.fields.city")}</span>
+                <select
+                  className="w-full rounded-[10px] border border-[#e7e9ee] bg-white px-3 py-2.5 text-[14px] outline-none"
+                  value={cityMultiplier}
+                  onChange={(event) => setCityMultiplier(event.target.value)}
+                >
+                  <option value="1.9">{t("landing.simulator.options.paris")}</option>
+                  <option value="1.5">{t("landing.simulator.options.idf")}</option>
+                  <option value="1.2">{t("landing.simulator.options.lyon")}</option>
+                  <option value="1.2">{t("landing.simulator.options.marseille")}</option>
+                  <option value="1">{t("landing.simulator.options.other")}</option>
+                </select>
+              </label>
             </div>
-            <div className="p-6 sm:p-lg flex flex-col items-center text-center group rounded-lg hover:bg-background/60 transition-colors">
-              <div className="w-16 h-16 rounded-full bg-secondary-container/30 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                <span className="material-symbols-outlined text-primary text-3xl">key</span>
+
+            <label className="mt-4 block space-y-2 text-[13px] font-semibold text-[#212733]">
+              <span>
+                {t("landing.simulator.fields.surface")}{" "}
+                <span className="text-[#F26A1B]">{surface} m²</span>
+              </span>
+              <input
+                className="w-full accent-[#F26A1B]"
+                max={30}
+                min={1}
+                type="range"
+                value={surface}
+                onChange={(event) => setSurface(Number(event.target.value))}
+              />
+            </label>
+
+            <div className="mt-3 rounded-[14px] bg-[#F26A1B] px-5 py-5 text-center text-white">
+              <span className="block text-[13px] opacity-90">{t("landing.simulator.result.label")}</span>
+              <div className="mt-1 text-[38px] font-extrabold leading-none">
+                {revenue}€
+                <span className="ml-2 text-[18px] font-semibold">{t("landing.simulator.result.perMonth")}</span>
               </div>
-              <h3 className="font-h3 text-h3 mb-4">{t("home.ctaPrimary")}</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                {t("home.ctaDescription")}
-              </p>
+              <div className="mt-1 text-[12px] opacity-85">{t("landing.simulator.result.note")}</div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 sm:py-24 lg:py-xxl bg-background">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-xxl items-center">
-            <div className="rounded-lg overflow-hidden shadow-2xl shadow-primary/5">
-              <img
-                className="w-full h-[320px] sm:h-[500px] object-cover"
-                alt={t("home.findStorage")}
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuATpxMWB32JAG2GFOK1AQmmaEIR6betJXaH2wpWO9Ect5gFsCPsA2Vq8DDAtvsW7igp-2mQjbvk2hP8LPkHsry_BkYueJulVTR-5VgXJzu0o8NSk2WRDJ_ScYjSbTsRICrrPPTYCBJjAULTqeKu_NKUKBbLPPifqa0sJbmeWFYhXKK15QPkv7i5zYaYRR5MQgXeJOub_St6njVrP96izLbV7TsTX8vYnBr7OCd0c4bqrRkP4-aEnD7ok2lWFTZwqtTafTrdu0dPykU"
-              />
-            </div>
-            <div className="lg:pl-10 xl:pl-12 text-center lg:text-left">
-              <span className="font-label-caps text-label-caps text-secondary mb-4 block">
-                {t("home.listSpace")}
-              </span>
-              <h2 className="font-h1 text-h1 mb-6 text-primary">
-                {t("home.ctaTitle")} <span className="italic">{t("home.ctaSecondary")}</span>
-              </h2>
-              <p className="font-body-lg text-body-lg text-on-surface-variant mb-8 sm:mb-10 max-w-[560px] mx-auto lg:mx-0">
-                {t("home.ctaDescription")}
-              </p>
+      <section className="bg-background py-16 sm:py-20 lg:py-[80px]">
+        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-6 text-center">
+          <span className="mb-2 block text-[13px] font-bold uppercase tracking-[1.5px] text-[#F26A1B]">
+            {t("landing.testimonials.eyebrow")}
+          </span>
+          <h2 className="text-[32px] font-extrabold tracking-[-0.4px] text-[#212733]">
+            {t("landing.testimonials.title")}
+          </h2>
+          <p className="mx-auto mt-3 max-w-[560px] text-[16px] text-[#5b6573]">
+            {t("landing.testimonials.subtitle")}
+          </p>
+
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {testimonials.map((testimonial) => (
+              <article
+                className="rounded-[20px] border border-[#e7e9ee] bg-white p-7 text-left shadow-[0_4px_14px_rgba(20,25,40,0.05)]"
+                key={testimonial.name}
+              >
+                <div className="mb-10 flex items-center gap-1 text-[#F26A1B]">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Star
+                      className="h-4 w-4 fill-[#F26A1B] text-[#F26A1B]"
+                      key={`${testimonial.name}-${index}`}
+                    />
+                  ))}
+                </div>
+                <p className="text-[14px] leading-[1.55] text-[#2d3443]">{testimonial.quote}</p>
+                <div className="mt-8 flex items-center gap-4">
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-[#FDEEE4] text-[13px] font-bold text-[#F26A1B]">
+                    {testimonial.initials}
+                  </div>
+                  <div>
+                    <div className="text-[15px] font-semibold text-[#212733]">{testimonial.name}</div>
+                    <div className="text-[13px] text-[#5b6573]">{testimonial.role}</div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-background pb-16 pt-0 sm:pb-20 lg:pb-[80px]">
+        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-6">
+          <div className="rounded-[24px] bg-[#181d28] px-6 py-12 text-center text-white sm:px-10 sm:py-14">
+            <h2 className="text-[30px] font-extrabold tracking-[-0.4px] sm:text-[34px]">
+              {t("landing.cta.title")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-[520px] text-[16px] leading-7 text-[#c4cbd8]">
+              {t("landing.cta.description")}
+            </p>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
-                className="inline-flex items-center justify-center bg-[#0F3D3E] text-white px-9 sm:px-10 py-4 sm:py-5 rounded-full font-manrope font-bold text-base sm:text-lg active:scale-95 transition-all hover:opacity-90 shadow-md shadow-[#0F3D3E]/10"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#F26A1B] px-8 text-[15px] font-semibold text-white transition-colors hover:bg-[#d9590f]"
+                href="/storage"
+              >
+                {t("landing.cta.primaryAction")}
+              </Link>
+              <Link
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/10 bg-white/95 px-8 text-[15px] font-semibold text-[#212733] transition-colors hover:bg-white"
                 href="/create-listing"
               >
-                {t("home.listSpace")}
+                {t("landing.cta.secondaryAction")}
               </Link>
             </div>
           </div>
         </div>
       </section>
-
-      <section className="py-20 sm:py-24 lg:py-xxl bg-surface-container-low">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 sm:gap-6 mb-10 sm:mb-12">
-            <div>
-              <h2 className="font-h1 text-h1 text-primary">{t("home.availableTitle")}</h2>
-              <p className="font-body-md text-on-surface-variant mt-2">{t("home.availableDescription")}</p>
-            </div>
-            <Link className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all" href="/storage">
-              {t("home.exploreMore")} <span className="material-symbols-outlined">arrow_forward</span>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-gutter lg:h-[600px]">
-            <div className="lg:col-span-2 relative rounded-lg overflow-hidden bg-surface-container shadow-inner h-[320px] sm:h-[420px] lg:h-full">
-              <img
-                className="w-full h-full object-cover"
-                alt={t("maps.title")}
-                data-location="San Francisco"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZis-myS5KP7UUoco2lzJ7dIxoSihYKp8CK-zHwJcQ_7f14dSVkAhWkwuz6lLjc1_VJEUX1zNiLLQk0vbsfjm5oN-XwjWageE8AqESZiBnjAcXZuKyp6lCHTxgiBY6Kk6FWDjSBMEZzTm8cxUpJX8kyb9uDBonzyZkB0LC3ZgJp9rsoEZIVpvz83yrB7CEgzWzAOu9mLdVssJ_sQK_jkDpDVFc87clZynwulsPaJSVweL5EhH5Zo8VLIxfa-iUZempAOZmexfKreU"
-              />
-              <div className="absolute top-1/3 left-1/4 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">{t("app.page.text.120.85ee8a8e")}</div>
-              <div className="absolute top-2/3 left-1/2 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">{t("app.page.text.85.3c590424")}</div>
-              <div className="absolute top-1/4 left-3/4 w-10 h-10 bg-[#0F3D3E] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">{t("app.page.text.210.280b18c7")}</div>
-            </div>
-            <div className="flex flex-col gap-5 sm:gap-6 lg:overflow-y-auto lg:pr-2">
-              <div className="bg-background p-5 sm:p-6 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/20 hover:border-primary/20 hover:-translate-y-0.5 transition-all cursor-pointer">
-                <img className="w-full h-32 object-cover rounded-md mb-4" alt={t("home.availableTitle")} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvanMgbDoM75fNGhHAYCWN1kVhVYTie6hT-wtjwRAU5KbSqQ69pWLV-3GbQ5csInFWWy-TFQkcsYnl2wEQjPGL2XTKV8PURmMhXQiP8nemi9anwxMc1hUkMBpfOH-nZt4LQnzJBpzecxV6VWmwVdNAl1J2N4tDQiXspcOAwhlo2heLmIQ01QAtGmjB-kZ-qIjogVHeYA5lUakMVbewaARLwJg_mT_jyagDgGBYOmxsGG66PB2vKd82VgDqO4ht-0gtIpoEXZ0F-M0"/>
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-h3 text-body-lg text-primary">{t("home.sampleListing1Title")}</h4>
-                  <span className="font-bold text-primary">{t("home.sampleListing1Price")}</span>
-                </div>
-                <p className="text-body-sm text-on-surface-variant flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">location_on</span> {t("home.sampleListing1Location")}
-                </p>
-                <p className="text-body-sm text-on-surface-variant flex items-center gap-2 mt-1">
-                  <span className="material-symbols-outlined text-sm">square_foot</span> {t("home.sampleListing1Size")}
-                </p>
-              </div>
-              <div className="bg-background p-5 sm:p-6 rounded-lg shadow-[0_4px_20px_rgba(15,61,62,0.04)] border border-outline-variant/20 hover:border-primary/20 hover:-translate-y-0.5 transition-all cursor-pointer">
-                <img className="w-full h-32 object-cover rounded-md mb-4" alt={t("home.availableTitle")} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWoo8Zsw06j8esugC8l1o4BX3B7CACiNFhOuTTYV059ReSnhWUO-2_eXHnTWLyLbYroWkT61uVV13XZ1wTL0BKOTqJYx4i3GamXUjvsvPw5yeYejjoQCLqRND0sGvjq6yCwaZ1ZPc881TvH0UGXGTHD06YNmCIjRtLekY108ZMjEqHCt2edA3fwypj2Rlp4zyp85y_NbZFTuAVdxJpHZ3PHZ2hDpU0R2jsFEMG__0Coeh4WikKYGYYJWpYXOvOtwqLmcauQwG7VQU"/>
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-h3 text-body-lg text-primary">{t("home.sampleListing2Title")}</h4>
-                  <span className="font-bold text-primary">{t("home.sampleListing2Price")}</span>
-                </div>
-                <p className="text-body-sm text-on-surface-variant flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">location_on</span> {t("home.sampleListing2Location")}
-                </p>
-                <p className="text-body-sm text-on-surface-variant flex items-center gap-2 mt-1">
-                  <span className="material-symbols-outlined text-sm">square_foot</span> {t("home.sampleListing2Size")}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 sm:py-24 lg:py-xxl bg-background">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 text-center">
-          <span className="font-label-caps text-label-caps text-secondary mb-4 block">
-            {t("home.statsTitle")}
-          </span>
-          <h2 className="font-h1 text-h1 text-primary mb-16">
-            {t("home.statsDescription")}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-lg">
-            <div className="bg-surface p-8 sm:p-xl rounded-lg border border-outline-variant/20 shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
-              <span className="material-symbols-outlined text-4xl text-secondary mb-6">verified_user</span>
-              <h3 className="font-h3 text-h3 mb-3">{t("status.account.ACTIVE")}</h3>
-              <p className="font-body-md text-on-surface-variant">{t("home.trustedBy")}</p>
-            </div>
-            <div className="bg-surface p-8 sm:p-xl rounded-lg border border-outline-variant/20 shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
-              <span className="material-symbols-outlined text-4xl text-secondary mb-6">payments</span>
-              <h3 className="font-h3 text-h3 mb-3">{t("payments.successTitle")}</h3>
-              <p className="font-body-md text-on-surface-variant">{t("payments.successDescription")}</p>
-            </div>
-            <div className="bg-surface p-8 sm:p-xl rounded-lg border border-outline-variant/20 shadow-[0_4px_20px_rgba(15,61,62,0.03)]">
-              <span className="material-symbols-outlined text-4xl text-secondary mb-6">gavel</span>
-              <h3 className="font-h3 text-h3 mb-3">{t("contracts.title")}</h3>
-              <p className="font-body-md text-on-surface-variant">{t("contracts.subtitle")}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-primary text-white py-18 sm:py-24 overflow-hidden relative">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-secondary rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-on-primary-container rounded-full blur-[100px] translate-x-1/2 translate-y-1/2"></div>
-        </div>
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
-          <div className="flex flex-col md:flex-row justify-around items-center gap-10 sm:gap-16 text-center">
-            <div>
-              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">{t("app.page.text.12.000.eec2a821")}</p>
-              <p className="font-label-caps text-label-caps opacity-70">{t("home.availableTitle")}</p>
-            </div>
-            <div className="h-16 w-px bg-white/20 hidden md:block"></div>
-            <div>
-              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">{t("app.page.text.50.caee27b0")}</p>
-              <p className="font-label-caps text-label-caps opacity-70">{t("storage.storageCaves")}</p>
-            </div>
-            <div className="h-16 w-px bg-white/20 hidden md:block"></div>
-            <div>
-              <p className="font-display text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold tracking-tighter leading-none mb-2">{t("app.page.text.99.9.e16badff")}</p>
-              <p className="font-label-caps text-label-caps opacity-70">{t("home.featuredTitle")}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 sm:py-24 lg:py-xxl bg-surface">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-12">
-          <h2 className="font-h1 text-[32px] sm:text-h1 leading-[1.15] tracking-[-0.035em] text-primary text-center mb-10 sm:mb-16">
-            {t("home.featuredDescription")} <span className="italic">{t("home.availableDescription")}</span>
-          </h2>
-          <div className="space-y-4">
-            <div className="border-b border-outline-variant/30 pb-6">
-              <button className="w-full flex justify-between items-center text-left group" type="button">
-                <span className="font-h3 text-body-lg text-primary">
-                  {t("payments.successTitle")}
-                </span>
-                <span className="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">
-                  expand_more
-                </span>
-              </button>
-              <div className="mt-4 text-on-surface-variant font-body-md">
-                {t("payments.successDescription")}
-              </div>
-            </div>
-            <div className="border-b border-outline-variant/30 py-6">
-              <button className="w-full flex justify-between items-center text-left group" type="button">
-                <span className="font-h3 text-body-lg text-primary">{t("payments.cancelTitle")}</span>
-                <span className="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">
-                  expand_more
-                </span>
-              </button>
-            </div>
-            <div className="border-b border-outline-variant/30 py-6">
-              <button className="w-full flex justify-between items-center text-left group" type="button">
-                <span className="font-h3 text-body-lg text-primary">{t("home.ctaTitle")}</span>
-                <span className="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">
-                  expand_more
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+    </main>
   );
 }
