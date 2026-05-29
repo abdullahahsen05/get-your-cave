@@ -30,7 +30,7 @@ const featuredImages = [
   "https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=600&q=70",
   "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=600&q=70",
   "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=600&q=70",
-  "https://images.unsplash.com/photo-1597844808175-cd86e0ce6f8c?auto=format&fit=crop&w=600&q=70",
+  "https://images.unsplash.com/photo-1776286287566-19327c13932a?auto=format&fit=crop&w=600&q=70",
   "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=70",
 ] as const;
 
