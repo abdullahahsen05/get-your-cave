@@ -3,11 +3,14 @@ import {
   ListingAvailability,
   InvoiceStatus,
   ListingStatus,
+  PaymentStatus,
   Prisma,
   type Booking,
   type UserRole,
 } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
+import { createNotificationForUser } from "@/lib/notifications";
 import { generateContractForBooking } from "@/lib/contracts/generateContract";
 import { generateInvoiceForBooking } from "@/lib/invoices/generateInvoice";
 import { prisma } from "@/lib/prisma";
@@ -71,6 +74,8 @@ export type BookingResponse = {
   owner: BookingPersonSummary;
   renter: BookingPersonSummary;
   contractStatus: string | null;
+  contractId: string | null;
+  contractNumber: string | null;
   paymentStatus: string | null;
   invoiceStatus: string | null;
 };
@@ -107,6 +112,7 @@ const bookingInclude = {
   },
   generatedContract: {
     select: {
+      id: true,
       contractNumber: true,
       status: true,
       generatedAt: true,
@@ -188,6 +194,83 @@ function buildBookingNumber() {
   return `BK-${stamp}-${suffix}`;
 }
 
+function buildCancelledInvoiceTimeline(
+  timeline: Prisma.JsonValue | null | undefined,
+  cancelledAt: Date,
+) {
+  const entries = Array.isArray(timeline) ? [...timeline] : [];
+  const cancelledEntry = {
+    key: "cancelled",
+    label: "Cancelled",
+    at: cancelledAt.toISOString(),
+    active: true,
+  };
+
+  const cancelledIndex = entries.findIndex((entry) => {
+    return (
+      typeof entry === "object" &&
+      entry !== null &&
+      "key" in entry &&
+      (entry as { key?: string }).key === "cancelled"
+    );
+  });
+
+  if (cancelledIndex >= 0) {
+    entries[cancelledIndex] = cancelledEntry;
+  } else {
+    entries.push(cancelledEntry);
+  }
+
+  return entries;
+}
+
+async function cascadeBookingCancellation(bookingId: string, cancelledAt: Date) {
+  const invoices = await prisma.invoice.findMany({
+    where: { bookingId },
+    select: {
+      id: true,
+      status: true,
+      timeline: true,
+    },
+  });
+
+  await prisma.$transaction(async (transaction) => {
+    for (const invoice of invoices) {
+      if (invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.REFUNDED) {
+        continue;
+      }
+
+      await transaction.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: InvoiceStatus.CANCELLED,
+          cancelledAt,
+          timeline: buildCancelledInvoiceTimeline(invoice.timeline, cancelledAt),
+        },
+      });
+    }
+
+    await transaction.payment.updateMany({
+      where: {
+        bookingId,
+        status: PaymentStatus.PENDING,
+      },
+      data: {
+        status: PaymentStatus.CANCELLED,
+      },
+    });
+  });
+
+  revalidatePath("/invoices");
+  revalidatePath("/owner/dashboard");
+  revalidatePath("/renter/dashboard");
+  revalidatePath("/storage");
+
+  for (const invoice of invoices) {
+    revalidatePath(`/invoices/${invoice.id}`);
+  }
+}
+
 function serializeBooking(
   booking: Booking & {
     listing: {
@@ -230,6 +313,8 @@ function serializeBooking(
       };
     };
     generatedContract: {
+      id: string;
+      contractNumber: string;
       status: BookingStatus | null;
     } | null;
     payments: Array<{
@@ -298,6 +383,8 @@ function serializeBooking(
       city: booking.renter.city,
     },
     contractStatus: booking.generatedContract?.status ?? null,
+    contractId: booking.generatedContract?.id ?? null,
+    contractNumber: booking.generatedContract?.contractNumber ?? null,
     paymentStatus: booking.payments[0]?.status ?? null,
     invoiceStatus: booking.invoices[0]?.status ?? null,
   };
@@ -363,7 +450,7 @@ export function calculateBookingCharges(params: {
   const monthlyPrice = toDecimal(params.monthlyPrice);
   const securityDeposit = toDecimal(params.securityDeposit ?? 0);
   const insuranceFee = toDecimal(params.insuranceFee ?? 0);
-  const platformCommission = monthlyPrice.mul(0.12).toDecimalPlaces(2);
+  const platformCommission = monthlyPrice.mul(0.2).toDecimalPlaces(2);
   const ownerAmount = monthlyPrice.sub(platformCommission).toDecimalPlaces(2);
   const totalMonthlyAmount = monthlyPrice.toDecimalPlaces(2);
 
@@ -636,11 +723,11 @@ export async function updateBookingForViewer(params: {
       updates.completedAt = null;
     }
 
-    if (params.data.status === BookingStatus.CANCELLED) {
-      updates.approvedAt = null;
-      updates.rejectedAt = null;
-      updates.completedAt = null;
-    }
+  if (params.data.status === BookingStatus.CANCELLED) {
+    updates.approvedAt = null;
+    updates.rejectedAt = null;
+    updates.completedAt = null;
+  }
   }
 
   const updated = await prisma.booking.update({
@@ -663,6 +750,40 @@ export async function updateBookingForViewer(params: {
       status: InvoiceStatus.ISSUED,
     }).catch((error) => {
       console.error("Failed to auto-generate invoice after approval:", error);
+    });
+
+    const reloaded = await prisma.booking.findUnique({
+      where: { id: updated.id },
+      include: bookingInclude,
+    });
+
+    if (reloaded) {
+      refreshedUpdated = reloaded;
+    }
+  }
+
+  if (params.data.status === BookingStatus.CANCELLED) {
+    const cancelledAt = updated.cancelledAt ?? new Date();
+
+    await cascadeBookingCancellation(updated.id, cancelledAt).catch((error) => {
+      console.error("Failed to cascade booking cancellation:", error);
+    });
+
+    await Promise.all([
+      createNotificationForUser({
+        userId: updated.renter.userId,
+        title: "Booking cancelled",
+        body: `Your booking ${updated.bookingNumber} has been cancelled and any open invoices were closed.`,
+        linkUrl: "/renter/dashboard",
+      }),
+      createNotificationForUser({
+        userId: updated.owner.userId,
+        title: "Booking cancelled",
+        body: `Booking ${updated.bookingNumber} was cancelled by the renter.`,
+        linkUrl: "/owner/dashboard",
+      }),
+    ]).catch((error) => {
+      console.error("Failed to send booking cancellation notifications:", error);
     });
 
     const reloaded = await prisma.booking.findUnique({

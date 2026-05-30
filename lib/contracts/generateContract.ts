@@ -5,6 +5,7 @@ import Docxtemplater from "docxtemplater";
 import PizZip from "pizzip";
 import { ContractStatus, ContractType, Prisma, type UserRole } from "@prisma/client";
 
+import { createNotificationForUser } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import {
   buildContractPlaceholderData,
@@ -29,6 +30,7 @@ const contractBookingInclude = {
         include: {
           user: {
             select: {
+              id: true,
               fullName: true,
               email: true,
               phone: true,
@@ -42,6 +44,7 @@ const contractBookingInclude = {
     include: {
       user: {
         select: {
+          id: true,
           fullName: true,
           email: true,
           phone: true,
@@ -53,6 +56,7 @@ const contractBookingInclude = {
     include: {
       user: {
         select: {
+          id: true,
           fullName: true,
           email: true,
           phone: true,
@@ -141,6 +145,8 @@ export type SafeGeneratedContract = {
   contractNumber: string;
   bookingId: string;
   bookingNumber: string;
+  ownerId: string;
+  renterId: string;
   templateId: string;
   templateName: string;
   contractType: ContractType;
@@ -161,6 +167,19 @@ export type SafeGeneratedContract = {
   depositAmount: string;
   insuranceFee: string;
   placeholders: ContractPlaceholderData;
+  signatures: Array<{
+    userId: string;
+    role: UserRole;
+    signerName: string;
+    signedAt: string;
+  }>;
+};
+
+type ContractSignatureState = {
+  userId: string;
+  role: UserRole;
+  signerName: string;
+  signedAt: string;
 };
 
 function buildContractNumber(bookingNumber: string) {
@@ -285,12 +304,21 @@ function toSafeContract(record: GeneratedContractRecord): SafeGeneratedContract 
     typeof record.contractData === "string"
       ? (JSON.parse(record.contractData) as ContractPlaceholderData)
       : (record.contractData as ContractPlaceholderData | null | undefined) ?? {};
+  const signatures =
+    typeof record.contractData === "object" &&
+    record.contractData !== null &&
+    "signatures" in record.contractData &&
+    Array.isArray((record.contractData as { signatures?: unknown }).signatures)
+      ? ((record.contractData as { signatures: ContractSignatureState[] }).signatures ?? [])
+      : [];
 
   return {
     id: record.id,
     contractNumber: record.contractNumber,
     bookingId: record.bookingId,
     bookingNumber: record.booking.bookingNumber,
+    ownerId: record.booking.ownerId,
+    renterId: record.booking.renterId,
     templateId: record.templateId,
     templateName: record.template.name,
     contractType: record.contractType,
@@ -311,6 +339,70 @@ function toSafeContract(record: GeneratedContractRecord): SafeGeneratedContract 
     depositAmount: record.booking.securityDeposit.toFixed(2),
     insuranceFee: record.booking.insuranceFee.toFixed(2),
     placeholders,
+    signatures,
+  };
+}
+
+function parseSignatures(contractData: Prisma.JsonValue | null | undefined) {
+  if (!contractData || typeof contractData !== "object" || Array.isArray(contractData)) {
+    return [] as ContractSignatureState[];
+  }
+
+  const raw = (contractData as { signatures?: unknown }).signatures;
+  if (!Array.isArray(raw)) {
+    return [] as ContractSignatureState[];
+  }
+
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+
+      const candidate = entry as Partial<ContractSignatureState>;
+      if (
+        typeof candidate.userId !== "string" ||
+        typeof candidate.role !== "string" ||
+        typeof candidate.signerName !== "string" ||
+        typeof candidate.signedAt !== "string"
+      ) {
+        return null;
+      }
+
+      if (!["OWNER", "RENTER", "ADMIN"].includes(candidate.role)) {
+        return null;
+      }
+
+      return {
+        userId: candidate.userId,
+        role: candidate.role as UserRole,
+        signerName: candidate.signerName,
+        signedAt: candidate.signedAt,
+      } satisfies ContractSignatureState;
+    })
+    .filter((entry): entry is ContractSignatureState => Boolean(entry));
+}
+
+function mergeContractDataWithSignature(
+  contractData: Prisma.JsonValue | null | undefined,
+  signature: ContractSignatureState,
+  nextStatus: ContractStatus,
+) {
+  const base =
+    contractData && typeof contractData === "object" && !Array.isArray(contractData)
+      ? { ...(contractData as Record<string, unknown>) }
+      : {};
+  const signatures = parseSignatures(contractData);
+  const nextSignatures = signatures.some((entry) => entry.userId === signature.userId)
+    ? signatures
+    : [...signatures, signature];
+
+  return {
+    ...base,
+    signatures: nextSignatures,
+    lastSignedAt: signature.signedAt,
+    signedAt: nextStatus === ContractStatus.SIGNED ? signature.signedAt : base.signedAt ?? null,
+    status: nextStatus,
   };
 }
 
@@ -572,6 +664,99 @@ export async function getContractDownloadFilePathForViewer(
     fileName: ensureDocxFileName(record.generatedFileName),
     contractNumber: record.contractNumber,
   };
+}
+
+export async function signGeneratedContractForViewer(params: {
+  contractId: string;
+  viewer: ContractViewer & { userId: string; fullName: string };
+}) {
+  const record = await prisma.generatedContract.findUnique({
+    where: { id: params.contractId },
+    include: contractRecordInclude,
+  });
+
+  if (!record) {
+    return { error: "Contract not found." } as const;
+  }
+
+  const isOwner =
+    params.viewer.role === "OWNER" && params.viewer.ownerProfileId === record.booking.ownerId;
+  const isRenter =
+    params.viewer.role === "RENTER" && params.viewer.renterProfileId === record.booking.renterId;
+  const isAdmin = params.viewer.role === "ADMIN";
+
+  if (!isOwner && !isRenter && !isAdmin) {
+    return { error: "You cannot sign this contract." } as const;
+  }
+
+  if (record.status === ContractStatus.CANCELLED) {
+    return { error: "Cancelled contracts cannot be signed." } as const;
+  }
+
+  const signatures = parseSignatures(record.contractData);
+  const existingSignature = signatures.find((entry) => entry.userId === params.viewer.userId);
+  if (existingSignature) {
+    return { error: "You have already signed this contract." } as const;
+  }
+
+  const signedAt = new Date().toISOString();
+  const signerRole = isOwner
+    ? "OWNER"
+    : isRenter
+      ? "RENTER"
+      : "ADMIN";
+  const signatureEntry = {
+    userId: params.viewer.userId,
+    role: signerRole,
+    signerName: params.viewer.fullName,
+    signedAt,
+  } satisfies ContractSignatureState;
+
+  const nextSignatures = [...signatures, signatureEntry];
+  const signedParties = new Set(
+    nextSignatures
+      .filter((entry) => entry.role === "OWNER" || entry.role === "RENTER")
+      .map((entry) => entry.role),
+  );
+  const nextStatus =
+    signedParties.size >= 2 ? ContractStatus.SIGNED : ContractStatus.PARTIALLY_SIGNED;
+  const contractData = mergeContractDataWithSignature(record.contractData, signatureEntry, nextStatus);
+
+  const updated = await prisma.generatedContract.update({
+    where: { id: record.id },
+    data: {
+      status: nextStatus,
+      contractData,
+    },
+    include: contractRecordInclude,
+  });
+
+  const recipientIds = isOwner
+    ? [record.booking.renter.user.id]
+    : isRenter
+      ? [record.booking.owner.user.id]
+      : [record.booking.owner.user.id, record.booking.renter.user.id];
+  const notificationTitle =
+    nextStatus === ContractStatus.SIGNED ? "Contract signed" : "Contract partially signed";
+  const notificationBody =
+    nextStatus === ContractStatus.SIGNED
+      ? `The contract ${record.contractNumber} is now fully signed.`
+      : `A signature was added to contract ${record.contractNumber}.`;
+
+  await Promise.all(
+    recipientIds.map((userId) =>
+      createNotificationForUser({
+        userId,
+        title: notificationTitle,
+        body: notificationBody,
+        linkUrl: `/api/contracts/${record.id}/download`,
+      }),
+    ),
+  );
+
+  return {
+    contract: toSafeContract(updated),
+  } as const;
 }
 
 export function getContractTypeForBooking(durationMonths: number | null | undefined) {

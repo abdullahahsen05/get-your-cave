@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import UserAvatar from "@/components/ui/UserAvatar";
 import type { SafeUser } from "@/lib/auth";
 import { normalizeLocale } from "@/lib/i18n";
 import {
@@ -140,6 +142,13 @@ function hasUnreadIncomingMessages(
   );
 }
 
+function isImageAttachment(fileUrl: string | null, fileName: string | null) {
+  const value = `${fileUrl ?? ""} ${fileName ?? ""}`.toLowerCase();
+  return [".jpg", ".jpeg", ".png", ".webp", ".gif"].some((ext) =>
+    value.includes(ext),
+  );
+}
+
 export default function MessagingWorkspace({
   currentUser,
   initialConversationId,
@@ -153,6 +162,8 @@ export default function MessagingWorkspace({
   const activeConversationIdRef = useRef<string | null>(initialConversationId);
   const typingTimeoutRef = useRef<number | null>(null);
   const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+  const attachmentPreviewUrlRef = useRef<string | null>(null);
   const loadListRef = useRef<() => Promise<void>>(async () => {});
   const loadDetailRef = useRef<() => Promise<void>>(async () => {});
 
@@ -164,6 +175,11 @@ export default function MessagingWorkspace({
     useState<ConversationDetail | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [draftMessage, setDraftMessage] = useState("");
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
   const [listLoading, setListLoading] = useState(canAccessMessaging);
   const [detailLoading, setDetailLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -515,15 +531,144 @@ export default function MessagingWorkspace({
     }
   }, [selectedConversation?.messages.length]);
 
+  useEffect(() => {
+    return () => {
+      if (attachmentPreviewUrlRef.current) {
+        window.URL.revokeObjectURL(attachmentPreviewUrlRef.current);
+        attachmentPreviewUrlRef.current = null;
+      }
+    };
+  }, []);
+
   function handleSelectConversation(conversationId: string) {
     setErrorMessage(null);
     setSelectedConversationId(conversationId);
     setTypingStatus(null);
+    resetAttachment();
+  }
+
+  function setAttachmentSelection(nextFile: File | null) {
+    if (attachmentPreviewUrlRef.current) {
+      window.URL.revokeObjectURL(attachmentPreviewUrlRef.current);
+      attachmentPreviewUrlRef.current = null;
+    }
+
+    setAttachmentFile(nextFile);
+
+    if (!nextFile) {
+      setAttachmentPreviewUrl(null);
+      return;
+    }
+
+    const nextPreviewUrl = window.URL.createObjectURL(nextFile);
+    attachmentPreviewUrlRef.current = nextPreviewUrl;
+    setAttachmentPreviewUrl(nextPreviewUrl);
+  }
+
+  function resetAttachment() {
+    setAttachmentSelection(null);
+    if (attachmentInputRef.current) {
+      attachmentInputRef.current.value = "";
+    }
+  }
+
+  async function uploadAttachment(file: File) {
+    setIsUploadingAttachment(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/messages/attachments", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json()) as {
+        fileUrl?: string;
+        fileName?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.fileUrl) {
+        throw new Error(data.error ?? t("messaging.unableToUploadAttachment"));
+      }
+
+      return {
+        fileUrl: data.fileUrl,
+        fileName: data.fileName ?? file.name,
+      };
+    } finally {
+      setIsUploadingAttachment(false);
+    }
+  }
+
+  async function sendMessagePayload(payload: {
+    body: string;
+    type: "TEXT" | "FILE" | "SYSTEM";
+    fileUrl?: string | null;
+    fileName?: string | null;
+  }) {
+    const normalizedPayload = {
+      body: payload.body,
+      type: payload.type,
+      ...(payload.fileUrl ? { fileUrl: payload.fileUrl } : {}),
+      ...(payload.fileName ? { fileName: payload.fileName } : {}),
+    };
+
+    const socket = socketRef.current;
+
+    if (!socket || !socket.connected) {
+      const response = await fetch(`/api/messages/conversations/${selectedConversationId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(normalizedPayload),
+      });
+      const data = (await response.json()) as {
+        message?: ConversationMessage;
+        error?: string;
+      };
+
+      if (!response.ok || !data.message) {
+        throw new Error(data.error ?? t("messaging.unableToSendMessage"));
+      }
+
+      return data.message;
+    }
+
+    return await new Promise<ConversationMessage>((resolve, reject) => {
+      socket.emit(
+        SOCKET_EVENTS.sendMessage,
+        {
+          conversationId: selectedConversationId,
+          ...normalizedPayload,
+        },
+        (response: {
+          ok: boolean;
+          message?: ConversationMessage;
+          error?: string;
+        }) => {
+          if (!response.ok || !response.message) {
+            reject(new Error(response.error ?? t("messaging.unableToSendMessage")));
+            return;
+          }
+
+          resolve(response.message);
+        },
+      );
+    });
   }
 
   function handleSendMessage() {
+    if (isUploadingAttachment) {
+      return;
+    }
+
     const body = draftMessage.trim();
-    if (!body) {
+
+    if (!body && !attachmentFile) {
       setErrorMessage(t("messaging.emptyMessage"));
       return;
     }
@@ -532,84 +677,37 @@ export default function MessagingWorkspace({
       setErrorMessage(t("messaging.selectConversationFirst"));
       return;
     }
+    void (async () => {
+      try {
+        let fileUrl: string | null = null;
+        let fileName: string | null = null;
+        let messageType: "TEXT" | "FILE" = "TEXT";
+        let messageBody = body;
 
-    const socket = socketRef.current;
-    if (!socket || !socket.connected) {
-      void fetch(`/api/messages/conversations/${selectedConversationId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          body,
-          type: "TEXT",
-        }),
-        })
-        .then(async (response) => {
-          const data = (await response.json()) as {
-            message?: ConversationMessage;
-            error?: string;
-          };
-
-          if (!response.ok || !data.message) {
-            throw new Error(data.error ?? t("messaging.unableToSendMessage"));
-          }
-
-          const savedMessage = data.message;
-          setDraftMessage("");
-          setSelectedConversation((current) => {
-            if (!current) {
-              return current;
-            }
-
-            if (
-              current.messages.some((message) => message.id === savedMessage.id)
-            ) {
-              return current;
-            }
-
-            return {
-              ...current,
-              lastMessageText: savedMessage.body,
-              lastMessageAt: savedMessage.createdAt,
-              messages: [...current.messages, savedMessage],
-            };
-          });
-          void loadListRef.current();
-        })
-        .catch((error) => {
-          setErrorMessage(
-            error instanceof Error ? error.message : t("messaging.unableToSendMessage"),
-          );
-        });
-      return;
-    }
-
-    socket.emit(
-      SOCKET_EVENTS.sendMessage,
-      {
-        conversationId: selectedConversationId,
-        body,
-        type: "TEXT",
-      },
-      (response: { ok: boolean; message?: ConversationMessage; error?: string }) => {
-        if (!response.ok || !response.message) {
-          setErrorMessage(response.error ?? t("messaging.unableToSendMessage"));
-          return;
+        if (attachmentFile) {
+          const uploaded = await uploadAttachment(attachmentFile);
+          fileUrl = uploaded.fileUrl;
+          fileName = uploaded.fileName;
+          messageType = "FILE";
+          messageBody = body || uploaded.fileName || attachmentFile.name;
         }
 
-        const savedMessage = response.message;
+        const savedMessage = await sendMessagePayload({
+          body: messageBody,
+          type: messageType,
+          fileUrl,
+          fileName,
+        });
+
         setDraftMessage("");
+        resetAttachment();
         setTypingStatus(null);
         setSelectedConversation((current) => {
           if (!current) {
             return current;
           }
 
-          if (
-            current.messages.some((message) => message.id === savedMessage.id)
-          ) {
+          if (current.messages.some((message) => message.id === savedMessage.id)) {
             return current;
           }
 
@@ -622,8 +720,12 @@ export default function MessagingWorkspace({
         });
 
         void loadListRef.current();
-      },
-    );
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : t("messaging.unableToSendMessage"),
+        );
+      }
+    })();
   }
 
   if (currentUser.role !== "OWNER" && currentUser.role !== "RENTER") {
@@ -697,17 +799,12 @@ export default function MessagingWorkspace({
                       onClick={() => handleSelectConversation(conversation.id)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-secondary bg-stone-200">
-                        <img
-                          alt={conversation.otherParticipant.fullName}
-                          className="w-full h-full object-cover"
-                          src={
-                            conversation.listing?.imageUrl ??
-                            conversation.otherParticipant.avatarUrl ??
-                            "https://lh3.googleusercontent.com/aida-public/AB6AXuCqHEqt0RWhmdF_GpRoXrBzUY25jLA14ju6LIeSvMPYwZf3H9dZSOASEKdkfqeRScCXFTH4hoq0cfiZlV8EMSm_XclyLCvusTp35SYX2wafIP0p_fd6kpduiv7ukrgHELnd-fDk2Lv7FE-gg3HVUoamT1vdZsHfS3lrrbPXORM0jgfG0QPdr0VMmezeehVf_Ve7Aef3w5vAuh0AnjQd4wedPD7Y5cB3YxVld1n_DcusNzY9XsfNu-rWBU-NWkfLJY4-T3x7HjGyB6M"
-                          }
+                        <UserAvatar
+                          avatarUrl={conversation.otherParticipant.avatarUrl}
+                          className="border-2 border-secondary"
+                          name={conversation.otherParticipant.fullName}
+                          size="md"
                         />
-                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex items-baseline justify-between gap-3">
                           <span className="truncate font-h3 text-body-md text-primary">
@@ -741,17 +838,11 @@ export default function MessagingWorkspace({
           <section className="flex min-h-0 flex-1 flex-col bg-surface md:min-h-0">
             <header className="flex shrink-0 flex-col gap-3 border-b border-outline-variant/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 md:h-[72px] md:py-0">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-stone-100 ring-1 ring-outline-variant/60">
-                  <img
-                    alt={activeConversation?.otherParticipant.fullName ?? "Conversation"}
-                    className="w-full h-full object-cover"
-                    src={
-                      activeConversation?.listing?.imageUrl ??
-                      activeConversation?.otherParticipant.avatarUrl ??
-                      "https://lh3.googleusercontent.com/aida-public/AB6AXuB6C9w5Tqvfc-90F9fdaBHWaObKDwFDoXsXhzQ5pXeRgLhDB7p15rxNJ9eUWqcwncLUN0K-VwDPiSjZ5pX5ZQj2ow7MujHzGikGDfsRUSwQaEyjFR6BV4SRt1uTFTQmEnOOaDUHRBKorYf6mB4VONoBAMEwKniJ678K5i95jdPq-3x3Wdj65V0n5j_qzXLsxWKw-hIBbS5VqY9AKwrAwktcpBYdwR4J-pr7RZI910oKR7YoFXK9zOPBAf1QXrBC3nL6vprXmHB-CMQ"
-                    }
-                  />
-                </div>
+                <UserAvatar
+                  avatarUrl={activeConversation?.otherParticipant.avatarUrl ?? null}
+                  name={activeConversation?.otherParticipant.fullName ?? "Conversation"}
+                  size="md"
+                />
                 <div className="min-w-0">
                   <h3 className="truncate font-h3 text-body-md leading-tight text-primary">
                     {activeConversation
@@ -787,6 +878,15 @@ export default function MessagingWorkspace({
               ) : selectedMessages.length ? (
                 selectedMessages.map((message) => {
                   const isOutgoing = message.senderId === currentUser.id;
+                  const isImage = isImageAttachment(
+                    message.fileUrl,
+                    message.fileName,
+                  );
+                  const messageStatus = isOutgoing
+                    ? message.readAt
+                      ? t("messaging.read")
+                      : t("messaging.delivered")
+                    : null;
 
                   return (
                     <div
@@ -803,21 +903,45 @@ export default function MessagingWorkspace({
                         }`}
                       >
                         {message.type === "FILE" && message.fileUrl ? (
-                          <a
-                            className="underline break-all"
-                            href={message.fileUrl}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            {message.fileName ?? message.body}
-                          </a>
+                          isImage ? (
+                            <a
+                              className="block overflow-hidden rounded-[18px] border border-white/20"
+                              href={message.fileUrl}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              <img
+                                alt={message.fileName ?? message.body}
+                                className="max-h-[280px] w-full object-cover"
+                                src={message.fileUrl}
+                              />
+                            </a>
+                          ) : (
+                            <a
+                              className="underline break-all"
+                              href={message.fileUrl}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              {message.fileName ?? message.body}
+                            </a>
+                          )
                         ) : (
                           message.body
                         )}
                       </div>
-                      <span className="text-label-caps text-stone-400 px-sm">
-                        {formatTime(message.createdAt, locale)}
-                      </span>
+                      <div className="flex items-center gap-2 px-sm text-label-caps text-stone-400">
+                        <span>{formatTime(message.createdAt, locale)}</span>
+                        {messageStatus ? (
+                          <>
+                            <span className="h-1 w-1 rounded-full bg-stone-300" />
+                            <span className="inline-flex items-center gap-1">
+                              <CheckCheck className="h-3.5 w-3.5" />
+                              {messageStatus}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
                     </div>
                   );
                 })
@@ -841,34 +965,94 @@ export default function MessagingWorkspace({
             </div>
 
             <div className="shrink-0 border-t border-outline-variant/60 bg-surface p-3 sm:p-5">
-              <div className="flex items-end gap-2 rounded-[28px] border border-outline-variant/60 bg-secondary-container/10 px-3 py-2 transition-colors focus-within:border-secondary sm:gap-3 sm:px-4 sm:py-3">
-                <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-secondary-container/20 hover:text-secondary" type="button">
-                  <span className="material-symbols-outlined" data-icon="attach_file">
-                    attach_file
-                  </span>
-                </button>
-                <input
-                  className="min-h-10 min-w-0 flex-1 border-none bg-transparent py-2 text-body-md text-on-surface placeholder-stone-400 outline-none focus:ring-0"
-                  placeholder={t("messaging.typeMessagePlaceholder")}
-                  type="text"
-                  value={draftMessage}
-                  onChange={(event) => setDraftMessage(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <button
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-white transition-all hover:bg-[#d9590f] active:scale-95"
-                  type="button"
-                  onClick={handleSendMessage}
-                >
-                  <span className="material-symbols-outlined text-sm" data-icon="send">
-                    send
-                  </span>
-                </button>
+              <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low/70 p-3 shadow-[0_16px_50px_rgba(15,23,42,0.04)] transition-colors focus-within:border-secondary sm:p-4">
+                {attachmentFile ? (
+                  <div className="mb-3 rounded-[22px] border border-[#eadfcf] bg-white p-3 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-[18px] bg-[#f7f2ea]">
+                        {attachmentPreviewUrl ? (
+                          <img
+                            alt={attachmentFile.name}
+                            className="h-full w-full object-cover"
+                            src={attachmentPreviewUrl}
+                          />
+                        ) : (
+                          <span className="material-symbols-outlined text-[#f26a1b]">
+                            image
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-bold text-[#1f2937]">
+                          {attachmentFile.name}
+                        </p>
+                        <p className="mt-1 text-[12px] leading-5 text-[#6b7280]">
+                          {t("messaging.attachmentHint")}
+                        </p>
+                      </div>
+                      <button
+                        className="rounded-full border border-stone-200 px-3 py-1.5 text-[12px] font-bold text-[#212733] transition-colors hover:bg-stone-50"
+                        type="button"
+                        onClick={resetAttachment}
+                      >
+                        {t("messaging.removeAttachment")}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex items-end gap-2 sm:gap-3">
+                  <input
+                    ref={attachmentInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    type="file"
+                    onChange={(event) => {
+                      const nextFile = event.target.files?.[0] ?? null;
+                      setAttachmentSelection(nextFile);
+                    }}
+                  />
+                  <button
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 transition-colors hover:border-[#f26a1b]/30 hover:text-[#f26a1b] disabled:cursor-not-allowed disabled:opacity-50"
+                    type="button"
+                    disabled={isUploadingAttachment}
+                    onClick={() => attachmentInputRef.current?.click()}
+                  >
+                    <span className="material-symbols-outlined text-[20px]" data-icon="attach_file">
+                      attach_file
+                    </span>
+                  </button>
+                  <input
+                    className="min-h-11 min-w-0 flex-1 border-none bg-transparent py-2 text-body-md text-on-surface placeholder-stone-400 outline-none focus:ring-0"
+                    placeholder={t("messaging.typeMessagePlaceholder")}
+                    type="text"
+                    value={draftMessage}
+                    onChange={(event) => setDraftMessage(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                  />
+                  <button
+                    className="inline-flex h-11 min-w-[112px] items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[13px] font-extrabold text-white transition-all hover:bg-[#d9590f] active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+                    type="button"
+                    disabled={isUploadingAttachment}
+                    onClick={handleSendMessage}
+                  >
+                    {isUploadingAttachment ? (
+                      <span className="material-symbols-outlined text-sm">
+                        progress_activity
+                      </span>
+                    ) : (
+                      <span className="material-symbols-outlined text-sm" data-icon="send">
+                        send
+                      </span>
+                    )}
+                    <span>{t("common.send")}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </section>

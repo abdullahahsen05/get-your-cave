@@ -14,6 +14,7 @@ import {
 
 import type { SafeUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createNotificationForUser } from "@/lib/notifications";
 import {
   requiredDocumentTypesForRole,
   ensureVerificationProfileForUser,
@@ -772,6 +773,8 @@ export async function getAdminUsers(params: {
         id: true,
         fullName: true,
         email: true,
+        phone: true,
+        avatarUrl: true,
         role: true,
         status: true,
         emailVerified: true,
@@ -1111,6 +1114,13 @@ export async function approveListingForAdmin(listingId: string, adminId: string)
       },
     });
 
+    await createNotificationForUser({
+      userId: listing.owner.userId,
+      title: "Listing approved",
+      body: `Your listing “${listing.title}” is now approved and visible publicly.`,
+      linkUrl: `/storage/${listing.id}`,
+    });
+
     return { listing: updated } as const;
   });
 }
@@ -1179,6 +1189,13 @@ export async function rejectListingForAdmin(
       },
     });
 
+    await createNotificationForUser({
+      userId: listing.owner.userId,
+      title: "Listing rejected",
+      body: `Your listing “${listing.title}” was rejected.${reason ? ` Reason: ${reason}` : ""}`,
+      linkUrl: `/create-listing?listingId=${listing.id}`,
+    });
+
     return { listing: updated } as const;
   });
 }
@@ -1243,6 +1260,13 @@ export async function approveVerificationDocumentForAdmin(
           status: "Approved",
         },
       },
+    });
+
+    await createNotificationForUser({
+      userId: document.userId,
+      title: "Document approved",
+      body: `Your ${document.type.toLowerCase().replace(/_/g, " ")} was approved.`,
+      linkUrl: "/document",
     });
 
     return {
@@ -1314,6 +1338,13 @@ export async function rejectVerificationDocumentForAdmin(
           reason: rejectionReason ?? "Rejected by admin",
         },
       },
+    });
+
+    await createNotificationForUser({
+      userId: document.userId,
+      title: "Document rejected",
+      body: `Your ${document.type.toLowerCase().replace(/_/g, " ")} was rejected.${rejectionReason ? ` Reason: ${rejectionReason}` : ""}`,
+      linkUrl: "/document",
     });
 
     return {

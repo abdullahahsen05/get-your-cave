@@ -10,6 +10,8 @@ export const SOCKET_EVENTS = {
   userTyping: "user-typing",
   userStoppedTyping: "user-stopped-typing",
   messagesRead: "messages-read",
+  notificationCreated: "notification-created",
+  notificationsUpdated: "notifications-updated",
   socketError: "socket-error",
 } as const;
 
@@ -46,4 +48,14 @@ export type SocketTypingPayload = {
 
 export type SocketErrorPayload = {
   message: string;
+};
+
+export type SocketNotificationPayload = {
+  id: string;
+  userId: string;
+  title: string;
+  body: string | null;
+  linkUrl: string | null;
+  readAt: string | null;
+  createdAt: string;
 };

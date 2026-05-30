@@ -9,12 +9,17 @@ import {
   getDashboardPath,
   normalizeInternalPath,
 } from "@/lib/auth-routing";
-import { loginSchema } from "@/lib/validations/auth";
+import {
+  loginSchema,
+  loginVerificationSchema,
+} from "@/lib/validations/auth";
 
 type LoginFormState = {
   email: string;
   password: string;
 };
+
+type LoginStep = "credentials" | "verification";
 
 const initialState: LoginFormState = {
   email: "",
@@ -52,19 +57,16 @@ export default function LoginPage() {
     );
   });
   const [formState, setFormState] = useState<LoginFormState>(initialState);
+  const [step, setStep] = useState<LoginStep>("credentials");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [challengeEmail, setChallengeEmail] = useState<string | null>(null);
+  const [challengeExpiresAt, setChallengeExpiresAt] = useState<string | null>(null);
+  const [lastSubmittedCredentials, setLastSubmittedCredentials] = useState<LoginFormState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function requestTwoFactorCode(credentials: LoginFormState) {
     setErrorMessage(null);
-
-    const parsed = loginSchema.safeParse(formState);
-    if (!parsed.success) {
-      setErrorMessage(parsed.error.issues[0]?.message ?? t("auth.formError"));
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -74,19 +76,69 @@ export default function LoginPage() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(formState),
+        body: JSON.stringify(credentials),
       });
 
-      const data = (await response.json()) as {
+      const data = (await response.json().catch(() => null)) as
+        | {
+            requiresTwoFactor?: boolean;
+            maskedEmail?: string;
+            challengeExpiresAt?: string;
+            error?: string;
+          }
+        | null;
+
+      if (!response.ok || !data?.requiresTwoFactor) {
+        setErrorMessage(data?.error ?? t("auth.loginError"));
+        return false;
+      }
+
+      setStep("verification");
+      setChallengeEmail(data.maskedEmail ?? credentials.email);
+      setChallengeExpiresAt(data.challengeExpiresAt ?? null);
+      setVerificationCode("");
+      setLastSubmittedCredentials(credentials);
+      return true;
+    } catch {
+      setErrorMessage(t("auth.loginError"));
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function verifyTwoFactorCode(code: string) {
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/login/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = (await response.json().catch(() => null)) as {
         user?: { role?: "ADMIN" | "OWNER" | "RENTER"; status?: string };
         error?: string;
-      };
+        expired?: boolean;
+      } | null;
 
-      const user = data.user;
+      const user = data?.user;
 
       if (!response.ok || !user?.role) {
-        setErrorMessage(t("auth.loginError"));
-        return;
+        const message = data?.error ?? t("auth.loginError");
+        setErrorMessage(message);
+
+        if (data?.expired) {
+          setStep("credentials");
+          setVerificationCode("");
+        }
+
+        return false;
       }
 
       const destination =
@@ -96,11 +148,44 @@ export default function LoginPage() {
 
       router.replace(destination);
       router.refresh();
+      return true;
     } catch {
       setErrorMessage(t("auth.loginError"));
+      return false;
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (step === "credentials") {
+      const parsed = loginSchema.safeParse(formState);
+      if (!parsed.success) {
+        setErrorMessage(parsed.error.issues[0]?.message ?? t("auth.formError"));
+        return;
+      }
+
+      await requestTwoFactorCode(parsed.data);
+      return;
+    }
+
+    const parsed = loginVerificationSchema.safeParse({ code: verificationCode });
+    if (!parsed.success) {
+      setErrorMessage(parsed.error.issues[0]?.message ?? t("auth.formError"));
+      return;
+    }
+
+    await verifyTwoFactorCode(parsed.data.code);
+  }
+
+  async function resendCode() {
+    if (!lastSubmittedCredentials) {
+      return;
+    }
+
+    await requestTwoFactorCode(lastSubmittedCredentials);
   }
 
   function updateField<K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) {
@@ -197,6 +282,24 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-5 sm:space-y-6">
+                    {step === "verification" ? (
+                      <div className="rounded-2xl border border-secondary/20 bg-secondary-container/20 px-4 py-4 text-sm text-primary">
+                        <p className="font-semibold text-primary">{t("auth.twoFactorTitle")}</p>
+                        <p className="mt-1 text-on-surface-variant">
+                          {t("auth.twoFactorDescription", {
+                            email: challengeEmail ?? formState.email,
+                          })}
+                        </p>
+                        {challengeExpiresAt ? (
+                          <p className="mt-2 text-xs text-on-surface-variant">
+                            {t("auth.codeExpiresAt", {
+                              time: new Date(challengeExpiresAt).toLocaleTimeString(),
+                            })}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+
                     <div className="space-y-2.5">
                       <label
                         className="font-label-caps text-label-caps text-on-surface-variant ml-1 uppercase tracking-[0.14em]"
@@ -220,28 +323,57 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-2.5">
-                      <label
-                        className="font-label-caps text-label-caps text-on-surface-variant ml-1 uppercase tracking-[0.14em]"
-                        htmlFor="password"
-                      >
-                        {t("auth.password")}
-                      </label>
-                      <div className="relative group">
-                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45 transition-colors group-focus-within:text-secondary">
-                          lock
-                        </span>
-                        <input
-                          autoComplete="current-password"
-                          className="w-full bg-surface-container-lowest border border-outline-variant/70 rounded-2xl pl-12 pr-5 py-4 sm:py-[18px] font-body-md text-body-md text-primary placeholder:text-stone-400 focus:ring-2 focus:ring-secondary/10 focus:border-secondary transition-all outline-none"
-                          id="password"
-                          onChange={(event) => updateField("password", event.target.value)}
-                          placeholder={t("auth.passwordPlaceholder")}
-                          type="password"
-                          value={formState.password}
-                        />
+                    {step === "credentials" ? (
+                      <div className="space-y-2.5">
+                        <label
+                          className="font-label-caps text-label-caps text-on-surface-variant ml-1 uppercase tracking-[0.14em]"
+                          htmlFor="password"
+                        >
+                          {t("auth.password")}
+                        </label>
+                        <div className="relative group">
+                          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45 transition-colors group-focus-within:text-secondary">
+                            lock
+                          </span>
+                          <input
+                            autoComplete="current-password"
+                            className="w-full bg-surface-container-lowest border border-outline-variant/70 rounded-2xl pl-12 pr-5 py-4 sm:py-[18px] font-body-md text-body-md text-primary placeholder:text-stone-400 focus:ring-2 focus:ring-secondary/10 focus:border-secondary transition-all outline-none"
+                            id="password"
+                            onChange={(event) => updateField("password", event.target.value)}
+                            placeholder={t("auth.passwordPlaceholder")}
+                            type="password"
+                            value={formState.password}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        <label
+                          className="font-label-caps text-label-caps text-on-surface-variant ml-1 uppercase tracking-[0.14em]"
+                          htmlFor="verificationCode"
+                        >
+                          {t("auth.codeLabel")}
+                        </label>
+                        <div className="relative group">
+                          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45 transition-colors group-focus-within:text-secondary">
+                            pin
+                          </span>
+                          <input
+                            autoComplete="one-time-code"
+                            className="w-full bg-surface-container-lowest border border-outline-variant/70 rounded-2xl pl-12 pr-5 py-4 sm:py-[18px] font-body-md text-body-md text-primary placeholder:text-stone-400 focus:ring-2 focus:ring-secondary/10 focus:border-secondary transition-all outline-none tracking-[0.35em]"
+                            id="verificationCode"
+                            inputMode="numeric"
+                            maxLength={6}
+                            onChange={(event) =>
+                              setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                            }
+                            placeholder={t("auth.codePlaceholder")}
+                            type="text"
+                            value={verificationCode}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     {errorMessage ? (
                       <div className="rounded-2xl border border-[#f3c8ae] bg-[#fff3ea] px-4 py-3.5 text-sm text-[#8f3d12] leading-relaxed">
@@ -252,22 +384,61 @@ export default function LoginPage() {
                 </section>
 
                 <div className="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                  <Link
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-full text-primary font-bold text-sm hover:bg-secondary-container transition-colors flex items-center justify-center gap-2"
-                    href="/signup"
-                  >
-                    <span className="material-symbols-outlined text-sm">
-                      arrow_back
-                    </span>
-                    {t("auth.signUp")}
-                  </Link>
+                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                    {step === "verification" ? (
+                      <button
+                        className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-full text-primary font-bold text-sm hover:bg-secondary-container transition-colors flex items-center justify-center gap-2"
+                        disabled={isSubmitting}
+                        type="button"
+                        onClick={() => void resendCode()}
+                      >
+                        <span className="material-symbols-outlined text-sm">refresh</span>
+                        {t("auth.resendCode")}
+                      </button>
+                    ) : (
+                      <Link
+                        className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-full text-primary font-bold text-sm hover:bg-secondary-container transition-colors flex items-center justify-center gap-2"
+                        href="/signup"
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          arrow_back
+                        </span>
+                        {t("auth.signUp")}
+                      </Link>
+                    )}
+                    {step === "verification" ? (
+                      <button
+                        className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-full text-primary font-bold text-sm hover:bg-secondary-container transition-colors flex items-center justify-center gap-2"
+                        disabled={isSubmitting}
+                        type="button"
+                        onClick={() => {
+                          setStep("credentials");
+                          setVerificationCode("");
+                          setChallengeEmail(null);
+                          setChallengeExpiresAt(null);
+                          setErrorMessage(null);
+                        }}
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          arrow_back
+                        </span>
+                        {t("auth.backToCredentials")}
+                      </button>
+                    ) : null}
+                  </div>
 
                   <button
                     className="w-full sm:w-auto bg-secondary text-on-primary px-8 sm:px-10 py-4 rounded-full font-bold text-body-md hover:bg-[#d9590f] active:scale-[0.98] transition-all shadow-[0_12px_28px_rgba(242,106,27,0.22)] flex items-center justify-center gap-2 disabled:opacity-60"
                     disabled={isSubmitting}
                     type="submit"
                   >
-                    {isSubmitting ? t("auth.signingIn") : t("auth.login")}
+                    {isSubmitting
+                      ? step === "verification"
+                        ? t("auth.verifying")
+                        : t("auth.signingIn")
+                      : step === "verification"
+                        ? t("auth.verifyCode")
+                        : t("auth.login")}
                     <span className="material-symbols-outlined text-sm">
                       arrow_forward
                     </span>

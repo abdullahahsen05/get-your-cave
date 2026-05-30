@@ -15,8 +15,12 @@ export const conversationStartSchema = z
 export const messageCreateSchema = z.object({
   body: z.string().trim().min(1, "Message cannot be empty."),
   type: z.enum(messageTypeValues).default("TEXT"),
-  fileUrl: z.string().trim().url().optional().or(z.literal("")),
-  fileName: z.string().trim().min(1).max(255).optional().or(z.literal("")),
+  fileUrl: z
+    .union([z.string().trim().url(), z.literal(""), z.null()])
+    .optional(),
+  fileName: z
+    .union([z.string().trim().min(1).max(255), z.literal(""), z.null()])
+    .optional(),
 });
 
 export const messageReadSchema = z.object({

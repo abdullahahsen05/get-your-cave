@@ -6,6 +6,7 @@ import {
   toggleOwnerListingArchive,
   updateOwnerListing,
 } from "@/lib/listings";
+import { ListingStatus } from "@prisma/client";
 import {
   listingDraftSchema,
   listingPublishSchema,
@@ -74,9 +75,17 @@ export async function PATCH(
     typeof body === "object" && body !== null && "status" in body
       ? (body as { status?: string }).status
       : undefined;
+  const hasContentFields =
+    typeof body === "object" &&
+    body !== null &&
+    ["title", "description", "storageType", "address", "city", "pricePerMonth"].some(
+      (key) => key in body,
+    );
 
   const schema =
-    rawStatus === "PENDING_APPROVAL" ? listingPublishSchema : listingDraftSchema;
+    rawStatus === "PENDING_APPROVAL" && hasContentFields
+      ? listingPublishSchema
+      : listingDraftSchema;
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -85,6 +94,19 @@ export async function PATCH(
         error: parsed.error.issues[0]?.message ?? "Invalid listing details.",
       },
       { status: 400 },
+    );
+  }
+
+  if (
+    currentUser.role === "OWNER" &&
+    "status" in parsed.data &&
+    parsed.data.status === ListingStatus.APPROVED
+  ) {
+    return NextResponse.json(
+      {
+        error: "Owners cannot approve listings. Submit the listing for review instead.",
+      },
+      { status: 403 },
     );
   }
 

@@ -5,6 +5,7 @@ import "./globals.css";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import I18nProvider from "@/components/providers/I18nProvider";
+import NotificationsProvider from "@/components/providers/NotificationsProvider";
 import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
 
@@ -43,8 +44,10 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col overflow-x-hidden bg-background text-on-surface pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         <I18nProvider initialLocale={locale}>
-          <Navbar />
-          {children}
+          <NotificationsProvider>
+            <Navbar />
+            {children}
+          </NotificationsProvider>
           <Footer />
         </I18nProvider>
       </body>

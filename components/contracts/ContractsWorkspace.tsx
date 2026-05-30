@@ -11,6 +11,7 @@ type ContractsWorkspaceProps = {
   initialContracts: SafeGeneratedContract[];
   canGenerate: boolean;
   isAdmin: boolean;
+  viewerRole: string;
 };
 
 function formatDate(value: string, locale: string) {
@@ -76,6 +77,7 @@ export function ContractsWorkspace({
   initialContracts,
   canGenerate,
   isAdmin,
+  viewerRole,
 }: ContractsWorkspaceProps) {
   const { t, i18n } = useTranslation();
   const locale = normalizeLocale(i18n.language);
@@ -171,6 +173,48 @@ export function ContractsWorkspace({
       setNotice(t("contracts.generatedSuccess"));
     } catch (error) {
       setNotice(error instanceof Error ? error.message : t("contracts.unableToGenerate"));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  function canSignContract(contract: SafeGeneratedContract) {
+    if (contract.status === "SIGNED" || contract.status === "CANCELLED") {
+      return false;
+    }
+
+    return viewerRole === "OWNER" || viewerRole === "RENTER" || viewerRole === "ADMIN";
+  }
+
+  async function handleSign(contract: SafeGeneratedContract) {
+    setBusyId(contract.id);
+    setNotice(null);
+
+    try {
+      const response = await fetch(`/api/contracts/${contract.id}/sign`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+
+      const payload = (await response.json()) as {
+        contract?: SafeGeneratedContract;
+        error?: string;
+      };
+
+      if (!response.ok || !payload.contract) {
+        throw new Error(payload.error ?? t("contracts.unableToSign"));
+      }
+
+      setContracts((current) =>
+        current.map((item) => (item.id === payload.contract?.id ? payload.contract! : item)),
+      );
+      setSelectedContractId(payload.contract.id);
+      setNotice(t("contracts.signedSuccess"));
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : t("contracts.unableToSign"));
     } finally {
       setBusyId(null);
     }
@@ -283,6 +327,16 @@ export function ContractsWorkspace({
                   >
                     {busyId === contract.id ? t("common.loading") : t("contracts.generate")}
                   </button>
+                  {canSignContract(contract) ? (
+                    <button
+                      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-secondary/35 px-4 py-2 text-label-caps text-[11px] uppercase tracking-[0.18em] text-secondary transition-colors hover:bg-secondary-container/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={busyId === contract.id}
+                      type="button"
+                      onClick={() => handleSign(contract)}
+                    >
+                      {busyId === contract.id ? t("common.loading") : t("sign")}
+                    </button>
+                  ) : null}
                 </div>
               </article>
             ))
@@ -374,6 +428,16 @@ export function ContractsWorkspace({
                         >
                           {busyId === contract.id ? t("common.loading") : t("contracts.generate")}
                         </button>
+                        {canSignContract(contract) ? (
+                          <button
+                            className="rounded-full border border-secondary/35 px-4 py-2 font-label-caps text-[11px] uppercase tracking-[0.18em] text-secondary transition-colors hover:bg-secondary-container/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={busyId === contract.id}
+                            type="button"
+                            onClick={() => handleSign(contract)}
+                          >
+                            {busyId === contract.id ? t("common.loading") : t("sign")}
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -480,9 +544,22 @@ export function ContractsWorkspace({
                     : "#"
                 }
                 download={selectedContract?.generatedFileName}
-              >
-                {t("contracts.download")}
-              </a>
+                >
+                  {t("contracts.download")}
+                </a>
+
+              {selectedContract && canSignContract(selectedContract) ? (
+                <button
+                  className="flex-1 rounded-full border border-secondary/35 py-3 text-sm font-bold text-secondary transition-colors hover:bg-secondary-container/20 disabled:opacity-50"
+                  disabled={busyId === selectedContract.id}
+                  type="button"
+                  onClick={() => {
+                    void handleSign(selectedContract);
+                  }}
+                >
+                  {busyId === selectedContract.id ? t("common.loading") : t("sign")}
+                </button>
+              ) : null}
 
               <button
                 className="flex-1 rounded-full border border-outline-variant/60 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low disabled:opacity-50"

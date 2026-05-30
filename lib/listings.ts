@@ -218,6 +218,7 @@ function buildPublicWhere(filters: ListingListFilters): Prisma.ListingWhereInput
     {
       status: ListingStatus.APPROVED,
       isPublished: true,
+      availability: ListingAvailability.AVAILABLE,
     },
   ];
 
@@ -583,6 +584,7 @@ function buildCreateData(
   const length = input.length ?? null;
   const height = input.height ?? null;
   const status = input.status ?? ListingStatus.DRAFT;
+  const availability = input.availability ?? ListingAvailability.AVAILABLE;
 
   return {
     ownerId,
@@ -591,7 +593,7 @@ function buildCreateData(
     description,
     storageType,
     status,
-    availability: ListingAvailability.AVAILABLE,
+    availability,
     address,
     city,
     postalCode,
@@ -688,6 +690,7 @@ function buildUpdateData(
     archivedFromStatus: ListingStatus | null;
     isFeatured: boolean;
     isPublished: boolean;
+    availability: ListingAvailability;
   },
 ): Prisma.ListingUncheckedUpdateInput {
   const title = normalizeText(input.title) ?? existing.title;
@@ -707,6 +710,7 @@ function buildUpdateData(
   const length = input.length ?? existing.length;
   const height = input.height ?? existing.height;
   const status = input.status ?? existing.status;
+  const availability = input.availability ?? existing.availability;
 
   return {
     title,
@@ -724,6 +728,7 @@ function buildUpdateData(
     length,
     height,
     status,
+    availability,
     isFeatured: input.isFeatured ?? existing.isFeatured,
     archivedFromStatus: status === ListingStatus.ARCHIVED ? existing.archivedFromStatus : null,
     isPublished: status === ListingStatus.APPROVED ? true : false,
@@ -958,6 +963,7 @@ export async function updateOwnerListing(params: {
       archivedFromStatus: true,
       isFeatured: true,
       isPublished: true,
+      availability: true,
     },
   });
 

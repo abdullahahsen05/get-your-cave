@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth";
+import {
+  getAuthCookieName,
+  getAuthCookieOptions,
+  getLoginChallengeCookieName,
+  getLoginChallengeCookieOptions,
+} from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +15,13 @@ export async function POST(request: Request) {
     name: getAuthCookieName(),
     value: "",
     ...getAuthCookieOptions(),
+    expires: new Date(0),
+    maxAge: 0,
+  });
+  response.cookies.set({
+    name: getLoginChallengeCookieName(),
+    value: "",
+    ...getLoginChallengeCookieOptions(),
     expires: new Date(0),
     maxAge: 0,
   });
@@ -27,6 +39,12 @@ export async function POST(request: Request) {
     expires: new Date(0),
     maxAge: 0,
   });
+  redirectResponse.cookies.set({
+    name: getLoginChallengeCookieName(),
+    value: "",
+    ...getLoginChallengeCookieOptions(),
+    expires: new Date(0),
+    maxAge: 0,
+  });
   return redirectResponse;
 }
-

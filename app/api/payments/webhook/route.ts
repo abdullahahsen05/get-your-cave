@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { createNotificationForUser } from "@/lib/notifications";
 import { finalizeStripeCheckoutSession } from "@/lib/payments/finalizeStripeCheckoutSession";
 import {
   getStripeClient,
@@ -70,7 +71,7 @@ function buildPaymentWhere(params: {
 function calculateRecurringSplit(amount: Prisma.Decimal | number | string) {
   const decimalAmount = amount instanceof Prisma.Decimal ? amount : new Prisma.Decimal(amount);
   const normalized = decimalAmount.toDecimalPlaces(2);
-  const platformCommission = normalized.mul(0.12).toDecimalPlaces(2);
+  const platformCommission = normalized.mul(0.2).toDecimalPlaces(2);
   const ownerAmount = normalized.sub(platformCommission).toDecimalPlaces(2);
 
   return {
@@ -600,6 +601,15 @@ async function syncRecurringInvoiceFromStripe(params: {
 
   if (invoiceRecordId) {
     revalidatePaymentPaths(invoiceRecordId);
+  }
+
+  if (params.paymentStatus === PaymentStatus.FAILED) {
+    await createNotificationForUser({
+      userId: loaded.booking.renterId,
+      title: "Payment failed",
+      body: "Your recurring booking payment could not be processed. Please update your payment method.",
+      linkUrl: "/invoices",
+    });
   }
 
   return {
@@ -1285,6 +1295,15 @@ export async function POST(request: Request) {
           stripePaymentIntentId: paymentIntent.id,
         },
       });
+
+      if (metadata?.renterId) {
+        await createNotificationForUser({
+          userId: metadata.renterId,
+          title: "Payment failed",
+          body: "Your Stripe payment failed. Please try another payment method or update your card.",
+          linkUrl: "/invoices",
+        });
+      }
 
       logWebhookDebug("payment_intent.payment_failed applied", {
         paymentIntentId: paymentIntent.id,

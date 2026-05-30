@@ -1,4 +1,4 @@
-import { ListingStatus, StorageType } from "@prisma/client";
+import { ListingAvailability, ListingStatus, StorageType } from "@prisma/client";
 import { z } from "zod";
 
 const optionalTrimmedString = z
@@ -101,6 +101,7 @@ const listingDraftSchemaBase = z.object({
   width: optionalNumber,
   length: optionalNumber,
   height: optionalNumber,
+  availability: z.nativeEnum(ListingAvailability).optional(),
   amenityNames: listingAmenityNamesSchema,
   imageUrls: listingImageUrlsSchema,
   status: z.nativeEnum(ListingStatus).optional(),
@@ -123,6 +124,7 @@ export const listingPublishSchema = listingDraftSchemaBase.extend({
   sizeSqFt: z.coerce.number().positive().optional(),
   amenityNames: z.array(z.string().trim().min(1)).optional().default([]),
   imageUrls: z.array(z.string().trim().min(1)).optional().default([]),
+  availability: z.nativeEnum(ListingAvailability).optional(),
 }).superRefine(validateCoordinates);
 
 export type ListingDraftInput = z.infer<typeof listingDraftSchema>;

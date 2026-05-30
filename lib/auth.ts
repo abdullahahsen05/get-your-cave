@@ -6,7 +6,9 @@ import type {
 } from "@prisma/client";
 
 const AUTH_COOKIE_NAME = "gyc_auth_token";
+const LOGIN_CHALLENGE_COOKIE_NAME = "gyc_login_challenge";
 const AUTH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
+const LOGIN_CHALLENGE_TTL_SECONDS = 60 * 10;
 
 type AuthTokenPayload = {
   sub: string;
@@ -23,6 +25,7 @@ export type SafeOwnerProfile = {
   city: string | null;
   postalCode: string | null;
   country: string;
+  iban: string | null;
   responseRate: number | null;
   verificationStatus: VerificationStatus;
   createdAt: Date;
@@ -45,6 +48,8 @@ export type SafeUser = {
   id: string;
   fullName: string;
   email: string;
+  phone: string | null;
+  avatarUrl: string | null;
   role: UserRole;
   status: AccountStatus;
   ownerProfile: SafeOwnerProfile | null;
@@ -59,6 +64,7 @@ export const safeOwnerProfileSelect = {
   city: true,
   postalCode: true,
   country: true,
+  iban: true,
   responseRate: true,
   verificationStatus: true,
   createdAt: true,
@@ -81,6 +87,8 @@ export const safeUserSelect = {
   id: true,
   fullName: true,
   email: true,
+  phone: true,
+  avatarUrl: true,
   role: true,
   status: true,
   ownerProfile: {
@@ -259,6 +267,8 @@ export function mapUserToSafeUser(user: {
   id: string;
   fullName: string;
   email: string;
+  phone: string | null;
+  avatarUrl: string | null;
   role: UserRole;
   status: AccountStatus;
   ownerProfile: SafeOwnerProfile | null;
@@ -303,5 +313,21 @@ export function getAuthCookieOptions() {
     secure: isProduction,
     path: "/",
     maxAge: AUTH_TOKEN_TTL_SECONDS,
+  };
+}
+
+export function getLoginChallengeCookieName() {
+  return LOGIN_CHALLENGE_COOKIE_NAME;
+}
+
+export function getLoginChallengeCookieOptions() {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: isProduction,
+    path: "/",
+    maxAge: LOGIN_CHALLENGE_TTL_SECONDS,
   };
 }

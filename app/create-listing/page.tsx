@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import {
   useEffect,
   useMemo,
@@ -10,7 +11,7 @@ import {
   type FormEvent,
   type RefObject,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
 import { listingPublishSchema } from "@/lib/validations/listing";
@@ -321,18 +322,13 @@ function SectionHeading({
   );
 }
 
-export default function ListYourCavePage() {
+function ListingPageContent() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [listingIdFromUrl] = useState<string | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    return new URLSearchParams(window.location.search).get("listingId");
-  });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const searchParams = useSearchParams();
+  const listingIdFromUrl = searchParams.get("listingId");
   const [listingId, setListingId] = useState<string | null>(listingIdFromUrl);
   const [formState, setFormState] = useState<FormState>(initialState);
   const [step, setStep] = useState(0);
@@ -1023,6 +1019,29 @@ export default function ListYourCavePage() {
         <form id="create-listing-form" onSubmit={handleSubmit} className="hidden" />
       </div>
     </main>
+  );
+}
+
+export default function ListYourCavePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-24 sm:pt-28 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-8">
+            <section className="rounded-[32px] border border-outline-variant/60 bg-surface p-8 shadow-[0_16px_54px_rgba(17,24,39,0.06)]">
+              <div className="h-8 w-56 rounded-full bg-surface-container animate-pulse" />
+              <div className="mt-4 h-4 w-80 max-w-full rounded-full bg-surface-container animate-pulse" />
+              <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="h-[520px] rounded-[28px] bg-surface-container animate-pulse" />
+                <div className="h-[520px] rounded-[28px] bg-surface-container animate-pulse" />
+              </div>
+            </section>
+          </div>
+        </main>
+      }
+    >
+      <ListingPageContent />
+    </Suspense>
   );
 }
 

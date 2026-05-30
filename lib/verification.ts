@@ -13,6 +13,7 @@ import {
   type VerificationDocumentType,
   type VerificationStatusValue,
 } from "@/lib/verification-types";
+import { createNotificationForUser } from "@/lib/notifications";
 
 export const verificationDocumentSelect = {
   id: true,
@@ -261,6 +262,13 @@ export async function submitVerificationForUser(user: SafeUser) {
         status: AccountStatus.PENDING_VERIFICATION,
       },
     });
+  });
+
+  await createNotificationForUser({
+    userId: user.id,
+    title: "Verification submitted",
+    body: "Your identity documents have been submitted for review.",
+    linkUrl: "/document",
   });
 
   return {

@@ -6,36 +6,36 @@
 @import "tailwindcss";
 
 :root {
-  --gyc-background: #f4ede6;
-  --gyc-surface: #fffaf4;
-  --gyc-surface-bright: #fffaf4;
-  --gyc-surface-dim: #d9cbc0;
-  --gyc-surface-variant: #e8ddd3;
-  --gyc-surface-container-low: #f7f0e8;
-  --gyc-surface-container: #f1e6dc;
-  --gyc-surface-container-high: #eadbce;
-  --gyc-surface-container-highest: #e2d1c2;
-  --gyc-surface-container-lowest: #fffdfb;
-  --gyc-surface-alt: #f7f0e8;
-  --gyc-primary: #212733;
-  --gyc-primary-container: #f26a1b;
-  --gyc-primary-fixed: #fff2e8;
-  --gyc-primary-fixed-dim: #ffd7bc;
-  --gyc-secondary: #f26a1b;
-  --gyc-accent: #fdeee4;
-  --gyc-secondary-fixed: #fdeee4;
-  --gyc-secondary-fixed-dim: #f6c7a8;
+  --gyc-background: #f5f5f5;
+  --gyc-surface: #ffffff;
+  --gyc-surface-bright: #ffffff;
+  --gyc-surface-dim: #eceef2;
+  --gyc-surface-variant: #e6e7ea;
+  --gyc-surface-container-low: #f7f3ee;
+  --gyc-surface-container: #f1ede7;
+  --gyc-surface-container-high: #e8e3dd;
+  --gyc-surface-container-highest: #e1dbd5;
+  --gyc-surface-container-lowest: #ffffff;
+  --gyc-surface-alt: #f7f3ee;
+  --gyc-primary: #141b2d;
+  --gyc-primary-container: #1c2438;
+  --gyc-primary-fixed: #e7ebf4;
+  --gyc-primary-fixed-dim: #cdd5e6;
+  --gyc-secondary: #f76b15;
+  --gyc-accent: #f7f3ee;
+  --gyc-secondary-fixed: #f7dfcf;
+  --gyc-secondary-fixed-dim: #f0b98f;
   --gyc-tertiary-fixed: #f2f0e9;
   --gyc-tertiary-fixed-dim: #ddd7ce;
-  --gyc-text: #212733;
-  --gyc-text-muted: #5f6776;
-  --gyc-border: #e0d5c9;
-  --gyc-outline: #b9c0ca;
-  --gyc-shadow: 0 10px 30px rgba(20, 25, 40, 0.08);
+  --gyc-text: #232a3a;
+  --gyc-text-muted: #6b7280;
+  --gyc-border: #e6e7ea;
+  --gyc-outline: #b8bfca;
+  --gyc-shadow: 0 16px 40px rgba(20, 27, 45, 0.08);
 }
 
 @theme inline {
-  --font-manrope: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --font-manrope: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", Arial, sans-serif;
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -50,11 +50,11 @@
   --color-surface-bright: var(--gyc-surface-bright);
   --color-surface-dim: var(--gyc-surface-dim);
   --color-surface-variant: var(--gyc-surface-variant);
-  --color-surface-container-low: #f6f3f2;
+  --color-surface-container-low: var(--gyc-surface-container-low);
   --color-surface-container: var(--gyc-surface-container);
   --color-surface-container-high: var(--gyc-surface-container-high);
   --color-surface-container-highest: var(--gyc-surface-container-highest);
-  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-lowest: var(--gyc-surface-container-lowest);
   --color-primary: var(--gyc-primary);
   --color-primary-container: var(--gyc-primary-container);
   --color-primary-fixed: var(--gyc-primary-fixed);
@@ -67,15 +67,15 @@
   --color-tertiary-fixed-dim: var(--gyc-tertiary-fixed-dim);
   --color-on-surface: var(--gyc-text);
   --color-on-surface-variant: var(--gyc-text-muted);
-  --color-outline: #717978;
+  --color-outline: #6b7280;
   --color-outline-variant: var(--gyc-outline);
   --color-on-primary: #ffffff;
   --color-on-primary-fixed: #002020;
   --color-on-primary-fixed-variant: #224d4e;
   --color-on-secondary: #ffffff;
-  --color-on-secondary-container: #516b4d;
-  --color-on-secondary-fixed: #092009;
-  --color-on-secondary-fixed-variant: #344d31;
+  --color-on-secondary-container: var(--gyc-primary);
+  --color-on-secondary-fixed: var(--gyc-primary);
+  --color-on-secondary-fixed-variant: var(--gyc-text-muted);
   --color-on-tertiary: #ffffff;
   --color-on-tertiary-fixed: #1b1c18;
   --color-on-tertiary-fixed-variant: #474742;
@@ -94,10 +94,10 @@ body {
   width: 100%;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at top, rgba(242, 106, 27, 0.06), transparent 28%),
+    radial-gradient(circle at top, rgba(247, 107, 21, 0.08), transparent 26%),
     var(--gyc-background);
   color: var(--gyc-text);
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }

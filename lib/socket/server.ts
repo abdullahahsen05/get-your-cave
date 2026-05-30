@@ -15,6 +15,7 @@ import {
   SOCKET_EVENTS,
   type SocketErrorPayload,
   type SocketMessagePayload,
+  type SocketNotificationPayload,
 } from "@/lib/socket/events";
 
 type SocketUser = {
@@ -139,6 +140,27 @@ export function emitMessagesRead(
   payload: { conversationId: string; readerId: string; readAt: string; markedCount: number },
 ) {
   emitToParticipantRooms(participantIds, SOCKET_EVENTS.messagesRead, payload);
+}
+
+export function emitNotificationCreated(
+  userId: string,
+  notification: SocketNotificationPayload,
+  unreadCount: number,
+) {
+  messagingSocketServer?.to(`user:${userId}`).emit(
+    SOCKET_EVENTS.notificationCreated,
+    {
+      notification,
+      unreadCount,
+    },
+  );
+}
+
+export function emitNotificationsUpdated(
+  participantIds: string[],
+  payload: { unreadCount: number },
+) {
+  emitToParticipantRooms(participantIds, SOCKET_EVENTS.notificationsUpdated, payload);
 }
 
 export function createMessagingSocketServer(httpServer: HttpServer) {
@@ -299,6 +321,13 @@ export function createMessagingSocketServer(httpServer: HttpServer) {
           [saved.conversation.ownerUserId, saved.conversation.renterUserId],
           saved.conversation.id,
         );
+        if (saved.recipientId && saved.notification) {
+          emitNotificationCreated(
+            saved.recipientId,
+            saved.notification,
+            saved.notificationUnreadCount,
+          );
+        }
 
         ack?.({ ok: true, message: saved.message });
       },
@@ -396,6 +425,9 @@ export function createMessagingSocketServer(httpServer: HttpServer) {
           [result.conversation.ownerUserId, result.conversation.renterUserId],
           result.conversation.id,
         );
+        emitNotificationsUpdated([currentUser.id], {
+          unreadCount: result.notificationUnreadCount,
+        });
 
         ack?.({ ok: true, markedCount: result.markedCount });
       },

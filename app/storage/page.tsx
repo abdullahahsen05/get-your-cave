@@ -14,6 +14,8 @@ type ListingCard = {
   city: string;
   address: string;
   storageType: StorageType;
+  status: string;
+  availability: string;
   pricePerMonth: string;
   sizeM2: number | null;
   sizeSqFt: number | null;
@@ -139,6 +141,16 @@ function formatStorageType(value: StorageType) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function formatListingStatusLabel(value: string, t: (key: string) => string) {
+  const translated = t(`status.listing.${value}`);
+  return translated === `status.listing.${value}` ? value : translated;
+}
+
+function formatListingAvailabilityLabel(value: string, t: (key: string) => string) {
+  const translated = t(`status.availability.${value}`);
+  return translated === `status.availability.${value}` ? value : translated;
 }
 
 function formatArea(value: number | null) {
@@ -442,13 +454,13 @@ export default function BrowseStoragePage() {
             setDraftFilters((current) => ({
               ...current,
               amenityNames: current.amenityNames.filter(
-                (amenityName: string) => !option.amenityNames.includes(amenityName as any),
+                (amenityName: string) => !option.amenityNames.includes(amenityName),
               ),
             }));
             setAppliedFilters((current) => ({
               ...current,
               amenityNames: current.amenityNames.filter(
-                (amenityName: string) => !option.amenityNames.includes(amenityName as any),
+                (amenityName: string) => !option.amenityNames.includes(amenityName),
               ),
             }));
             setPage(1);
@@ -976,6 +988,15 @@ export default function BrowseStoragePage() {
                     <div className="absolute left-4 top-4">
                       <span className="rounded-full bg-surface/95 px-3 py-1.5 text-xs font-bold text-primary shadow-sm backdrop-blur">
                         {formatStorageType(listing.storageType)}
+                      </span>
+                    </div>
+
+                    <div className="absolute right-4 top-4 flex flex-col gap-2">
+                      <span className="rounded-full bg-secondary-container/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container shadow-sm backdrop-blur">
+                        {formatListingStatusLabel(listing.status, t)}
+                      </span>
+                      <span className="rounded-full bg-surface/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary shadow-sm backdrop-blur">
+                        {formatListingAvailabilityLabel(listing.availability, t)}
                       </span>
                     </div>
 

@@ -224,6 +224,8 @@ export async function POST(request: Request) {
     mode: "subscription",
     customer_email: booking.renter.user.email,
     client_reference_id: booking.id,
+    payment_method_types: ["card", "sepa_debit"],
+    payment_method_collection: "always",
     success_url: `${appUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}${invoiceId ? `&invoice_id=${invoiceId}` : ""}&booking_id=${booking.id}`,
     cancel_url: `${appUrl}/payments/cancel?${invoiceId ? `invoice_id=${invoiceId}&` : ""}booking_id=${booking.id}`,
     line_items: [

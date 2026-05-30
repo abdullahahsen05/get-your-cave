@@ -11,6 +11,16 @@ export type RenterDashboardSnapshot = {
   pendingBookings: RenterBooking[];
   rejectedBookings: RenterBooking[];
   pastBookings: RenterBooking[];
+  documents: Array<{
+    id: string;
+    bookingId: string;
+    bookingNumber: string;
+    bookingTitle: string;
+    contractId: string;
+    contractNumber: string | null;
+    contractStatus: string | null;
+    downloadHref: string;
+  }>;
   pendingBookingsCount: number;
   totalPaidAmount: string;
   outstandingAmount: string;
@@ -18,6 +28,7 @@ export type RenterDashboardSnapshot = {
   nextPaymentDate: string | null;
   paymentRequiredInvoice: SafeInvoice | null;
   recentInvoices: SafeInvoice[];
+  paymentMethodLabel: string;
 };
 
 function addMonths(date: Date, months: number) {
@@ -79,6 +90,7 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
   );
 
   const latestPaidInvoice = paidInvoices[0] ?? null;
+  const documentBookings = renterBookings.filter((booking) => Boolean(booking.contractId));
   const paymentRequiredInvoice = openInvoices
     .slice()
     .sort((a, b) => {
@@ -104,6 +116,16 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
     rejectedBookings,
     pastBookings,
     pendingBookingsCount,
+    documents: documentBookings.map((booking) => ({
+      id: booking.contractId as string,
+      bookingId: booking.id,
+      bookingNumber: booking.bookingNumber,
+      bookingTitle: booking.listing.title,
+      contractId: booking.contractId as string,
+      contractNumber: booking.contractNumber,
+      contractStatus: booking.contractStatus,
+      downloadHref: `/api/contracts/${booking.contractId}/download`,
+    })),
     totalPaidAmount: invoicesResult.summary.paidAmount,
     outstandingAmount: invoicesResult.summary.openAmount,
     lastPaymentDate: latestPaidInvoice
@@ -112,5 +134,6 @@ export async function getRenterDashboardSnapshot(renterProfileId: string) {
     nextPaymentDate: nextPaymentDate?.toISOString() ?? null,
     paymentRequiredInvoice,
     recentInvoices: invoiceRows,
+    paymentMethodLabel: latestPaidInvoice ? "Stripe" : "Not set",
   };
 }

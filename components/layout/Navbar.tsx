@@ -4,7 +4,11 @@ import Link from "next/link";
 import { ChevronRight, Home, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import NotificationBell from "@/components/layout/NotificationBell";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import UserMenu from "@/components/layout/UserMenu";
+import { useNotifications } from "@/components/providers/NotificationsProvider";
+import { getDashboardPath } from "@/lib/auth-routing";
 
 type NavLinkItem = {
   href: string;
@@ -20,6 +24,8 @@ const navLinks: NavLinkItem[] = [
 
 export default function Navbar() {
   const { t } = useTranslation();
+  const { user } = useNotifications();
+  const isAuthenticated = Boolean(user);
 
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/95 backdrop-blur-md">
@@ -47,22 +53,29 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {isAuthenticated ? <NotificationBell /> : null}
             <div className="hidden sm:block">
               <LanguageSwitcher />
             </div>
 
-            <Link
-              className="hidden items-center justify-center rounded-full px-3 py-2 text-[14px] font-semibold text-[#212733] transition-colors hover:bg-stone-50 hover:text-[#F26A1B] sm:inline-flex"
-              href="/login"
-            >
-              {t("nav.login")}
-            </Link>
-            <Link
-              className="hidden items-center justify-center rounded-full bg-[#F26A1B] px-4 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-[#d9590f] sm:inline-flex"
-              href="/signup"
-            >
-              {t("nav.joinNow")}
-            </Link>
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <>
+                <Link
+                  className="hidden items-center justify-center rounded-full px-3 py-2 text-[14px] font-semibold text-[#212733] transition-colors hover:bg-stone-50 hover:text-[#F26A1B] sm:inline-flex"
+                  href="/login"
+                >
+                  {t("nav.login")}
+                </Link>
+                <Link
+                  className="hidden items-center justify-center rounded-full bg-[#F26A1B] px-4 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-[#d9590f] sm:inline-flex"
+                  href="/signup"
+                >
+                  {t("nav.joinNow")}
+                </Link>
+              </>
+            )}
 
             <details className="relative lg:hidden">
               <summary
@@ -92,20 +105,39 @@ export default function Navbar() {
                   </div>
 
                   <div className="mt-4 border-t border-stone-100 pt-4">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Link
-                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 px-4 py-3 text-sm font-bold text-[#212733] transition-colors hover:bg-stone-50"
-                        href="/login"
-                      >
-                        {t("nav.login")}
-                      </Link>
-                      <Link
-                        className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#F26A1B] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#d9590f]"
-                        href="/signup"
-                      >
-                        {t("nav.joinNow")}
-                      </Link>
-                    </div>
+                    {isAuthenticated ? (
+                      <div className="space-y-2">
+                        <Link
+                          className="flex min-h-11 items-center justify-between rounded-2xl border border-stone-100 bg-white px-4 py-3 text-sm font-bold text-[#212733] transition-colors hover:bg-stone-50"
+                          href="/profile"
+                        >
+                          <span>{t("nav.profile")}</span>
+                          <ChevronRight className="h-4 w-4 text-stone-400" />
+                        </Link>
+                        <Link
+                          className="flex min-h-11 items-center justify-between rounded-2xl border border-stone-100 bg-white px-4 py-3 text-sm font-bold text-[#212733] transition-colors hover:bg-stone-50"
+                          href={user ? getDashboardPath(user.role) : "/login"}
+                        >
+                          <span>{t("nav.dashboard")}</span>
+                          <ChevronRight className="h-4 w-4 text-stone-400" />
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link
+                          className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 px-4 py-3 text-sm font-bold text-[#212733] transition-colors hover:bg-stone-50"
+                          href="/login"
+                        >
+                          {t("nav.login")}
+                        </Link>
+                        <Link
+                          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#F26A1B] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#d9590f]"
+                          href="/signup"
+                        >
+                          {t("nav.joinNow")}
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

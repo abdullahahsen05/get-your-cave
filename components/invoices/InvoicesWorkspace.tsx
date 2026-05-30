@@ -199,6 +199,36 @@ export default function InvoicesWorkspace({
     return query ? `/invoices?${query}` : "/invoices";
   }
 
+  function buildInvoiceExportHref() {
+    const params = new URLSearchParams();
+
+    if (currentSearch) {
+      params.set("q", currentSearch);
+    }
+
+    if (currentStatus) {
+      params.set("status", currentStatus);
+    }
+
+    if (currentSort) {
+      params.set("sort", currentSort);
+    }
+
+    const query = params.toString();
+    return query ? `/api/invoices/export?${query}` : "/api/invoices/export";
+  }
+
+  function buildPaymentsExportHref() {
+    const params = new URLSearchParams();
+
+    if (currentSearch) {
+      params.set("q", currentSearch);
+    }
+
+    const query = params.toString();
+    return query ? `/api/payments/export?${query}` : "/api/payments/export";
+  }
+
   const paidTotal = invoices
     .filter((invoice) => invoice.status === "PAID")
     .reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0);
@@ -223,13 +253,30 @@ export default function InvoicesWorkspace({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-body-sm font-body-sm text-on-surface-variant">
-          <span className="rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2">
-            {t("invoices.records", { count: pagination.totalItems })}
-          </span>
-          <span className="rounded-full border border-outline-variant bg-surface-container-low px-4 py-2">
-            {t("invoices.role", { role: getRoleLabel(currentRole, t) })}
-          </span>
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex flex-wrap gap-3 text-body-sm font-body-sm text-on-surface-variant">
+            <span className="rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2">
+              {t("invoices.records", { count: pagination.totalItems })}
+            </span>
+            <span className="rounded-full border border-outline-variant bg-surface-container-low px-4 py-2">
+              {t("invoices.role", { role: getRoleLabel(currentRole, t) })}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-container"
+              href={buildInvoiceExportHref()}
+            >
+              {t("invoices.exportCsv")}
+            </a>
+            <a
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-container"
+              href={buildPaymentsExportHref()}
+            >
+              {t("payments.exportCsv")}
+            </a>
+          </div>
         </div>
       </section>
 

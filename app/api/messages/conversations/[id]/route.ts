@@ -9,6 +9,7 @@ import {
 import {
   emitConversationUpdated,
   emitNewMessageToConversation,
+  emitNotificationCreated,
 } from "@/lib/socket/server";
 import { messageCreateSchema } from "@/lib/validations/message";
 
@@ -123,6 +124,13 @@ export async function POST(
     [message.conversation.ownerUserId, message.conversation.renterUserId],
     message.conversation.id,
   );
+  if ("recipientId" in message && message.notification) {
+    emitNotificationCreated(
+      message.recipientId,
+      message.notification,
+      message.notificationUnreadCount,
+    );
+  }
 
   return NextResponse.json(
     {

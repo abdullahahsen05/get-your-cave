@@ -97,7 +97,7 @@ function calculatePaymentSplit(params: {
 }) {
   const decimalAmount = toDecimal(params.grossAmount).toDecimalPlaces(2);
   const commissionBaseAmount = toDecimal(params.commissionBaseAmount).toDecimalPlaces(2);
-  const platformCommission = commissionBaseAmount.mul(0.12).toDecimalPlaces(2);
+  const platformCommission = commissionBaseAmount.mul(0.2).toDecimalPlaces(2);
   const ownerAmount = decimalAmount.sub(platformCommission).toDecimalPlaces(2);
 
   return {

@@ -1,16 +1,39 @@
+import crypto from "node:crypto";
+
 import { NextResponse } from "next/server";
 
 import {
   comparePassword,
-  createSessionToken,
-  getAuthCookieName,
-  getAuthCookieOptions,
+  getLoginChallengeCookieName,
+  getLoginChallengeCookieOptions,
+  hashPassword,
   safeUserSelect,
 } from "@/lib/auth";
+import { sendLoginVerificationCodeEmail } from "@/lib/email";
+import {
+  createLoginChallenge,
+  deleteActiveLoginChallenges,
+  deleteLoginChallengeById,
+} from "@/lib/login-challenges";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+function maskEmail(email: string) {
+  const [localPart, domain] = email.split("@");
+  if (!localPart || !domain) {
+    return email;
+  }
+
+  const visible = localPart.slice(0, 2);
+  return `${visible}${"*".repeat(Math.max(1, localPart.length - visible.length))}@${domain}`;
+}
+
+function buildVerificationCode() {
+  return crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+}
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -59,25 +82,56 @@ export async function POST(request: Request) {
     );
   }
 
-  const token = await createSessionToken({
+  const code = buildVerificationCode();
+  const codeHash = await hashPassword(code);
+  const expiresInMinutes = 10;
+
+  await deleteActiveLoginChallenges(user.id);
+
+  const challenge = await createLoginChallenge({
+    id: crypto.randomUUID(),
     userId: user.id,
-    role: user.role,
+    codeHash,
+    expiresAt: new Date(Date.now() + expiresInMinutes * 60 * 1000),
   });
+
+  if (!challenge?.id) {
+    return NextResponse.json(
+      { error: "Unable to create verification challenge right now." },
+      { status: 500 },
+    );
+  }
+
+  const emailResult = await sendLoginVerificationCodeEmail({
+    recipientEmail: user.email,
+    recipientName: user.fullName,
+    code,
+    expiresInMinutes,
+  });
+
+  if (!emailResult.sent) {
+    await deleteLoginChallengeById(challenge.id);
+
+    return NextResponse.json(
+      { error: "Unable to send verification code right now." },
+      { status: 500 },
+    );
+  }
 
   const response = NextResponse.json(
     {
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        ownerProfile: user.ownerProfile,
-        renterProfile: user.renterProfile,
-      },
+      requiresTwoFactor: true,
+      maskedEmail: maskEmail(user.email),
+      challengeExpiresAt: new Date(Date.now() + expiresInMinutes * 60 * 1000).toISOString(),
     },
     { status: 200 },
   );
-  response.cookies.set(getAuthCookieName(), token, getAuthCookieOptions());
+
+  response.cookies.set({
+    name: getLoginChallengeCookieName(),
+    value: challenge.id,
+    ...getLoginChallengeCookieOptions(),
+  });
+
   return response;
 }

@@ -23,6 +23,7 @@ export default function RenterBookingActions({
   const router = useRouter();
   const { t } = useTranslation();
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isMessaging, setIsMessaging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canCancel = status === "PENDING" || status === "APPROVED" || status === "ACTIVE";
   const resolvedManageLabel = manageLabel ?? t("dashboard.renter.manageUnit");
@@ -55,6 +56,38 @@ export default function RenterBookingActions({
     }
   }
 
+  async function handleMessageOwner() {
+    setIsMessaging(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/messages/conversations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { conversation?: { id: string }; error?: string }
+        | null;
+
+      if (!response.ok || !payload?.conversation?.id) {
+        throw new Error(t("errors.unableToOpenMessaging"));
+      }
+
+      router.push(`/messaging?conversation=${payload.conversation.id}`);
+    } catch (messageError) {
+      setError(
+        messageError instanceof Error ? messageError.message : t("errors.unableToOpenMessaging"),
+      );
+    } finally {
+      setIsMessaging(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap gap-3">
       <Link
@@ -63,6 +96,17 @@ export default function RenterBookingActions({
       >
         {resolvedManageLabel}
       </Link>
+
+      <button
+        className="flex-1 min-w-[160px] rounded-full border border-outline-variant px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container disabled:opacity-60"
+        disabled={isMessaging}
+        type="button"
+        onClick={() => {
+          void handleMessageOwner();
+        }}
+      >
+        {isMessaging ? t("common.loading") : t("dashboard.renter.messageOwner")}
+      </button>
 
       {receiptHref ? (
         <Link

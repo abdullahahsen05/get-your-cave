@@ -1,6 +1,7 @@
 import { UserRole, type Prisma } from "@prisma/client";
 
 import { BLOCKED_LANGUAGE_ERROR, validateMessageContent } from "@/lib/content-filter";
+import { createMessageNotification, markConversationNotificationsAsRead } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
 const conversationParticipantSelect = {
@@ -560,6 +561,20 @@ export async function createConversationMessage(input: {
       id: true,
       ownerUserId: true,
       renterUserId: true,
+      owner: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+      renter: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -600,6 +615,26 @@ export async function createConversationMessage(input: {
     return created;
   });
 
+  const recipient =
+    conversation.ownerUserId === input.senderId
+      ? conversation.renter
+      : conversation.owner;
+  const sender =
+    conversation.ownerUserId === input.senderId
+      ? conversation.owner
+      : conversation.renter;
+
+  const notification = await createMessageNotification({
+    recipientId: recipient.id,
+    recipientEmail: recipient.email,
+    recipientName: recipient.fullName,
+    senderName: sender.fullName,
+    conversationId: input.conversationId,
+    messageBody: input.body,
+    fileName: input.fileName ?? null,
+    fileUrl: input.fileUrl ?? null,
+  });
+
   return {
     message: toConversationMessage(message as MessageRecord),
     conversation: {
@@ -607,6 +642,9 @@ export async function createConversationMessage(input: {
       ownerUserId: conversation.ownerUserId,
       renterUserId: conversation.renterUserId,
     },
+    notification: notification.notification,
+    recipientId: recipient.id,
+    notificationUnreadCount: notification.unreadCount,
   } as const;
 }
 
@@ -641,9 +679,15 @@ export async function markConversationRead(input: {
     },
   });
 
+  const notificationState = await markConversationNotificationsAsRead(
+    input.conversationId,
+    input.viewerId,
+  );
+
   return {
     success: true,
     markedCount: result.count,
+    notificationUnreadCount: notificationState.unreadCount,
     conversation: {
       id: conversation.id,
       ownerUserId: conversation.ownerUserId,

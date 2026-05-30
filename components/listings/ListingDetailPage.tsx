@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import UserAvatar from "@/components/ui/UserAvatar";
+
 type ListingDetail = {
   id: string;
   title: string;
@@ -461,13 +463,11 @@ export default function ListingDetailPage({ listingId }: Props) {
                     {listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")} • {listing.address}
                   </p>
                 </div>
-                <img
-                  className="h-14 w-14 shrink-0 rounded-full border-2 border-secondary-container object-cover sm:h-16 sm:w-16"
-                  alt={listing.owner.fullName}
-                  src={
-                    listing.owner.avatarUrl ??
-                    "https://lh3.googleusercontent.com/aida-public/AB6AXuAF7wUT1k9ZCAva5NgXcX8YJPvnMbhq-c6QeGKdpV3RSSiC6HlKMjzVW5v81zLTOTC-cyuM_VcCISM5sRIE88krwbGdHjZK3U1kcvpadgGhSJS0ulfN4p9sBUcPBQKZCyg9s_AVwMcoEtW07Q5fRCTpZ5MtgQC5tkYYCyJYBdAyNqpdWSENoMMXRZVaL38imcD1OTqh1q-8ylvF24Lk1NFIYfAh9vILuo2LpzpB7njG6ZSX_CfgKO5vL5mGcpFupaPmDj8fKXcNDBA"
-                  }
+                <UserAvatar
+                  avatarUrl={listing.owner.avatarUrl}
+                  className="h-14 w-14 border-2 border-secondary-container sm:h-16 sm:w-16"
+                  name={listing.owner.fullName}
+                  size="lg"
                 />
               </div>
             </section>
@@ -503,13 +503,11 @@ export default function ListingDetailPage({ listingId }: Props) {
             </section>
 
             <section className="flex flex-col items-center gap-6 rounded-[24px] border border-outline-variant/60 bg-surface-container-low p-6 text-center sm:p-8 md:flex-row md:text-left">
-              <img
-                className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-white sm:h-28 sm:w-28"
-                alt={listing.owner.fullName}
-                src={
-                  listing.owner.avatarUrl ??
-                  "https://lh3.googleusercontent.com/aida-public/AB6AXuD8rmQ1WK92woRLRREM3LZAAZdKtGfGochBPq3oSmjMWGyUOfMqZWcn58WIidw9stv6tSr-bCGYYBv9tryVz0rC6sxbOGCBydbuJ1FevN2H9E5mip1CcVVNEoBLXagzcZYukfKXBAxLMEeR3_JYx6yqhkgA0dT_yYwVQblH9_xLZllUU9fR9deruLhtBStZghNRf4mIGSBbhuGAQOkZQ7pznwbL5ISJq7mNL5yiuljve5L1ivfVxgJq2nvFVIv16Ifce_9xL_6HNCM"
-                }
+              <UserAvatar
+                avatarUrl={listing.owner.avatarUrl}
+                className="h-24 w-24 ring-4 ring-white sm:h-28 sm:w-28"
+                name={listing.owner.fullName}
+                size="xl"
               />
               <div className="flex-1 text-center md:text-left">
                 <h3 className="font-h2 text-h2 text-primary">

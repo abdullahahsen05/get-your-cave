@@ -417,6 +417,73 @@ export default async function RenterDashboardPage() {
 
       <section className="mb-14">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
+          <div>
+            <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.documents")}</h2>
+            <p className="text-body-sm font-body-sm text-on-surface-variant">
+              {t("dashboard.renter.documentsDescription")}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:gap-6 mb-8">
+          <div className="rounded-[22px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-7">
+            <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
+              {t("dashboard.renter.paymentMethod")}
+            </p>
+            <p className="font-h2 text-h2 text-primary">{dashboard.paymentMethodLabel}</p>
+            <p className="mt-3 text-body-sm font-body-sm text-on-surface-variant">
+              {t("dashboard.renter.paymentMethodHint")}
+            </p>
+          </div>
+
+          <div className="rounded-[22px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.04)] sm:p-6 lg:p-7">
+            <p className="font-label-caps text-label-caps text-outline mb-2 uppercase tracking-widest">
+              {t("dashboard.renter.documents")}
+            </p>
+            <p className="font-h2 text-h2 text-primary">{dashboard.documents.length}</p>
+            <p className="mt-3 text-body-sm font-body-sm text-on-surface-variant">
+              {t("dashboard.renter.documentsDescription")}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {dashboard.documents.length ? (
+            dashboard.documents.map((document) => (
+              <div
+                className="flex flex-col justify-between gap-4 rounded-[20px] border border-[#EBEBE8] bg-surface-container-lowest p-5 shadow-[0_4px_20px_rgba(15,61,62,0.03)] sm:p-6 md:flex-row md:items-center"
+                key={document.id}
+              >
+                <div>
+                  <h4 className="font-body-lg text-body-lg text-primary font-bold">
+                    {document.bookingTitle}
+                  </h4>
+                  <p className="font-body-sm text-body-sm text-outline">
+                    {document.bookingNumber}
+                  </p>
+                  <p className="font-label-caps text-label-caps text-secondary mt-2 uppercase tracking-widest">
+                    {document.contractNumber ?? t("dashboard.renter.documents")}
+                  </p>
+                </div>
+
+                <Link
+                  className="text-primary-container font-bold hover:underline underline-offset-4 text-sm"
+                  href={document.downloadHref}
+                >
+                  {t("dashboard.renter.downloadContract")}
+                </Link>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-[20px] border border-[#EBEBE8] bg-surface-container-lowest p-6 text-body-sm text-on-surface-variant">
+              {t("dashboard.renter.noDocuments")}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mb-14">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
           <h2 className="font-h2 text-h2 text-primary">{t("dashboard.renter.recentInvoices")}</h2>
           <Link
             className="text-body-sm font-body-sm text-primary font-bold hover:underline underline-offset-4"

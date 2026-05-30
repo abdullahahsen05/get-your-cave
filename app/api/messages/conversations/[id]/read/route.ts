@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   emitConversationUpdated,
   emitMessagesRead,
+  emitNotificationsUpdated,
 } from "@/lib/socket/server";
 import { markConversationRead } from "@/lib/messages";
 import { messageReadSchema } from "@/lib/validations/message";
@@ -82,6 +83,9 @@ export async function PATCH(
     [result.conversation.ownerUserId, result.conversation.renterUserId],
     result.conversation.id,
   );
+  emitNotificationsUpdated([currentUser.id], {
+    unreadCount: result.notificationUnreadCount,
+  });
 
   return NextResponse.json({
     success: true,
