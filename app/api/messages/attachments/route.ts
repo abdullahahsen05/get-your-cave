@@ -16,6 +16,7 @@ export const runtime = "nodejs";
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 const acceptedAttachmentTypes = z.enum([
+  "application/pdf",
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -24,6 +25,7 @@ const acceptedAttachmentTypes = z.enum([
 
 export async function POST(request: Request) {
   const currentUser = await getCurrentUser();
+  const requestOrigin = new URL(request.url).origin;
 
   if (!currentUser) {
     return NextResponse.json(
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
     !isSupportedMessageExtension(sanitizedOriginalName)
   ) {
     return NextResponse.json(
-      { error: "Only JPG, JPEG, PNG, WEBP, and GIF files are allowed." },
+      { error: "Only PDF, JPG, JPEG, PNG, WEBP, and GIF files are allowed." },
       { status: 415 },
     );
   }
@@ -99,7 +101,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const fileUrl = getMessageAttachmentPublicUrl(storedFileName);
+  const fileUrl = new URL(
+    getMessageAttachmentPublicUrl(storedFileName),
+    requestOrigin,
+  ).toString();
 
   try {
     await saveMessageAttachmentFile(fileValue, storedFileName);

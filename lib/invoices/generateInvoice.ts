@@ -208,6 +208,11 @@ export type SafeInvoice = {
   updatedAt: string;
   paymentStatus: string | null;
   paymentAmount: string | null;
+  payment: {
+    amount: string;
+    platformCommission: string;
+    ownerAmount: string;
+  } | null;
   items: SafeInvoiceItem[];
   timeline: Array<{
     key: string;
@@ -346,6 +351,13 @@ function toSafeInvoice(record: InvoiceRecord): SafeInvoice {
     updatedAt: record.updatedAt.toISOString(),
     paymentStatus: latestPayment?.status ?? null,
     paymentAmount: latestPayment ? toMoneyString(latestPayment.amount) : null,
+    payment: latestPayment
+      ? {
+          amount: toMoneyString(latestPayment.amount),
+          platformCommission: toMoneyString(latestPayment.platformCommission),
+          ownerAmount: toMoneyString(latestPayment.ownerAmount),
+        }
+      : null,
     items,
     timeline: buildTimeline(record),
   };

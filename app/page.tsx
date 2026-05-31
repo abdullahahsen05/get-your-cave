@@ -1,7 +1,9 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
   ArrowUpRight,
@@ -22,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { getBrowserStoredLocale, setBrowserLocale } from "@/lib/i18n";
+import { formatStorageTypeLabel } from "@/lib/storage-types";
+import { formatSquareMeters, resolveAreaInSquareMeters } from "@/lib/units";
 
 type HowMode = "find" | "rent";
 
@@ -42,7 +46,35 @@ const heroBullets = [
   "landing.hero.bullet3",
 ] as const;
 
-const listingData = [
+type FeaturedCard = {
+  key: string;
+  href: string;
+  image: string;
+  badge: string;
+  title: string;
+  location: string;
+  price: string;
+  size: string;
+  type: string;
+  amenity: string;
+  icon: LucideIcon;
+  isTranslated: boolean;
+};
+
+type PublicListingSummary = {
+  id: string;
+  title: string;
+  city: string;
+  address: string;
+  storageType: string;
+  pricePerMonth: string;
+  sizeSqFt: number | null;
+  sizeM2: number | null;
+  imageUrl: string | null;
+  amenityNames: string[];
+};
+
+const fallbackFeaturedCards: FeaturedCard[] = [
   {
     image: featuredImages[0],
     badge: "landing.featured.cards.card1.badge",
@@ -53,6 +85,9 @@ const listingData = [
     type: "landing.featured.cards.card1.type",
     amenity: "landing.featured.cards.card1.amenity",
     icon: ShieldCheck,
+    href: "/storage",
+    key: "fallback-1",
+    isTranslated: true,
   },
   {
     image: featuredImages[1],
@@ -64,6 +99,9 @@ const listingData = [
     type: "landing.featured.cards.card2.type",
     amenity: "landing.featured.cards.card2.amenity",
     icon: BadgeCheck,
+    href: "/storage",
+    key: "fallback-2",
+    isTranslated: true,
   },
   {
     image: featuredImages[2],
@@ -75,6 +113,9 @@ const listingData = [
     type: "landing.featured.cards.card3.type",
     amenity: "landing.featured.cards.card3.amenity",
     icon: Star,
+    href: "/storage",
+    key: "fallback-3",
+    isTranslated: true,
   },
   {
     image: featuredImages[3],
@@ -86,6 +127,9 @@ const listingData = [
     type: "landing.featured.cards.card4.type",
     amenity: "landing.featured.cards.card4.amenity",
     icon: Building2,
+    href: "/storage",
+    key: "fallback-4",
+    isTranslated: true,
   },
   {
     image: featuredImages[4],
@@ -97,6 +141,9 @@ const listingData = [
     type: "landing.featured.cards.card5.type",
     amenity: "landing.featured.cards.card5.amenity",
     icon: Sparkles,
+    href: "/storage",
+    key: "fallback-5",
+    isTranslated: true,
   },
   {
     image: featuredImages[5],
@@ -108,14 +155,62 @@ const listingData = [
     type: "landing.featured.cards.card6.type",
     amenity: "landing.featured.cards.card6.amenity",
     icon: Globe,
+    href: "/storage",
+    key: "fallback-6",
+    isTranslated: true,
   },
 ] as const;
 
+function formatPrice(value: string) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return value.startsWith("€") ? value : `€${value}`;
+  }
+
+  return `€${new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 0,
+  }).format(numeric)}`;
+}
+
+function mapLiveListingToCard(
+  listing: PublicListingSummary,
+  index: number,
+  translate: (key: string) => string,
+): FeaturedCard {
+  const firstAmenity = listing.amenityNames[0] ?? "";
+  const area = resolveAreaInSquareMeters(listing.sizeM2, listing.sizeSqFt);
+  const icon =
+    listing.storageType === "WAREHOUSE" || listing.storageType === "GARAGE"
+      ? Warehouse
+      : listing.storageType === "LOCKER"
+        ? Building2
+        : listing.storageType === "LOFT"
+          ? Sparkles
+          : Package;
+
+  return {
+    key: listing.id,
+    href: `/storage/${listing.id}`,
+    image: listing.imageUrl ?? featuredImages[index % featuredImages.length],
+    badge: firstAmenity || formatStorageTypeLabel(listing.storageType, translate),
+    title: listing.title,
+    location: `${listing.city} · ${listing.address}`,
+    price: formatPrice(listing.pricePerMonth),
+    size: formatSquareMeters(area),
+    type: formatStorageTypeLabel(listing.storageType, translate),
+    amenity: firstAmenity || "Secure",
+    icon,
+    isTranslated: false,
+  };
+}
+
 const rateMap: Record<string, number> = {
-  cave: 7.5,
+  cellar: 7.5,
   box: 8.5,
-  grand: 7.5,
-  garage: 8,
+  closet: 7,
+  storageRoom: 8,
+  otherStorageSpaces: 6.5,
 };
 
 function calcRevenue(type: string, surface: number, multiplier: string) {
@@ -124,13 +219,70 @@ function calcRevenue(type: string, surface: number, multiplier: string) {
 }
 
 export default function LandingPage() {
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const [mode, setMode] = useState<HowMode>("find");
   const [surface, setSurface] = useState(6);
   const [cityMultiplier, setCityMultiplier] = useState("1.9");
-  const [spaceType, setSpaceType] = useState("cave");
+  const [spaceType, setSpaceType] = useState("cellar");
+  const [heroSearchQuery, setHeroSearchQuery] = useState("");
+  const [liveFeaturedListings, setLiveFeaturedListings] = useState<FeaturedCard[]>([]);
 
   const revenue = calcRevenue(spaceType, surface, cityMultiplier);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFeaturedListings() {
+      try {
+        const response = await fetch("/api/listings?limit=6", {
+          headers: { Accept: "application/json" },
+        });
+        const json = (await response.json()) as {
+          listings?: PublicListingSummary[];
+        };
+
+        if (!response.ok || cancelled) {
+          return;
+        }
+
+        const mapped = (json.listings ?? [])
+          .slice(0, 6)
+          .map((listing, index) => mapLiveListingToCard(listing, index, t));
+
+        if (!cancelled) {
+          setLiveFeaturedListings(mapped);
+        }
+      } catch {
+        if (!cancelled) {
+          setLiveFeaturedListings([]);
+        }
+      }
+    }
+
+    void loadFeaturedListings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  const featuredCards = useMemo(() => {
+    const merged = [...liveFeaturedListings];
+
+    if (merged.length < 6) {
+      merged.push(...fallbackFeaturedCards.slice(merged.length, 6));
+    }
+
+    return merged.slice(0, 6);
+  }, [liveFeaturedListings]);
+
+  function handleHeroSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const query = heroSearchQuery.trim();
+    router.push(query ? `/storage?q=${encodeURIComponent(query)}` : "/storage");
+  }
 
   useEffect(() => {
     const storedLocale = getBrowserStoredLocale();
@@ -247,7 +399,10 @@ export default function LandingPage() {
                 ))}
               </ul>
 
-              <form className="mt-8 flex max-w-[520px] flex-col gap-3 rounded-[14px] bg-white p-2 shadow-[0_10px_30px_rgba(20,25,40,.08)] sm:flex-row">
+              <form
+                className="mt-8 flex max-w-[520px] flex-col gap-3 rounded-[14px] bg-white p-2 shadow-[0_10px_30px_rgba(20,25,40,.08)] sm:flex-row"
+                onSubmit={handleHeroSearch}
+              >
                 <div className="flex flex-1 items-center gap-2 px-4 py-3 text-[#212733]">
                   <Search className="h-4 w-4 text-[#6b7280]" />
                   <input
@@ -255,6 +410,8 @@ export default function LandingPage() {
                     className="w-full bg-transparent text-[15px] outline-none placeholder:text-[#8a8f98]"
                     placeholder={t("landing.hero.searchPlaceholder")}
                     type="text"
+                    value={heroSearchQuery}
+                    onChange={(event) => setHeroSearchQuery(event.target.value)}
                   />
                 </div>
                 <button
@@ -379,22 +536,22 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {listingData.map((listing) => {
+            {featuredCards.map((listing) => {
               const Icon = listing.icon;
               return (
                 <article
                   className="group flex flex-col overflow-hidden rounded-[14px] border border-[#e7e9ee] bg-white shadow-[0_4px_14px_rgba(20,25,40,0.06)] transition-transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(20,25,40,0.08)]"
-                  key={listing.title}
+                  key={listing.key}
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-[#f5f6f8]">
                     <img
-                      alt={t(listing.title)}
+                      alt={listing.isTranslated ? t(listing.title) : listing.title}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                       loading="lazy"
                       src={listing.image}
                     />
                     <span className="absolute left-3 top-3 rounded-full bg-[#F26A1B] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
-                      {t(listing.badge)}
+                      {listing.isTranslated ? t(listing.badge) : listing.badge}
                     </span>
                     <button
                       aria-label={t("landing.featured.save")}
@@ -409,11 +566,11 @@ export default function LandingPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-[16px] font-semibold leading-6 text-[#212733]">
-                          {t(listing.title)}
+                          {listing.isTranslated ? t(listing.title) : listing.title}
                         </h3>
                         <p className="mt-2 flex items-center gap-2 text-[13px] text-[#5b6573]">
                           <MapPin className="h-4 w-4 shrink-0" />
-                          {t(listing.location)}
+                          {listing.isTranslated ? t(listing.location) : listing.location}
                         </p>
                       </div>
                       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f5f6f8] text-[#212733]">
@@ -423,20 +580,20 @@ export default function LandingPage() {
 
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-full border border-[#e7e9ee] bg-[#f5f6f8] px-3 py-1 text-[12px] font-semibold text-[#444e5c]">
-                        {t(listing.type)}
+                        {listing.isTranslated ? t(listing.type) : listing.type}
                       </span>
                       <span className="rounded-full border border-[#e7e9ee] bg-[#f5f6f8] px-3 py-1 text-[12px] font-semibold text-[#444e5c]">
-                        {t(listing.size)}
+                        {listing.isTranslated ? t(listing.size) : listing.size}
                       </span>
                       <span className="rounded-full border border-[#e7e9ee] bg-[#f5f6f8] px-3 py-1 text-[12px] font-semibold text-[#444e5c]">
-                        {t(listing.amenity)}
+                        {listing.isTranslated ? t(listing.amenity) : listing.amenity}
                       </span>
                     </div>
 
                     <div className="mt-auto flex items-end justify-between gap-3 pt-1">
                       <div>
                         <div className="text-[20px] font-extrabold tracking-[-0.03em] text-[#F26A1B]">
-                          {t(listing.price)}
+                          {listing.isTranslated ? t(listing.price) : listing.price}
                         </div>
                         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8f98]">
                           {t("landing.featured.perMonth")}
@@ -444,7 +601,7 @@ export default function LandingPage() {
                       </div>
                       <Link
                         className="inline-flex items-center gap-2 rounded-full border border-[#e7e9ee] px-4 py-2 text-[14px] font-semibold text-[#212733] transition-colors hover:border-[#F26A1B] hover:text-[#F26A1B]"
-                        href="/storage"
+                        href={listing.href}
                       >
                         {t("landing.featured.details")}
                         <ChevronRight className="h-4 w-4" />
@@ -541,10 +698,11 @@ export default function LandingPage() {
                   value={spaceType}
                   onChange={(event) => setSpaceType(event.target.value)}
                 >
-                  <option value="cave">{t("landing.simulator.options.cave")}</option>
+                  <option value="cellar">{t("landing.simulator.options.cellar")}</option>
                   <option value="box">{t("landing.simulator.options.box")}</option>
-                  <option value="grand">{t("landing.simulator.options.grand")}</option>
-                  <option value="garage">{t("landing.simulator.options.garage")}</option>
+                  <option value="closet">{t("landing.simulator.options.closet")}</option>
+                  <option value="storageRoom">{t("landing.simulator.options.storageRoom")}</option>
+                  <option value="otherStorageSpaces">{t("landing.simulator.options.otherStorageSpaces")}</option>
                 </select>
               </label>
               <label className="space-y-2 text-[13px] font-semibold text-[#212733]">

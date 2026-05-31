@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Footer from "./Footer";
-import Navbar from "./Navbar";
+import PublicNavbar from "./PublicNavbar";
 
 type PageLayoutProps = {
   children: ReactNode;
@@ -17,10 +17,9 @@ export default function PageLayout({
 }: PageLayoutProps) {
   return (
     <div className="min-h-screen bg-background text-on-surface">
-      {withNavbar ? <Navbar /> : null}
+      {withNavbar ? <PublicNavbar /> : null}
       <main className={mainClassName}>{children}</main>
       {withFooter ? <Footer /> : null}
     </div>
   );
 }
-

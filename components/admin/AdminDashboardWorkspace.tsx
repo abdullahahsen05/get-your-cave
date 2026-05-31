@@ -14,10 +14,10 @@ import {
   type VerificationStatusValue,
 } from "@/lib/verification-types";
 
-function formatCurrency(value: string | number, currency = "USD") {
+function formatCurrency(value: string | number, currency = "EUR") {
   const amount = Number(value);
   if (!Number.isFinite(amount)) {
-    return "$0";
+    return "€0";
   }
 
   return new Intl.NumberFormat("en-US", {
@@ -538,7 +538,7 @@ export default function AdminDashboardWorkspace() {
         },
         {
           label: t("dashboard.admin.activeListings"),
-          icon: "garage",
+          icon: "warehouse",
           value: formatCompactNumber(dashboard.activeListings),
           note: t("dashboard.admin.pendingReviewCount", { count: dashboard.pendingListings }),
         },
@@ -564,7 +564,7 @@ export default function AdminDashboardWorkspace() {
         },
         {
           label: t("dashboard.admin.activeListings"),
-          icon: "garage",
+          icon: "warehouse",
           value: "—",
           note: t("dashboard.admin.loadingMetrics"),
         },

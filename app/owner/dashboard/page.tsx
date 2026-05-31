@@ -14,6 +14,8 @@ import {
 } from "@/lib/invoices/invoiceTypes";
 import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
+import { formatStorageTypeLabel } from "@/lib/storage-types";
+import { formatSquareMeters, resolveAreaInSquareMeters } from "@/lib/units";
 
 export const dynamic = "force-dynamic";
 
@@ -78,14 +80,6 @@ function formatDateRange(startDate: string, endDate: string | null, locale: stri
   const end = formatter.format(new Date(endDate ?? startDate));
 
   return `${start} - ${end}`;
-}
-
-function formatStorageTypeLabel(value: string, t: ReturnType<typeof createTranslator>) {
-  if (value === "GARAGE") return t("createListing.storageTypes.garage");
-  if (value === "BASEMENT") return t("createListing.storageTypes.basement");
-  if (value === "ROOM") return t("createListing.storageTypes.room");
-  if (value === "WAREHOUSE") return t("createListing.storageTypes.warehouse");
-  return value;
 }
 
 export default async function OwnerDashboardPage() {
@@ -785,7 +779,8 @@ export default async function OwnerDashboardPage() {
                     <div>
                       <h3 className="text-h3 font-h3 text-primary">{listing.title}</h3>
                       <p className="text-body-sm font-body-sm text-on-surface-variant">
-                        {formatStorageTypeLabel(listing.storageType, t)} • {listing.sizeSqFt ?? 0} {t("listingDetail.sqFt")}
+                        {formatStorageTypeLabel(listing.storageType, t)} •{" "}
+                        {formatSquareMeters(resolveAreaInSquareMeters(listing.sizeM2, listing.sizeSqFt))}
                       </p>
                       <p className="text-body-sm font-body-sm text-on-surface-variant">
                         {listing.address} • {listing.city}

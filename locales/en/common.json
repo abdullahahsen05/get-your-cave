@@ -60,19 +60,28 @@
   },
   "nav": {
     "home": "Home",
+    "findACave": "Find a Cave",
+    "listYourCave": "List Your Cave",
+    "createAccount": "Create Account",
     "browseStorage": "Find storage",
     "howItWorks": "How it works",
     "pricing": "Pricing",
     "dashboard": "Dashboard",
+    "overview": "Overview",
     "profile": "Profile",
     "profileMenu": "Open profile menu",
+    "users": "Users",
     "listings": "Listings",
     "verifications": "Verifications",
     "revenue": "Revenue",
     "contracts": "Contracts",
+    "dashboardContracts": "Dashboard Contracts",
     "messaging": "Messaging",
     "messages": "Messages",
     "invoices": "Invoices",
+    "notifications": "Notifications",
+    "documents": "Documents",
+    "other": "Other",
     "admin": "Admin",
     "joinNow": "Sign Up",
     "login": "Sign in",
@@ -438,7 +447,7 @@
       "rent": {
         "step1": {
           "title": "Publish",
-          "description": "Describe your cellar, box, or garage in minutes. It’s free."
+          "description": "Describe your cellar, box, or storage room in minutes. It’s free."
         },
         "step2": {
           "title": "Connect",
@@ -461,7 +470,7 @@
     "featured": {
       "eyebrow": "Available now",
       "title": "Featured spaces",
-      "subtitle": "Cellars, boxes, and garages available near you today.",
+      "subtitle": "Cellars, boxes, and storage rooms available near you today.",
       "viewAll": "View all listings",
       "save": "Save to favorites",
       "details": "View details",
@@ -479,7 +488,7 @@
         },
         "card2": {
           "badge": "Cameras",
-          "title": "Secure underground parking box",
+          "title": "Secure underground storage box",
           "location": "Lyon 3rd · Cours Lafayette",
           "price": "€79",
           "size": "9 m²",
@@ -506,11 +515,11 @@
         },
         "card5": {
           "badge": "Spacious",
-          "title": "Closed garage in a residence",
+          "title": "Private storage room in a residence",
           "location": "Paris 15th · Convention",
           "price": "€130",
           "size": "15 m²",
-          "type": "Garage",
+          "type": "Storage room",
           "amenity": "Electricity"
         },
         "card6": {
@@ -554,10 +563,11 @@
         "ownerSurface": "Area"
       },
       "options": {
-        "cave": "Cellar / Closet",
-        "box": "Medium box",
-        "grand": "Large box",
-        "garage": "Garage",
+        "cellar": "Cellar / Cave",
+        "box": "Box",
+        "closet": "Closet",
+        "storageRoom": "Storage room",
+        "otherStorageSpaces": "Other storage spaces",
         "paris": "Paris",
         "idf": "Île-de-France",
         "lyon": "Lyon",
@@ -583,7 +593,7 @@
         "role": "Renter · Paris 11th"
       },
       "quote2": {
-        "quote": "“My garage was just extra clutter. Today it earns me €120 a month without me having to manage anything.”",
+        "quote": "“My unused storage space was just extra clutter. Today it earns me €120 a month without me having to manage anything.”",
         "name": "Thomas B.",
         "role": "Host · Lyon"
       },
@@ -637,10 +647,11 @@
     "rangeMedium": "Medium (5-15 m²)",
     "rangeLarge": "Large (15+ m²)",
     "storageType": "Storage Type",
-    "typeGarage": "Cellar / Cave",
-    "typeRoom": "Box",
-    "typeWarehouse": "Storage room",
-    "typeBasement": "Closet",
+    "typeCellarCave": "Cellar / Cave",
+    "typeBox": "Box",
+    "typeCloset": "Closet",
+    "typeStorageRoom": "Storage room",
+    "typeOtherStorageSpaces": "Other storage spaces",
     "distance": "Distance",
     "within5": "Within 5 km",
     "within1": "Within 1 km",
@@ -817,8 +828,11 @@
       "title": "Amenities",
       "description": "Highlight the features that make your space stand out.",
       "securityCamera": "Security camera",
+      "alarmSystem": "Alarm system",
       "access247": "24/7 access",
-      "climateControl": "Climate control",
+      "elevator": "Elevator",
+      "ventilation": "Ventilation",
+      "humidityControl": "Humidity control",
       "privateEntry": "Private entry",
       "gated": "Gated",
       "loadingDock": "Loading dock"
@@ -1076,8 +1090,8 @@
       "date": "Date",
       "marketInsights": "Market insights",
       "marketInsightsFallback": "Market insights are not available right now.",
-      "sampleCity1": "New York City",
-      "sampleCity2": "Los Angeles",
+      "sampleCity1": "Paris",
+      "sampleCity2": "Lyon",
       "marketInsightSentence": "Market insight: {{label}} is {{value}}."
     }
   },

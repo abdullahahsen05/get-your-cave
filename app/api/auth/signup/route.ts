@@ -60,14 +60,34 @@ export async function POST(request: Request) {
   const passwordHash = await hashPassword(password);
 
   try {
-    const user = await prisma.user.create({
-      data: {
-        fullName,
-        email,
-        passwordHash,
-        role,
-      },
-      select: safeUserSelect,
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          fullName,
+          email,
+          passwordHash,
+          role,
+        },
+        select: safeUserSelect,
+      });
+
+      if (role === "OWNER") {
+        await tx.ownerProfile.create({
+          data: {
+            userId: createdUser.id,
+          },
+        });
+      }
+
+      if (role === "RENTER") {
+        await tx.renterProfile.create({
+          data: {
+            userId: createdUser.id,
+          },
+        });
+      }
+
+      return createdUser;
     });
 
     const token = await createSessionToken({

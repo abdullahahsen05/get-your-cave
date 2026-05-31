@@ -34,13 +34,16 @@ const storageTypes = [
 ] as const;
 
 const amenityOptions = [
-  { icon: "videocam", label: "createListing.amenities.securityCamera" },
-  { icon: "schedule", label: "createListing.amenities.access247" },
-  { icon: "ac_unit", label: "createListing.amenities.climateControl" },
-  { icon: "key", label: "createListing.amenities.privateEntry" },
-  { icon: "fence", label: "createListing.amenities.gated" },
-  { icon: "local_shipping", label: "createListing.amenities.loadingDock" },
-];
+  { value: "Security Camera", icon: "videocam", labelKey: "createListing.amenities.securityCamera" },
+  { value: "Alarm System", icon: "notifications_active", labelKey: "createListing.amenities.alarmSystem" },
+  { value: "24/7 Access", icon: "schedule", labelKey: "createListing.amenities.access247" },
+  { value: "Elevator", icon: "elevator", labelKey: "createListing.amenities.elevator" },
+  { value: "Ventilation", icon: "air", labelKey: "createListing.amenities.ventilation" },
+  { value: "Humidity Control", icon: "water_drop", labelKey: "createListing.amenities.humidityControl" },
+  { value: "Private Entry", icon: "key", labelKey: "createListing.amenities.privateEntry" },
+  { value: "Gated", icon: "fence", labelKey: "createListing.amenities.gated" },
+  { value: "Loading Dock", icon: "local_shipping", labelKey: "createListing.amenities.loadingDock" },
+] as const;
 
 const LocationPickerMap = dynamic(
   () => import("@/components/maps/LocationPickerMap"),
@@ -545,15 +548,15 @@ function ListingPageContent() {
     }
   }
 
-  function toggleAmenity(label: string) {
+  function toggleAmenity(value: string) {
     setErrorMessage(null);
     setFormState((current) => {
-      const hasAmenity = current.amenityNames.includes(label);
+      const hasAmenity = current.amenityNames.includes(value);
       return {
         ...current,
         amenityNames: hasAmenity
-          ? current.amenityNames.filter((item) => item !== label)
-          : [...current.amenityNames, label],
+          ? current.amenityNames.filter((item) => item !== value)
+          : [...current.amenityNames, value],
       };
     });
   }
@@ -1663,10 +1666,10 @@ function AmenitiesStep({
         {amenityOptions.map((item) => (
           <AmenityOption
             icon={item.icon}
-            label={t(item.label)}
-            key={item.label}
-            checked={selectedAmenities.includes(item.label)}
-            onToggle={() => onToggleAmenity(item.label)}
+            label={t(item.labelKey)}
+            key={item.value}
+            checked={selectedAmenities.includes(item.value)}
+            onToggle={() => onToggleAmenity(item.value)}
           />
         ))}
       </div>

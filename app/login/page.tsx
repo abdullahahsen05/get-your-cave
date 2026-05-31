@@ -65,6 +65,16 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  function resolveDestination(user: { role?: "ADMIN" | "OWNER" | "RENTER"; status?: string }) {
+    if (!user.role) {
+      return nextPath ?? "/renter/dashboard";
+    }
+
+    return user.status !== "ACTIVE" && (user.role === "OWNER" || user.role === "RENTER")
+      ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
+      : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
+  }
+
   async function requestTwoFactorCode(credentials: LoginFormState) {
     setErrorMessage(null);
     setIsSubmitting(true);
@@ -84,11 +94,23 @@ export default function LoginPage() {
             requiresTwoFactor?: boolean;
             maskedEmail?: string;
             challengeExpiresAt?: string;
+            user?: { role?: "ADMIN" | "OWNER" | "RENTER"; status?: string };
             error?: string;
           }
         | null;
 
-      if (!response.ok || !data?.requiresTwoFactor) {
+      if (!response.ok) {
+        setErrorMessage(data?.error ?? t("auth.loginError"));
+        return false;
+      }
+
+      if (data?.user?.role && data.requiresTwoFactor === false) {
+        router.replace(resolveDestination(data.user));
+        router.refresh();
+        return true;
+      }
+
+      if (!data?.requiresTwoFactor) {
         setErrorMessage(data?.error ?? t("auth.loginError"));
         return false;
       }
@@ -141,12 +163,7 @@ export default function LoginPage() {
         return false;
       }
 
-      const destination =
-        user.status !== "ACTIVE" && (user.role === "OWNER" || user.role === "RENTER")
-          ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
-          : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
-
-      router.replace(destination);
+      router.replace(resolveDestination(user));
       router.refresh();
       return true;
     } catch {

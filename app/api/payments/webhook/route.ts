@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { calculateMarketplaceSplit } from "@/lib/marketplace-split";
 import { createNotificationForUser } from "@/lib/notifications";
 import { finalizeStripeCheckoutSession } from "@/lib/payments/finalizeStripeCheckoutSession";
 import {
@@ -68,19 +69,6 @@ function buildPaymentWhere(params: {
   return or.length ? { OR: or } : null;
 }
 
-function calculateRecurringSplit(amount: Prisma.Decimal | number | string) {
-  const decimalAmount = amount instanceof Prisma.Decimal ? amount : new Prisma.Decimal(amount);
-  const normalized = decimalAmount.toDecimalPlaces(2);
-  const platformCommission = normalized.mul(0.2).toDecimalPlaces(2);
-  const ownerAmount = normalized.sub(platformCommission).toDecimalPlaces(2);
-
-  return {
-    amount: normalized,
-    platformCommission,
-    ownerAmount,
-  };
-}
-
 function addMonths(date: Date, months: number) {
   const next = new Date(date);
   next.setUTCMonth(next.getUTCMonth() + months);
@@ -98,6 +86,52 @@ function logWebhookDebug(message: string, details?: Record<string, unknown>) {
   }
 
   console.info(`[stripe-webhook] ${message}`);
+}
+
+async function sendPaymentSuccessNotifications(params: {
+  paymentId: string | null;
+  ownerCredited: boolean;
+}) {
+  if (!params.paymentId) {
+    return;
+  }
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: params.paymentId },
+    select: {
+      booking: {
+        select: {
+          bookingNumber: true,
+          owner: {
+            select: { userId: true },
+          },
+          renter: {
+            select: { userId: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!payment) {
+    return;
+  }
+
+  await createNotificationForUser({
+    userId: payment.booking.renter.userId,
+    title: "Payment received",
+    body: `Your payment for booking ${payment.booking.bookingNumber} was received.`,
+    linkUrl: "/invoices",
+  });
+
+  if (params.ownerCredited) {
+    await createNotificationForUser({
+      userId: payment.booking.owner.userId,
+      title: "Owner payout completed",
+      body: `Your payout for booking ${payment.booking.bookingNumber} was added to your owner balance.`,
+      linkUrl: "/owner/dashboard",
+    });
+  }
 }
 
 function getStripeWebhookSecrets() {
@@ -343,7 +377,7 @@ async function syncRecurringInvoiceFromStripe(params: {
       ? invoice.amount_paid
       : invoice.amount_due || invoice.total || invoice.amount_paid;
   const amount = new Prisma.Decimal(amountSource ?? 0).div(100).toDecimalPlaces(2);
-  const split = calculateRecurringSplit(amount);
+  const split = calculateMarketplaceSplit(amount, amount);
   const now = new Date();
   let invoiceRecordId: string | null = null;
   let paymentRecordId: string | null = null;
@@ -641,7 +675,7 @@ async function applyRecurringCheckoutRecovery(params: {
     stripeInvoice.total ??
     0;
   const amount = new Prisma.Decimal(amountSource).div(100).toDecimalPlaces(2);
-  const split = calculateRecurringSplit(amount);
+  const split = calculateMarketplaceSplit(amount, amount);
   const now = new Date();
 
   return prisma.$transaction(async (transaction) => {
@@ -916,7 +950,7 @@ export async function POST(request: Request) {
               latestInvoice.status === "paid"
                 ? InvoiceStatus.PAID
                 : InvoiceStatus.ISSUED;
-            const initialPaymentStatus =
+          const initialPaymentStatus =
               latestInvoice.status === "paid"
                 ? PaymentStatus.PAID
                 : PaymentStatus.PENDING;
@@ -928,6 +962,13 @@ export async function POST(request: Request) {
             paymentStatus: initialPaymentStatus,
             booking: loaded.booking,
           });
+
+          if (initialResult.applied && initialPaymentStatus === PaymentStatus.PAID) {
+            await sendPaymentSuccessNotifications({
+              paymentId: initialResult.paymentId,
+              ownerCredited: initialResult.ownerCredited,
+            });
+          }
 
           logWebhookDebug("subscription checkout invoice synced", {
             sessionId: session.id,
@@ -946,6 +987,13 @@ export async function POST(request: Request) {
               stripeInvoice: latestInvoice,
               sessionId: session.id,
             });
+
+            if (recoveryResult.applied && initialPaymentStatus === PaymentStatus.PAID) {
+              await sendPaymentSuccessNotifications({
+                paymentId: recoveryResult.paymentId,
+                ownerCredited: recoveryResult.ownerCredited,
+              });
+            }
 
             logWebhookDebug("subscription checkout recovery applied", {
               sessionId: session.id,
@@ -976,6 +1024,13 @@ export async function POST(request: Request) {
       session,
       revalidate: true,
     });
+
+    if (result.applied) {
+      await sendPaymentSuccessNotifications({
+        paymentId: result.paymentId,
+        ownerCredited: result.ownerCredited,
+      });
+    }
 
     logWebhookDebug("checkout session finalized", {
       sessionId: session.id,
@@ -1046,6 +1101,13 @@ export async function POST(request: Request) {
       invoiceStatus,
       paymentStatus,
     });
+
+    if (result.applied && paymentStatus === PaymentStatus.PAID) {
+      await sendPaymentSuccessNotifications({
+        paymentId: result.paymentId,
+        ownerCredited: result.ownerCredited,
+      });
+    }
 
     logWebhookDebug("subscription invoice synced", {
       eventType: verifiedEvent.type,

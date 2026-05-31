@@ -34,7 +34,7 @@ const supportedMimeTypes = new Map<string, string>([
   ["image/png", ".png"],
 ]);
 
-const supportedMessageMimeTypes = new Map<string, string>([
+const supportedImageMimeTypes = new Map<string, string>([
   ["image/jpeg", ".jpg"],
   ["image/png", ".png"],
   ["image/webp", ".webp"],
@@ -48,7 +48,24 @@ const supportedExtensions = new Map<string, string>([
   [".png", "image/png"],
 ]);
 
+const supportedImageExtensions = new Map<string, string>([
+  [".jpg", "image/jpeg"],
+  [".jpeg", "image/jpeg"],
+  [".png", "image/png"],
+  [".webp", "image/webp"],
+  [".gif", "image/gif"],
+]);
+
+const supportedMessageMimeTypes = new Map<string, string>([
+  ["application/pdf", ".pdf"],
+  ["image/jpeg", ".jpg"],
+  ["image/png", ".png"],
+  ["image/webp", ".webp"],
+  ["image/gif", ".gif"],
+]);
+
 const supportedMessageExtensions = new Map<string, string>([
+  [".pdf", "application/pdf"],
   [".jpg", "image/jpeg"],
   [".jpeg", "image/jpeg"],
   [".png", "image/png"],
@@ -162,12 +179,12 @@ export function buildStoredMessageAttachmentFileName(
 }
 
 export function isSupportedAvatarMimeType(mimeType: string) {
-  return supportedMessageMimeTypes.has(mimeType.toLowerCase());
+  return supportedImageMimeTypes.has(mimeType.toLowerCase());
 }
 
 export function isSupportedAvatarExtension(fileName: string) {
   const ext = path.extname(path.basename(fileName)).toLowerCase();
-  return supportedMessageExtensions.has(ext);
+  return supportedImageExtensions.has(ext);
 }
 
 export function buildStoredAvatarFileName(originalFileName: string, mimeType: string) {

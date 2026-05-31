@@ -27,87 +27,38 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
   const [iban, setIban] = useState(user.ownerProfile?.iban ?? "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [emailNotifications, setEmailNotifications] = useState(() => {
-    if (typeof window === "undefined") {
-      return true;
-    }
-
-    const storageKey = `gyc-profile-preferences-${user.id}`;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (!stored) {
-        return true;
-      }
-
-      const parsed = JSON.parse(stored) as {
-        emailNotifications?: boolean;
-      };
-
-      return typeof parsed.emailNotifications === "boolean"
-        ? parsed.emailNotifications
-        : true;
-    } catch {
-      return true;
-    }
-  });
-  const [smsNotifications, setSmsNotifications] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    const storageKey = `gyc-profile-preferences-${user.id}`;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (!stored) {
-        return false;
-      }
-
-      const parsed = JSON.parse(stored) as {
-        smsNotifications?: boolean;
-      };
-
-      return typeof parsed.smsNotifications === "boolean"
-        ? parsed.smsNotifications
-        : false;
-    } catch {
-      return false;
-    }
-  });
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    const storageKey = `gyc-profile-preferences-${user.id}`;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (!stored) {
-        return false;
-      }
-
-      const parsed = JSON.parse(stored) as {
-        twoFactorEnabled?: boolean;
-      };
-
-      return typeof parsed.twoFactorEnabled === "boolean"
-        ? parsed.twoFactorEnabled
-        : false;
-    } catch {
-      return false;
-    }
-  });
+  const [emailNotifications, setEmailNotifications] = useState(user.emailNotificationsEnabled);
+  const [smsNotifications, setSmsNotifications] = useState(user.smsNotificationsEnabled);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(user.twoFactorEnabled);
 
   useEffect(() => {
-    const storageKey = `gyc-profile-preferences-${user.id}`;
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        emailNotifications,
-        smsNotifications,
-        twoFactorEnabled,
-      }),
-    );
-  }, [emailNotifications, smsNotifications, twoFactorEnabled, user.id]);
+    setAvatarUrl(user.avatarUrl ?? "");
+    setFullName(user.fullName);
+    setEmail(user.email);
+    setPhone(user.phone ?? "");
+    setAddress(user.ownerProfile?.address ?? user.renterProfile?.address ?? "");
+    setCity(user.ownerProfile?.city ?? user.renterProfile?.city ?? "");
+    setPostalCode(user.ownerProfile?.postalCode ?? user.renterProfile?.postalCode ?? "");
+    setIban(user.ownerProfile?.iban ?? "");
+    setEmailNotifications(user.emailNotificationsEnabled);
+    setSmsNotifications(user.smsNotificationsEnabled);
+    setTwoFactorEnabled(user.twoFactorEnabled);
+  }, [
+    user.avatarUrl,
+    user.email,
+    user.emailNotificationsEnabled,
+    user.fullName,
+    user.ownerProfile?.address,
+    user.ownerProfile?.city,
+    user.ownerProfile?.iban,
+    user.ownerProfile?.postalCode,
+    user.phone,
+    user.renterProfile?.address,
+    user.renterProfile?.city,
+    user.renterProfile?.postalCode,
+    user.smsNotificationsEnabled,
+    user.twoFactorEnabled,
+  ]);
 
   async function handleAvatarUpload(file: File | null) {
     if (!file) {
@@ -165,6 +116,9 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
           city,
           postalCode,
           iban,
+          emailNotificationsEnabled: emailNotifications,
+          smsNotificationsEnabled: smsNotifications,
+          twoFactorEnabled,
           currentPassword,
           newPassword,
         }),
@@ -256,16 +210,30 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
             />
           </label>
 
-          <label className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-outline">
-              {t("profile.iban")}
-            </span>
-            <input
-              className="w-full rounded-2xl border border-outline-variant/60 bg-surface-container-low px-4 py-3 outline-none focus:border-secondary"
-              value={iban}
-              onChange={(event) => setIban(event.target.value)}
-            />
-          </label>
+          {user.role === "OWNER" ? (
+            <label className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-outline">
+                {t("profile.iban")}
+              </span>
+              <input
+                className="w-full rounded-2xl border border-outline-variant/60 bg-surface-container-low px-4 py-3 outline-none focus:border-secondary"
+                value={iban}
+                onChange={(event) => setIban(event.target.value)}
+              />
+            </label>
+          ) : (
+            <div className="space-y-2 rounded-2xl border border-dashed border-outline-variant/60 bg-surface-container-low px-4 py-4 sm:col-span-2">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-outline">
+                {t("profile.iban")}
+              </span>
+              <p className="text-sm text-on-surface-variant">
+                {t("profile.ibanOwnerOnly", {
+                  defaultValue:
+                    "IBAN is used for owner payouts only, so it is not shown for renter accounts.",
+                })}
+              </p>
+            </div>
+          )}
 
           <label className="space-y-2 sm:col-span-2">
             <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-outline">

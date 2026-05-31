@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/invoices/formatCurrency";
 import { getInvoiceStatusClass, getInvoiceStatusLabel } from "@/lib/invoices/invoiceTypes";
 import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
+import { formatSquareMeters, resolveAreaInSquareMeters } from "@/lib/units";
 
 function formatFullDate(value: string | null | undefined, locale: string) {
   if (!value) {
@@ -103,8 +104,8 @@ export default async function RenterDashboardPage() {
 
   const dashboard = await getRenterDashboardSnapshot(currentUser.renterProfile.id);
   const activeUnitCount = dashboard.activeBookings.length;
-  const totalSavedSqFt = dashboard.activeBookings.reduce((total, booking) => {
-    return total + (booking.listing.sizeSqFt ?? 0);
+  const totalSavedAreaM2 = dashboard.activeBookings.reduce((total, booking) => {
+    return total + (resolveAreaInSquareMeters(booking.listing.sizeM2, booking.listing.sizeSqFt) ?? 0);
   }, 0);
   const invoiceHrefByBookingId = new Map(
     dashboard.recentInvoices.map((invoice) => [invoice.bookingId, `/invoices/${invoice.id}`]),
@@ -144,7 +145,7 @@ export default async function RenterDashboardPage() {
           icon="check_circle"
           label={t("dashboard.renter.totalSaved")}
           supporting={t("dashboard.renter.verifiedCapacity")}
-          value={`${totalSavedSqFt} sq ft`}
+          value={formatSquareMeters(totalSavedAreaM2, 0)}
         />
       </section>
 

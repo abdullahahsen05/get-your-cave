@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import UserAvatar from "@/components/ui/UserAvatar";
+import { formatStorageTypeLabel } from "@/lib/storage-types";
+import { formatSquareMeters, resolveAreaInSquareMeters } from "@/lib/units";
 
 type ListingDetail = {
   id: string;
@@ -18,6 +20,7 @@ type ListingDetail = {
   latitude: number | null;
   longitude: number | null;
   pricePerMonth: string;
+  sizeM2: number | null;
   sizeSqFt: number | null;
   ratingAverage: number;
   ratingCount: number;
@@ -69,19 +72,6 @@ const ListingMap = dynamic(() => import("@/components/maps/ListingMap"), {
   ),
 });
 
-function formatStorageType(value: string, t: (key: string) => string) {
-  if (value === "GARAGE") return t("createListing.storageTypes.garage");
-  if (value === "BASEMENT") return t("createListing.storageTypes.basement");
-  if (value === "ROOM") return t("createListing.storageTypes.room");
-  if (value === "WAREHOUSE") return t("createListing.storageTypes.warehouse");
-
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 function formatAmenityLabel(value: string, t: (key: string) => string) {
   const translated = t(value);
   if (translated !== value) {
@@ -89,9 +79,13 @@ function formatAmenityLabel(value: string, t: (key: string) => string) {
   }
 
   if (value === "Security Camera") return t("createListing.amenities.securityCamera");
+  if (value === "Alarm System") return t("createListing.amenities.alarmSystem");
   if (value === "24/7 Access") return t("createListing.amenities.access247");
+  if (value === "Elevator") return t("createListing.amenities.elevator");
+  if (value === "Ventilation") return t("createListing.amenities.ventilation");
+  if (value === "Humidity Control") return t("createListing.amenities.humidityControl");
   if (value === "Climate Control" || value === "Climate Controlled") {
-    return t("createListing.amenities.climateControl");
+    return t("createListing.amenities.humidityControl");
   }
   if (value === "Private Entry") return t("createListing.amenities.privateEntry");
   if (value === "Gated") return t("createListing.amenities.gated");
@@ -457,10 +451,13 @@ export default function ListingDetailPage({ listingId }: Props) {
               <div className="flex items-start justify-between gap-5 sm:gap-6">
                 <div>
             <h2 className="font-h2 text-[26px] leading-tight text-primary sm:text-h2 mb-2">
-                    {formatStorageType(listing.storageType, t)} in {listing.city}
+                    {formatStorageTypeLabel(listing.storageType, t)} in {listing.city}
                   </h2>
                   <p className="text-body-md text-on-surface-variant italic-emphasis italic opacity-80">
-                    {listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")} • {listing.address}
+                    {formatSquareMeters(
+                      resolveAreaInSquareMeters(listing.sizeM2, listing.sizeSqFt),
+                    )}{" "}
+                    • {listing.address}
                   </p>
                 </div>
                 <UserAvatar
@@ -597,7 +594,9 @@ export default function ListingDetailPage({ listingId }: Props) {
                 </div>
                 <div className="p-3 cursor-pointer hover:bg-secondary-container/10 transition-colors">
                   <p className="font-label-caps text-[10px] text-on-surface-variant">{t("listingDetail.unitSize")}</p>
-                  <p className="text-sm font-medium">{listing.sizeSqFt ?? "—"} {t("listingDetail.sqFt")}</p>
+                  <p className="text-sm font-medium">
+                    {formatSquareMeters(resolveAreaInSquareMeters(listing.sizeM2, listing.sizeSqFt))}
+                  </p>
                 </div>
               </div>
 

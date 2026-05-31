@@ -279,11 +279,14 @@ async function seedUsers() {
 async function seedReferenceData() {
   const amenitySeeds = [
     { name: "Security Camera", icon: "videocam" },
+    { name: "Alarm System", icon: "notifications_active" },
     { name: "24/7 Access", icon: "schedule" },
     { name: "Climate Controlled", icon: "ac_unit" },
+    { name: "Humidity Control", icon: "water_drop" },
+    { name: "Ventilation", icon: "air" },
+    { name: "Elevator", icon: "elevator" },
     { name: "Private Entrance", icon: "key" },
     { name: "Drive-Up Access", icon: "local_shipping" },
-    { name: "Alarm System", icon: "notifications_active" },
     { name: "Gated Access", icon: "fence" },
     { name: "Power Outlet", icon: "power" },
   ] as const;
@@ -438,7 +441,7 @@ async function seedListings(params: {
       ratingAverage: 4.9,
       ratingCount: 18,
       isFeatured: true,
-      amenities: ["Security Camera", "24/7 Access", "Climate Controlled", "Private Entrance"],
+      amenities: ["Security Camera", "24/7 Access", "Elevator", "Private Entrance"],
       images: [PLACEHOLDER_IMAGE],
     },
     {
@@ -464,14 +467,14 @@ async function seedListings(params: {
       ratingAverage: 4.7,
       ratingCount: 10,
       isFeatured: false,
-      amenities: ["24/7 Access", "Security Camera", "Private Entrance"],
+      amenities: ["24/7 Access", "Security Camera", "Ventilation"],
       images: [`${PLACEHOLDER_IMAGE}?listing=canal`],
     },
     {
       slug: "montreuil-family-storage-suite",
       title: "Montreuil Family Storage Suite",
       owner: params.owner1,
-      storageType: StorageType.GARAGE,
+      storageType: StorageType.WAREHOUSE,
       status: ListingStatus.APPROVED,
       availability: ListingAvailability.OCCUPIED,
       city: "Montreuil",
@@ -516,7 +519,7 @@ async function seedListings(params: {
       ratingAverage: 0,
       ratingCount: 0,
       isFeatured: false,
-      amenities: ["Security Camera", "Power Outlet"],
+      amenities: ["Security Camera", "Humidity Control", "Power Outlet"],
       images: [`${PLACEHOLDER_IMAGE}?listing=bordeaux`],
     },
     {
@@ -542,7 +545,7 @@ async function seedListings(params: {
       ratingAverage: 4.6,
       ratingCount: 14,
       isFeatured: true,
-      amenities: ["Climate Controlled", "Security Camera", "Private Entrance"],
+      amenities: ["Climate Controlled", "Security Camera", "Humidity Control"],
       images: [`${PLACEHOLDER_IMAGE}?listing=lyon`],
     },
     {
@@ -572,10 +575,10 @@ async function seedListings(params: {
       images: [`${PLACEHOLDER_IMAGE}?listing=marseille`],
     },
     {
-      slug: "nice-old-town-cold-room",
-      title: "Nice Old Town Cold Room",
+      slug: "nice-old-town-storage-vault",
+      title: "Nice Old Town Storage Vault",
       owner: params.owner2,
-      storageType: StorageType.ROOM,
+      storageType: StorageType.OTHER,
       status: ListingStatus.REJECTED,
       availability: ListingAvailability.UNAVAILABLE,
       city: "Nice",
@@ -601,7 +604,7 @@ async function seedListings(params: {
       slug: "lille-attic-cache",
       title: "Lille Attic Cache",
       owner: params.owner1,
-      storageType: StorageType.ROOM,
+      storageType: StorageType.LOFT,
       status: ListingStatus.DRAFT,
       availability: ListingAvailability.AVAILABLE,
       city: "Lille",
@@ -620,7 +623,7 @@ async function seedListings(params: {
       ratingAverage: 0,
       ratingCount: 0,
       isFeatured: false,
-      amenities: ["Private Entrance", "Power Outlet"],
+      amenities: ["Private Entrance", "Ventilation", "Power Outlet"],
       images: [`${PLACEHOLDER_IMAGE}?listing=lille`],
     },
     {
@@ -1560,7 +1563,7 @@ async function seedAdminLogs(params: {
   owner2: Awaited<ReturnType<typeof seedUsers>>["owner2"];
 }) {
   const listingApproved = params.listingsBySlug.get("rive-gauche-archive-loft");
-  const listingRejected = params.listingsBySlug.get("nice-old-town-cold-room");
+  const listingRejected = params.listingsBySlug.get("nice-old-town-storage-vault");
   const invoiceIssued = params.invoicesByBookingNumber.get("BK-DEMO-002");
 
   if (!listingApproved || !listingRejected || !invoiceIssued) {

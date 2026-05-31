@@ -52,6 +52,9 @@ export type SafeUser = {
   avatarUrl: string | null;
   role: UserRole;
   status: AccountStatus;
+  emailNotificationsEnabled: boolean;
+  smsNotificationsEnabled: boolean;
+  twoFactorEnabled: boolean;
   ownerProfile: SafeOwnerProfile | null;
   renterProfile: SafeRenterProfile | null;
 };
@@ -91,6 +94,9 @@ export const safeUserSelect = {
   avatarUrl: true,
   role: true,
   status: true,
+  emailNotificationsEnabled: true,
+  smsNotificationsEnabled: true,
+  twoFactorEnabled: true,
   ownerProfile: {
     select: safeOwnerProfileSelect,
   },
@@ -271,6 +277,9 @@ export function mapUserToSafeUser(user: {
   avatarUrl: string | null;
   role: UserRole;
   status: AccountStatus;
+  emailNotificationsEnabled: boolean;
+  smsNotificationsEnabled: boolean;
+  twoFactorEnabled: boolean;
   ownerProfile: SafeOwnerProfile | null;
   renterProfile: SafeRenterProfile | null;
 }): SafeUser {
@@ -318,6 +327,14 @@ export function getAuthCookieOptions() {
 
 export function getLoginChallengeCookieName() {
   return LOGIN_CHALLENGE_COOKIE_NAME;
+}
+
+export function isLoginTwoFactorEnabled() {
+  return process.env.NODE_ENV === "production";
+}
+
+export function shouldRequireLoginTwoFactor(user: Pick<SafeUser, "twoFactorEnabled">) {
+  return isLoginTwoFactorEnabled() && user.twoFactorEnabled;
 }
 
 export function getLoginChallengeCookieOptions() {

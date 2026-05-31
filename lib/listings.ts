@@ -7,6 +7,7 @@ import {
 } from "@prisma/client";
 
 import { haversineDistance } from "./geo";
+import { createNotificationForUser } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import type {
   ListingDraftInput,
@@ -97,6 +98,8 @@ const amenityIconMap: Record<string, string> = {
   "24/7 Access": "schedule",
   "Climate Control": "ac_unit",
   "Climate Controlled": "ac_unit",
+  "Humidity Control": "water_drop",
+  "Ventilation": "air",
   "Private Entry": "key",
   "Gated": "fence",
   "Loading Dock": "local_shipping",
@@ -108,6 +111,18 @@ const amenityIconMap: Record<string, string> = {
   "Elevator": "elevator",
   "Insurance": "shield",
   "Fire Suppression": "local_fire_department",
+};
+
+const amenityLabelAliases: Record<string, string> = {
+  "createListing.amenities.securityCamera": "Security Camera",
+  "createListing.amenities.alarmSystem": "Alarm System",
+  "createListing.amenities.access247": "24/7 Access",
+  "createListing.amenities.elevator": "Elevator",
+  "createListing.amenities.ventilation": "Ventilation",
+  "createListing.amenities.humidityControl": "Humidity Control",
+  "createListing.amenities.privateEntry": "Private Entry",
+  "createListing.amenities.gated": "Gated",
+  "createListing.amenities.loadingDock": "Loading Dock",
 };
 
 const listingCardInclude = {
@@ -186,9 +201,14 @@ function normalizeNullableText(value?: string | null) {
   return trimmed.length ? trimmed : null;
 }
 
+function normalizeAmenityName(value: string) {
+  const trimmed = value.trim();
+  return amenityLabelAliases[trimmed] ?? trimmed;
+}
+
 function normalizeAmenityNames(values?: string[] | null) {
   return (values ?? [])
-    .map((value) => value.trim())
+    .map((value) => normalizeAmenityName(value))
     .filter((value) => value.length > 0);
 }
 
@@ -458,7 +478,7 @@ function serializeBaseListing(
     isFeatured: listing.isFeatured,
     isPublished: listing.isPublished,
     imageUrl: pickPrimaryImage(images),
-    amenityNames: (listing.amenities ?? []).map((item) => item.amenity.name),
+    amenityNames: (listing.amenities ?? []).map((item) => normalizeAmenityName(item.amenity.name)),
     createdAt: listing.createdAt.toISOString(),
     updatedAt: listing.updatedAt.toISOString(),
   };
@@ -930,6 +950,22 @@ export async function createOwnerListing(params: {
     include: listingDetailInclude,
   });
 
+  if (refreshed?.isPublished && refreshed.status === ListingStatus.APPROVED) {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { id: params.ownerProfileId },
+      select: { userId: true },
+    });
+
+    if (owner?.userId) {
+      await createNotificationForUser({
+        userId: owner.userId,
+        title: "Listing published",
+        body: `Your listing “${refreshed.title}” is now published publicly.`,
+        linkUrl: `/storage/${refreshed.id}`,
+      });
+    }
+  }
+
   return refreshed ? serializeListingDetail(refreshed) : null;
 }
 
@@ -989,6 +1025,26 @@ export async function updateOwnerListing(params: {
     include: listingDetailInclude,
   });
 
+  if (
+    refreshed?.isPublished &&
+    refreshed.status === ListingStatus.APPROVED &&
+    !existing.isPublished
+  ) {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { id: params.ownerProfileId },
+      select: { userId: true },
+    });
+
+    if (owner?.userId) {
+      await createNotificationForUser({
+        userId: owner.userId,
+        title: "Listing published",
+        body: `Your listing “${refreshed.title}” is now published publicly.`,
+        linkUrl: `/storage/${refreshed.id}`,
+      });
+    }
+  }
+
   return refreshed ? serializeListingDetail(refreshed) : null;
 }
 
@@ -1027,6 +1083,33 @@ export async function toggleOwnerListingArchive(params: {
     },
     include: listingDetailInclude,
   });
+
+  const owner = await prisma.ownerProfile.findUnique({
+    where: { id: params.ownerProfileId },
+    select: { userId: true },
+  });
+
+  if (owner?.userId && nextStatus === ListingStatus.ARCHIVED) {
+    await createNotificationForUser({
+      userId: owner.userId,
+      title: "Listing expired",
+      body: `Your listing “${listing.title}” is now archived and no longer public.`,
+      linkUrl: `/create-listing?listingId=${listing.id}`,
+    });
+  }
+
+  if (
+    owner?.userId &&
+    nextStatus === ListingStatus.APPROVED &&
+    existing.status === ListingStatus.ARCHIVED
+  ) {
+    await createNotificationForUser({
+      userId: owner.userId,
+      title: "Listing published",
+      body: `Your listing “${listing.title}” is now published publicly.`,
+      linkUrl: `/storage/${listing.id}`,
+    });
+  }
 
   return serializeListingDetail(listing);
 }

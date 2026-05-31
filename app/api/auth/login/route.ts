@@ -7,7 +7,11 @@ import {
   getLoginChallengeCookieName,
   getLoginChallengeCookieOptions,
   hashPassword,
+  shouldRequireLoginTwoFactor,
   safeUserSelect,
+  createSessionToken,
+  getAuthCookieName,
+  getAuthCookieOptions,
 } from "@/lib/auth";
 import { sendLoginVerificationCodeEmail } from "@/lib/email";
 import {
@@ -85,6 +89,32 @@ export async function POST(request: Request) {
   const code = buildVerificationCode();
   const codeHash = await hashPassword(code);
   const expiresInMinutes = 10;
+
+  if (!shouldRequireLoginTwoFactor(user)) {
+    const token = await createSessionToken({
+      userId: user.id,
+      role: user.role,
+    });
+
+    const response = NextResponse.json(
+      {
+        requiresTwoFactor: false,
+        user: {
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+          ownerProfile: user.ownerProfile,
+          renterProfile: user.renterProfile,
+        },
+      },
+      { status: 200 },
+    );
+
+    response.cookies.set(getAuthCookieName(), token, getAuthCookieOptions());
+    return response;
+  }
 
   await deleteActiveLoginChallenges(user.id);
 

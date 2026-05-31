@@ -1116,8 +1116,8 @@ export async function approveListingForAdmin(listingId: string, adminId: string)
 
     await createNotificationForUser({
       userId: listing.owner.userId,
-      title: "Listing approved",
-      body: `Your listing “${listing.title}” is now approved and visible publicly.`,
+      title: "Listing published",
+      body: `Your listing “${listing.title}” is now published publicly.`,
       linkUrl: `/storage/${listing.id}`,
     });
 

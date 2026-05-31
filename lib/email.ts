@@ -9,6 +9,15 @@ type MessageNotificationEmailInput = {
   linkUrl: string;
 };
 
+type NotificationEmailInput = {
+  recipientEmail: string;
+  recipientName: string;
+  subject: string;
+  summary: string;
+  linkUrl: string;
+  ctaLabel?: string;
+};
+
 type LoginVerificationEmailInput = {
   recipientEmail: string;
   recipientName: string;
@@ -66,6 +75,23 @@ function getTransporter() {
 export async function sendMessageNotificationEmail(
   input: MessageNotificationEmailInput,
 ) {
+  return sendNotificationEmail({
+    recipientEmail: input.recipientEmail,
+    recipientName: input.recipientName,
+    subject: input.subject,
+    summary: input.summary,
+    linkUrl: input.linkUrl,
+    ctaLabel: "Open conversation",
+    heading: `New message from ${input.senderName}`,
+    footer:
+      "This notification was sent because you have messaging enabled on GetYourCave.",
+  });
+}
+
+export async function sendNotificationEmail(input: NotificationEmailInput & {
+  heading?: string;
+  footer?: string;
+}) {
   const activeTransporter = getTransporter();
   const smtpConfig = getSmtpConfig();
 
@@ -78,9 +104,9 @@ export async function sendMessageNotificationEmail(
       <div style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #ebe4da;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(15,23,42,0.08)">
         <div style="padding:28px 30px;border-bottom:1px solid #f1ede7;background:linear-gradient(135deg,#fff8f1,#fff)">
           <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#c15f1a;font-weight:700;margin-bottom:10px">GetYourCave</div>
-          <h1 style="margin:0;font-size:24px;line-height:1.25;color:#111827">New message from ${escapeHtml(input.senderName)}</h1>
+          <h1 style="margin:0;font-size:24px;line-height:1.25;color:#111827">${escapeHtml(input.heading ?? input.subject)}</h1>
           <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:#4b5563">
-            Hi ${escapeHtml(input.recipientName)}, you received a new message in your inbox.
+            Hi ${escapeHtml(input.recipientName)}, you have a new update from GetYourCave.
           </p>
         </div>
         <div style="padding:28px 30px">
@@ -91,11 +117,11 @@ export async function sendMessageNotificationEmail(
             <div style="font-size:16px;line-height:1.7;color:#1f2937">${escapeHtml(input.summary)}</div>
           </div>
           <div style="margin-top:24px">
-            <a href="${escapeHtml(input.linkUrl)}" style="display:inline-block;background:#f26a1b;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px">Open conversation</a>
+            <a href="${escapeHtml(input.linkUrl)}" style="display:inline-block;background:#f26a1b;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px">${escapeHtml(input.ctaLabel ?? "Open notification")}</a>
           </div>
         </div>
         <div style="padding:18px 30px 28px;font-size:12px;line-height:1.6;color:#6b7280;border-top:1px solid #f1ede7">
-          This notification was sent because you have messaging enabled on GetYourCave.
+          ${escapeHtml(input.footer ?? "This notification was sent because you enabled email notifications on GetYourCave.")}
         </div>
       </div>
     </div>

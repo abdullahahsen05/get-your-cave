@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
+import { createNotificationForUser } from "@/lib/notifications";
 import {
   emitConversationUpdated,
   emitMessagesRead,
@@ -86,6 +87,20 @@ export async function PATCH(
   emitNotificationsUpdated([currentUser.id], {
     unreadCount: result.notificationUnreadCount,
   });
+
+  if (result.markedCount > 0) {
+    const recipientId =
+      result.conversation.ownerUserId === currentUser.id
+        ? result.conversation.renterUserId
+        : result.conversation.ownerUserId;
+
+    await createNotificationForUser({
+      userId: recipientId,
+      title: "Message read",
+      body: "Unread messages in your conversation were marked as read.",
+      linkUrl: `/messaging?conversation=${result.conversation.id}`,
+    });
+  }
 
   return NextResponse.json({
     success: true,

@@ -49,12 +49,14 @@ export function useNotifications() {
 
 export default function NotificationsProvider({
   children,
+  initialUser = null,
 }: {
   children: React.ReactNode;
+  initialUser?: SafeUser | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<SafeUser | null>(null);
+  const [user, setUser] = useState<SafeUser | null>(initialUser);
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

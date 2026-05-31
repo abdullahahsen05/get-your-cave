@@ -158,6 +158,10 @@ model User {
   role         UserRole
   status       AccountStatus @default(PENDING_VERIFICATION)
 
+  emailNotificationsEnabled Boolean @default(true)
+  smsNotificationsEnabled   Boolean @default(false)
+  twoFactorEnabled          Boolean @default(true)
+
   emailVerified   Boolean   @default(false)
   emailVerifiedAt DateTime?
 

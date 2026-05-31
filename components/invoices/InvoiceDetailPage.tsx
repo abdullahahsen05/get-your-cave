@@ -8,6 +8,7 @@ import StripeCheckoutButton from "@/components/payments/StripeCheckoutButton";
 import { formatCurrency } from "@/lib/invoices/formatCurrency";
 import { getInvoiceStatusClass, getInvoiceStatusLabel } from "@/lib/invoices/invoiceTypes";
 import { normalizeLocale } from "@/lib/i18n";
+import { formatStorageTypeLabel } from "@/lib/storage-types";
 import type { SafeInvoice } from "@/lib/invoices/generateInvoice";
 
 type Props = {
@@ -28,14 +29,6 @@ function formatDate(value: string | null, locale: string) {
   });
 }
 
-function getStorageTypeLabel(storageType: string, t: (key: string) => string) {
-  if (storageType === "GARAGE") return t("createListing.storageTypes.garage");
-  if (storageType === "BASEMENT") return t("createListing.storageTypes.basement");
-  if (storageType === "ROOM") return t("createListing.storageTypes.room");
-  if (storageType === "WAREHOUSE") return t("createListing.storageTypes.warehouse");
-  return storageType;
-}
-
 function InfoBlock({
   label,
   value,
@@ -49,6 +42,14 @@ function InfoBlock({
       <p className="mt-2 text-body-sm font-semibold text-primary">{value}</p>
     </div>
   );
+}
+
+function formatSplitAmount(value: string | null | undefined) {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+
+  return formatCurrency(value, "EUR");
 }
 
 export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Props) {
@@ -138,7 +139,7 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                 />
                 <InfoBlock
                   label={t("invoiceDetail.storageTypeLabel")}
-                  value={getStorageTypeLabel(invoice.bookingStorageType, t)}
+                  value={formatStorageTypeLabel(invoice.bookingStorageType, t)}
                 />
               </div>
             </div>
@@ -216,6 +217,30 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                   {formatCurrency(invoice.totalAmount, invoice.currency.toUpperCase())}
                 </span>
               </div>
+
+              {invoice.payment ? (
+                <div className="rounded-2xl border border-secondary/15 bg-secondary-container/15 p-4">
+                  <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
+                    Payment split
+                  </p>
+                  <div className="mt-3 grid gap-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-body-md font-semibold text-primary">Owner share (80%)</span>
+                      <span className="font-body-md font-semibold text-primary">
+                        {formatSplitAmount(invoice.payment.ownerAmount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-body-md font-semibold text-primary">
+                        Platform commission (20%)
+                      </span>
+                      <span className="font-body-md font-semibold text-primary">
+                        {formatSplitAmount(invoice.payment.platformCommission)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </section>
 

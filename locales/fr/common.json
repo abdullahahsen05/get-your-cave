@@ -61,19 +61,28 @@
   },
   "nav": {
     "home": "Accueil",
+    "findACave": "Trouver une cave",
+    "listYourCave": "Proposer votre cave",
+    "createAccount": "Créer un compte",
     "browseStorage": "Trouver un espace",
     "howItWorks": "Comment ça marche",
     "pricing": "Tarifs",
     "dashboard": "Tableau de bord",
+    "overview": "Vue d’ensemble",
     "profile": "Profil",
     "profileMenu": "Ouvrir le menu du profil",
+    "users": "Utilisateurs",
     "listings": "Annonces",
     "verifications": "Vérifications",
     "revenue": "Revenus",
     "contracts": "Contrats",
+    "dashboardContracts": "Contrats du tableau de bord",
     "messaging": "Messagerie",
     "messages": "Messages",
     "invoices": "Factures",
+    "notifications": "Notifications",
+    "documents": "Documents",
+    "other": "Autres",
     "admin": "Admin",
     "joinNow": "S'inscrire",
     "login": "Se connecter",
@@ -439,7 +448,7 @@
       "rent": {
         "step1": {
           "title": "Publiez",
-          "description": "Décrivez votre cave, box ou garage en quelques minutes. C'est gratuit."
+          "description": "Décrivez votre cave, box ou local de stockage en quelques minutes. C'est gratuit."
         },
         "step2": {
           "title": "Échangez",
@@ -462,7 +471,7 @@
     "featured": {
       "eyebrow": "Disponibles maintenant",
       "title": "Espaces à la une",
-      "subtitle": "Caves, box et garages disponibles dès aujourd'hui près de chez vous.",
+      "subtitle": "Caves, box et locaux de stockage disponibles dès aujourd'hui près de chez vous.",
       "viewAll": "Voir toutes les annonces",
       "save": "Ajouter aux favoris",
       "details": "Voir le détail",
@@ -480,7 +489,7 @@
         },
         "card2": {
           "badge": "Caméras",
-          "title": "Box sécurisé sous-sol parking",
+          "title": "Box de stockage sécurisé en sous-sol",
           "location": "Lyon 3e · Cours Lafayette",
           "price": "79€",
           "size": "9 m²",
@@ -507,11 +516,11 @@
         },
         "card5": {
           "badge": "Spacieux",
-          "title": "Garage box fermé résidence",
+          "title": "Local de stockage privé en résidence",
           "location": "Paris 15e · Convention",
           "price": "130€",
           "size": "15 m²",
-          "type": "Garage",
+          "type": "Local de stockage",
           "amenity": "Électricité"
         },
         "card6": {
@@ -555,10 +564,11 @@
         "ownerSurface": "Surface"
       },
       "options": {
-        "cave": "Cave / Placard",
-        "box": "Box moyen",
-        "grand": "Grand box",
-        "garage": "Garage",
+        "cellar": "Cave / Cellier",
+        "box": "Box",
+        "closet": "Placard",
+        "storageRoom": "Local de stockage",
+        "otherStorageSpaces": "Autres espaces de stockage",
         "paris": "Paris",
         "idf": "Île-de-France",
         "lyon": "Lyon",
@@ -584,7 +594,7 @@
         "role": "Locataire · Paris 11e"
       },
       "quote2": {
-        "quote": "« Mon garage servait de débarras. Aujourd'hui il me rapporte 120€ par mois sans que j'aie à m'en occuper. »",
+        "quote": "« Mon espace de stockage inutilisé servait de débarras. Aujourd'hui il me rapporte 120€ par mois sans que j'aie à m'en occuper. »",
         "name": "Thomas B.",
         "role": "Propriétaire · Lyon"
       },
@@ -658,10 +668,11 @@
     "rangeSmall": "Petit (jusqu’à 5 m²)",
     "rangeMedium": "Moyen (5-15 m²)",
     "rangeLarge": "Grand (15+ m²)",
-    "typeGarage": "Cave / cellier",
-    "typeRoom": "Box",
-    "typeWarehouse": "Local de stockage",
-    "typeBasement": "Placard",
+    "typeCellarCave": "Cave / cellier",
+    "typeBox": "Box",
+    "typeCloset": "Placard",
+    "typeStorageRoom": "Local de stockage",
+    "typeOtherStorageSpaces": "Autres espaces de stockage",
     "verified": "Vérifié",
     "sqFt": "m²",
     "sortRecommended": "Recommandé",
@@ -746,8 +757,11 @@
       },
       "amenities": {
         "securityCamera": "Caméra de sécurité",
+        "alarmSystem": "Système d’alarme",
         "access247": "Accès 24/7",
-        "climateControl": "Climatisation",
+        "elevator": "Ascenseur",
+        "ventilation": "Ventilation",
+        "humidityControl": "Contrôle de l’humidité",
         "privateEntry": "Entrée privée",
         "gated": "Accès sécurisé",
         "loadingDock": "Quai de chargement",
@@ -1016,8 +1030,8 @@
       "date": "Date",
       "marketInsights": "Aperçus du marché",
       "marketInsightsFallback": "Les aperéus du marché ne sont pas disponibles pour le moment.",
-      "sampleCity1": "New York",
-      "sampleCity2": "Los Angeles",
+      "sampleCity1": "Paris",
+      "sampleCity2": "Lyon",
       "week1": "Semaine 1",
       "week2": "Semaine 2",
       "week3": "Semaine 3",

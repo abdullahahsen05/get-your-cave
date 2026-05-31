@@ -21,6 +21,9 @@ const profileUpdateSchema = z.object({
   city: z.string().trim().min(2).max(120).optional().or(z.literal("")),
   postalCode: z.string().trim().max(20).optional().or(z.literal("")),
   iban: z.string().trim().min(10).max(34).optional().or(z.literal("")),
+  emailNotificationsEnabled: z.boolean().optional(),
+  smsNotificationsEnabled: z.boolean().optional(),
+  twoFactorEnabled: z.boolean().optional(),
   currentPassword: z.string().min(8).optional().or(z.literal("")),
   newPassword: z.string().min(8).max(128).optional().or(z.literal("")),
 });
@@ -82,14 +85,16 @@ export async function PATCH(request: Request) {
   const nextCity = normalizeEmpty(parsed.data.city);
   const nextPostalCode = normalizeEmpty(parsed.data.postalCode);
   const nextIban = normalizeEmpty(parsed.data.iban);
+  const nextEmailNotificationsEnabled = parsed.data.emailNotificationsEnabled;
+  const nextSmsNotificationsEnabled = parsed.data.smsNotificationsEnabled;
+  const nextTwoFactorEnabled = parsed.data.twoFactorEnabled;
 
   const existing = await prisma.user.findUnique({
     where: { id: currentUser.id },
     select: {
       id: true,
       passwordHash: true,
-      ownerProfile: { select: { id: true } },
-      renterProfile: { select: { id: true } },
+      role: true,
       email: true,
     },
   });
@@ -125,15 +130,27 @@ export async function PATCH(request: Request) {
         email: nextEmail ?? undefined,
         phone: nextPhone,
         passwordHash: nextPassword ? await hashPassword(nextPassword) : undefined,
+        emailNotificationsEnabled: nextEmailNotificationsEnabled,
+        smsNotificationsEnabled: nextSmsNotificationsEnabled,
+        twoFactorEnabled: nextTwoFactorEnabled,
         status: emailChanged ? AccountStatus.PENDING_VERIFICATION : undefined,
       },
       select: safeUserSelect,
     });
 
-    if (existing.ownerProfile) {
-      await tx.ownerProfile.update({
-        where: { id: existing.ownerProfile.id },
-        data: {
+    if (existing.role === "OWNER") {
+      await tx.ownerProfile.upsert({
+        where: {
+          userId: existing.id,
+        },
+        create: {
+          userId: existing.id,
+          address: nextAddress,
+          city: nextCity,
+          postalCode: nextPostalCode,
+          iban: nextIban,
+        },
+        update: {
           address: nextAddress,
           city: nextCity,
           postalCode: nextPostalCode,
@@ -142,10 +159,18 @@ export async function PATCH(request: Request) {
       });
     }
 
-    if (existing.renterProfile) {
-      await tx.renterProfile.update({
-        where: { id: existing.renterProfile.id },
-        data: {
+    if (existing.role === "RENTER") {
+      await tx.renterProfile.upsert({
+        where: {
+          userId: existing.id,
+        },
+        create: {
+          userId: existing.id,
+          address: nextAddress,
+          city: nextCity,
+          postalCode: nextPostalCode,
+        },
+        update: {
           address: nextAddress,
           city: nextCity,
           postalCode: nextPostalCode,

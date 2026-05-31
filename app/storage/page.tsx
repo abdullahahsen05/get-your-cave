@@ -2,11 +2,14 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { StorageType } from "@prisma/client";
 import { haversineDistance } from "@/lib/geo";
+import { formatStorageTypeLabel } from "@/lib/storage-types";
+import { formatSquareMeters, resolveAreaInSquareMeters } from "@/lib/units";
 
 type ListingCard = {
   id: string;
@@ -69,8 +72,6 @@ type BrowseFilters = {
 const fallbackImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDlVrURlNSg8iNTE9GnvU2o749hEm4jvya_479eNJNEJuNxUGk326cH62rq6vsHGIFdviZFAypKjio5NUT03Qde9CSstZbrXPTmlKWG5wAQXy2y_QCA_kqlFlF_vcVS98caXI4B4kRi4DoOhBWRb2qYlkcfa3xAmA8yDRyWth2RqopXRtvlioOa2xgHDPpQG-r1SkjwF0mKLtPF9EJNSTtHYx9-svR9yNa0_kEEsgIncvy-Cg56WpW2T-MPs2_P_MISm2CjJCiFwTo";
 
-const SQUARE_FEET_TO_SQUARE_METERS = 0.09290304;
-
 const ListingsMap = dynamic(() => import("@/components/maps/ListingsMap"), {
   ssr: false,
   loading: () => (
@@ -101,10 +102,11 @@ const searchModeOptions = [
 ] as const;
 
 const storageTypeOptions = [
-  { value: StorageType.GARAGE, labelKey: "storage.typeGarage" },
-  { value: StorageType.ROOM, labelKey: "storage.typeRoom" },
-  { value: StorageType.WAREHOUSE, labelKey: "storage.typeWarehouse" },
-  { value: StorageType.BASEMENT, labelKey: "storage.typeBasement" },
+  { value: StorageType.BASEMENT, labelKey: "createListing.storageTypes.cellarCave" },
+  { value: StorageType.LOCKER, labelKey: "createListing.storageTypes.box" },
+  { value: StorageType.LOFT, labelKey: "createListing.storageTypes.closet" },
+  { value: StorageType.WAREHOUSE, labelKey: "createListing.storageTypes.storageRoom" },
+  { value: StorageType.OTHER, labelKey: "createListing.storageTypes.otherStorageSpaces" },
 ] as const;
 
 const amenityFilterOptions: { key: string; labelKey: string; amenityNames: string[] }[] = [
@@ -126,22 +128,14 @@ const amenityFilterOptions: { key: string; labelKey: string; amenityNames: strin
   {
     key: "ventilation",
     labelKey: "storage.filterVentilation",
-    amenityNames: ["Climate Control", "Climate Controlled"],
+    amenityNames: ["Ventilation", "Climate Control", "Climate Controlled"],
   },
   {
     key: "humidity",
     labelKey: "storage.filterHumidity",
-    amenityNames: ["Climate Control", "Climate Controlled"],
+    amenityNames: ["Humidity Control", "Climate Control", "Climate Controlled"],
   },
 ];
-
-function formatStorageType(value: StorageType) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
 
 function formatListingStatusLabel(value: string, t: (key: string) => string) {
   const translated = t(`status.listing.${value}`);
@@ -153,22 +147,18 @@ function formatListingAvailabilityLabel(value: string, t: (key: string) => strin
   return translated === `status.availability.${value}` ? value : translated;
 }
 
-function formatArea(value: number | null) {
-  if (value === null || !Number.isFinite(value) || value <= 0) return "—";
-
-  return `${new Intl.NumberFormat(undefined, {
-    maximumFractionDigits: 1,
-  }).format(value)} m²`;
-}
-
 function formatAmenityLabel(value: string, t: (key: string) => string) {
   const translated = t(value);
   if (translated !== value) return translated;
 
   if (value === "Security Camera") return t("createListing.amenities.securityCamera");
+  if (value === "Alarm System") return t("createListing.amenities.alarmSystem");
   if (value === "24/7 Access") return t("createListing.amenities.access247");
+  if (value === "Elevator") return t("createListing.amenities.elevator");
+  if (value === "Ventilation") return t("createListing.amenities.ventilation");
+  if (value === "Humidity Control") return t("createListing.amenities.humidityControl");
   if (value === "Climate Control" || value === "Climate Controlled") {
-    return t("createListing.amenities.climateControl");
+    return t("createListing.amenities.humidityControl");
   }
   if (value === "Private Entry") return t("createListing.amenities.privateEntry");
   if (value === "Gated") return t("createListing.amenities.gated");
@@ -179,9 +169,17 @@ function formatAmenityLabel(value: string, t: (key: string) => string) {
 
 export default function BrowseStoragePage() {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q")?.trim() ?? "";
 
-  const [draftFilters, setDraftFilters] = useState<BrowseFilters>(emptyFilters);
-  const [appliedFilters, setAppliedFilters] = useState<BrowseFilters>(emptyFilters);
+  const [draftFilters, setDraftFilters] = useState<BrowseFilters>(() => ({
+    ...emptyFilters,
+    query: initialQuery,
+  }));
+  const [appliedFilters, setAppliedFilters] = useState<BrowseFilters>(() => ({
+    ...emptyFilters,
+    query: initialQuery,
+  }));
 
   const [page, setPage] = useState(1);
   const [showMap, setShowMap] = useState(true);
@@ -197,6 +195,18 @@ export default function BrowseStoragePage() {
   const activeSearchModeConfig =
     searchModeOptions.find((option) => option.value === draftFilters.searchMode) ??
     searchModeOptions[0];
+
+  useEffect(() => {
+    setDraftFilters((current) => ({
+      ...current,
+      query: initialQuery,
+    }));
+    setAppliedFilters((current) => ({
+      ...current,
+      query: initialQuery,
+    }));
+    setPage(1);
+  }, [initialQuery]);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -378,10 +388,8 @@ export default function BrowseStoragePage() {
 
     if (sortMode === "sizeLargest") {
       sorted.sort((a, b) => {
-        const aSize =
-          a.listing.sizeM2 ?? (a.listing.sizeSqFt ?? 0) * SQUARE_FEET_TO_SQUARE_METERS;
-        const bSize =
-          b.listing.sizeM2 ?? (b.listing.sizeSqFt ?? 0) * SQUARE_FEET_TO_SQUARE_METERS;
+        const aSize = resolveAreaInSquareMeters(a.listing.sizeM2, a.listing.sizeSqFt) ?? 0;
+        const bSize = resolveAreaInSquareMeters(b.listing.sizeM2, b.listing.sizeSqFt) ?? 0;
 
         return bSize - aSize;
       });
@@ -408,7 +416,7 @@ export default function BrowseStoragePage() {
     if (appliedFilters.storageType) {
       chips.push({
         key: "storageType",
-        label: formatStorageType(appliedFilters.storageType),
+        label: formatStorageTypeLabel(appliedFilters.storageType, t),
         onRemove: () => {
           setDraftFilters((current) => ({ ...current, storageType: "" }));
           setAppliedFilters((current) => ({ ...current, storageType: "" }));
@@ -964,11 +972,7 @@ export default function BrowseStoragePage() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {sortedListings.map(({ listing, distanceKm }) => {
-              const area =
-                listing.sizeM2 ??
-                (listing.sizeSqFt !== null
-                  ? listing.sizeSqFt * SQUARE_FEET_TO_SQUARE_METERS
-                  : null);
+              const area = resolveAreaInSquareMeters(listing.sizeM2, listing.sizeSqFt);
 
               const firstAmenity = listing.amenityNames[0];
 
@@ -987,7 +991,7 @@ export default function BrowseStoragePage() {
 
                     <div className="absolute left-4 top-4">
                       <span className="rounded-full bg-surface/95 px-3 py-1.5 text-xs font-bold text-primary shadow-sm backdrop-blur">
-                        {formatStorageType(listing.storageType)}
+                        {formatStorageTypeLabel(listing.storageType, t)}
                       </span>
                     </div>
 
@@ -1025,7 +1029,7 @@ export default function BrowseStoragePage() {
 
                     <div className="mb-5 flex flex-wrap gap-2">
                       <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-semibold text-on-surface-variant">
-                        {formatArea(area)}
+                        {formatSquareMeters(area)}
                       </span>
 
                       {firstAmenity ? (

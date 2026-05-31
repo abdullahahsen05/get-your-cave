@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
+import { calculateMarketplaceSplit } from "@/lib/marketplace-split";
 import { readStripeCheckoutMetadata } from "@/lib/stripe";
 
 const WEBHOOK_REVALIDATION_PATHS = [
@@ -86,26 +87,6 @@ type FinalizeBooking = Prisma.BookingGetPayload<{
 type FinalizeInvoice = Prisma.InvoiceGetPayload<{
   include: typeof invoiceInclude;
 }>;
-
-function toDecimal(value: Prisma.Decimal | number | string) {
-  return value instanceof Prisma.Decimal ? value : new Prisma.Decimal(value);
-}
-
-function calculatePaymentSplit(params: {
-  grossAmount: Prisma.Decimal | number | string;
-  commissionBaseAmount: Prisma.Decimal | number | string;
-}) {
-  const decimalAmount = toDecimal(params.grossAmount).toDecimalPlaces(2);
-  const commissionBaseAmount = toDecimal(params.commissionBaseAmount).toDecimalPlaces(2);
-  const platformCommission = commissionBaseAmount.mul(0.2).toDecimalPlaces(2);
-  const ownerAmount = decimalAmount.sub(platformCommission).toDecimalPlaces(2);
-
-  return {
-    amount: decimalAmount,
-    platformCommission,
-    ownerAmount,
-  };
-}
 
 function buildPaidTimeline(existingTimeline: Prisma.JsonValue | null | undefined, paidAt: Date) {
   const timeline = Array.isArray(existingTimeline) ? [...existingTimeline] : [];
@@ -251,10 +232,7 @@ async function findOrCreatePayment(params: {
 
   const months = Math.max(1, params.booking.durationMonths ?? 1);
   const commissionBaseAmount = params.booking.monthlyPrice.mul(months).toDecimalPlaces(2);
-  const split = calculatePaymentSplit({
-    grossAmount: params.invoice.totalAmount,
-    commissionBaseAmount,
-  });
+  const split = calculateMarketplaceSplit(params.invoice.totalAmount, commissionBaseAmount);
 
   return prisma.payment.create({
     data: {
@@ -326,10 +304,10 @@ export async function finalizeStripeCheckoutSession(params: {
 
   const now = new Date();
   const invoiceMonths = Math.max(1, booking.durationMonths ?? 1);
-  const paymentSplit = calculatePaymentSplit({
-    grossAmount: invoice.totalAmount,
-    commissionBaseAmount: booking.monthlyPrice.mul(invoiceMonths).toDecimalPlaces(2),
-  });
+  const paymentSplit = calculateMarketplaceSplit(
+    invoice.totalAmount,
+    booking.monthlyPrice.mul(invoiceMonths).toDecimalPlaces(2),
+  );
   let ownerCredited = false;
 
   try {

@@ -746,6 +746,10 @@ export default function MessagingWorkspace({
   }
 
   const selectedMessages = selectedConversation?.messages ?? [];
+  const attachmentIsPdf =
+    attachmentFile?.type === "application/pdf" ||
+    attachmentFile?.name.toLowerCase().endsWith(".pdf") ||
+    false;
   const activeTypingLabel =
     typingStatus && typingStatus.conversationId === selectedConversationId
       ? t("messaging.typing", { name: typingStatus.userName })
@@ -970,7 +974,11 @@ export default function MessagingWorkspace({
                   <div className="mb-3 rounded-[22px] border border-[#eadfcf] bg-white p-3 shadow-sm">
                     <div className="flex items-start gap-3">
                       <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-[18px] bg-[#f7f2ea]">
-                        {attachmentPreviewUrl ? (
+                        {attachmentIsPdf ? (
+                          <span className="material-symbols-outlined text-[#f26a1b]">
+                            picture_as_pdf
+                          </span>
+                        ) : attachmentPreviewUrl ? (
                           <img
                             alt={attachmentFile.name}
                             className="h-full w-full object-cover"
@@ -1004,7 +1012,7 @@ export default function MessagingWorkspace({
                 <div className="flex items-end gap-2 sm:gap-3">
                   <input
                     ref={attachmentInputRef}
-                    accept="image/*"
+                    accept="image/*,application/pdf,.pdf"
                     className="hidden"
                     type="file"
                     onChange={(event) => {

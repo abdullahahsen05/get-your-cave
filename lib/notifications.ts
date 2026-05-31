@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { sendMessageNotificationEmail } from "@/lib/email";
+import { sendNotificationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 type NotificationRecord = Prisma.NotificationGetPayload<{
@@ -85,6 +85,29 @@ export async function createNotificationForUser(input: {
 
   const payload = toNotificationItem(notification);
 
+  const recipient = await prisma.user.findUnique({
+    where: { id: input.userId },
+    select: {
+      fullName: true,
+      email: true,
+      emailNotificationsEnabled: true,
+    },
+  });
+
+  if (recipient?.emailNotificationsEnabled && recipient.email) {
+    void sendNotificationEmail({
+      recipientEmail: recipient.email,
+      recipientName: recipient.fullName,
+      subject: input.title,
+      summary: input.body ?? input.title,
+      linkUrl: input.linkUrl ?? "/notifications",
+      ctaLabel: input.linkUrl ? "Open notification" : "View notifications",
+      heading: input.title,
+    }).catch((error) => {
+      console.error("Failed to send notification email", error);
+    });
+  }
+
   if (input.emitRealtime !== false) {
     const { emitNotificationCreated, emitNotificationsUpdated } = await import(
       "@/lib/socket/server"
@@ -123,8 +146,8 @@ export function buildMessageNotificationCopy(input: {
   const title = `New message from ${input.senderName}`;
   const body = isAttachment
     ? input.fileName
-      ? `${input.senderName} sent an image: ${input.fileName}`
-      : `${input.senderName} sent an image`
+      ? `${input.senderName} sent an attachment: ${input.fileName}`
+      : `${input.senderName} sent an attachment`
     : trimPreview(input.messageBody);
 
   return { title, body };
@@ -153,17 +176,6 @@ export async function createMessageNotification(input: {
     title: copy.title,
     body: copy.body,
     linkUrl,
-  });
-
-  void sendMessageNotificationEmail({
-    recipientEmail: input.recipientEmail,
-    recipientName: input.recipientName,
-    senderName: input.senderName,
-    subject: copy.title,
-    summary: copy.body ?? input.messageBody,
-    linkUrl,
-  }).catch((error) => {
-    console.error("Failed to send message notification email", error);
   });
 
   return {

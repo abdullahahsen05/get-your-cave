@@ -31,6 +31,11 @@ export default function OwnerBookingDetails({
 
   const months = durationMonths ?? 1;
   const estimatedTotal = (Number(totalMonthlyAmount) * months).toFixed(2);
+  const monthlyAmount = Number(monthlyPrice);
+  const ownerShare = Number.isFinite(monthlyAmount) ? (monthlyAmount * 0.8).toFixed(2) : monthlyPrice;
+  const platformCommission = Number.isFinite(monthlyAmount)
+    ? (monthlyAmount * 0.2).toFixed(2)
+    : monthlyPrice;
 
   return (
     <div className="pt-1">
@@ -56,6 +61,18 @@ export default function OwnerBookingDetails({
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4">
             <span>{t("dashboard.owner.monthlyRent")}</span>
             <span className="font-semibold text-on-surface">{formatMoney(monthlyPrice)}</span>
+          </div>
+          <div className="rounded-2xl border border-secondary/15 bg-secondary-container/15 p-3 text-sm text-on-surface-variant">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
+              <span>Owner share (80%)</span>
+              <span className="font-semibold text-on-surface">{formatMoney(ownerShare)}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-3">
+              <span>Platform commission (20%)</span>
+              <span className="font-semibold text-on-surface">
+                {formatMoney(platformCommission)}
+              </span>
+            </div>
           </div>
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-t border-outline-variant/20 pt-3">
             <span>{t("dashboard.owner.estimatedTotal")}</span>

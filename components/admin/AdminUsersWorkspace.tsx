@@ -334,6 +334,10 @@ function formatEnum(value: string | null | undefined) {
     .join(" ");
 }
 
+function formatMarketplaceSplitLabel() {
+  return "80% owner / 20% platform";
+}
+
 function SectionShell({
   title,
   subtitle,
@@ -374,6 +378,7 @@ function Badge({ children }: { children: React.ReactNode }) {
 export default function AdminUsersWorkspace({ users }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
+  const marketplaceSplitLabel = formatMarketplaceSplitLabel();
   const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUserDetailResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -722,6 +727,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                         <div className="mt-3 grid gap-2 text-sm">
                           <StatRow label="Renter" value={booking.renter.fullName} />
                           <StatRow label="Monthly price" value={booking.monthlyPrice} />
+                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
                           <StatRow label="Total monthly" value={booking.totalMonthlyAmount} />
                           <StatRow label="Contract" value={booking.generatedContract?.contractNumber ?? "—"} />
                           <StatRow label="Invoice" value={booking.invoiceStatus ?? "—"} />
@@ -854,6 +860,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
                           <StatRow label="Amount" value={payment.amount} />
+                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
                           <StatRow label="Owner amount" value={payment.ownerAmount} />
                           <StatRow label="Platform commission" value={payment.platformCommission} />
                           <StatRow label="Paid at" value={formatDate(payment.paidAt)} />
@@ -890,6 +897,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                         <div className="mt-3 grid gap-2 text-sm">
                           <StatRow label="Owner" value={booking.owner.fullName} />
                           <StatRow label="Monthly price" value={booking.monthlyPrice} />
+                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
                           <StatRow label="Total monthly" value={booking.totalMonthlyAmount} />
                           <StatRow label="Contract" value={booking.generatedContract?.contractNumber ?? "—"} />
                           <StatRow label="Invoice" value={booking.invoiceStatus ?? "—"} />
@@ -1022,6 +1030,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
                           <StatRow label="Amount" value={payment.amount} />
+                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
                           <StatRow label="Owner amount" value={payment.ownerAmount} />
                           <StatRow label="Platform commission" value={payment.platformCommission} />
                           <StatRow label="Paid at" value={formatDate(payment.paidAt)} />

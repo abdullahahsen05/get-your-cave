@@ -11,6 +11,7 @@ import {
 import { revalidatePath } from "next/cache";
 
 import { createNotificationForUser } from "@/lib/notifications";
+import { calculateMarketplaceSplit } from "@/lib/marketplace-split";
 import { generateContractForBooking } from "@/lib/contracts/generateContract";
 import { generateInvoiceForBooking } from "@/lib/invoices/generateInvoice";
 import { prisma } from "@/lib/prisma";
@@ -35,6 +36,7 @@ type BookingListingSummary = {
   pricePerMonth: string;
   securityDeposit: string;
   insuranceFee: string;
+  sizeM2: number | null;
   sizeSqFt: number | null;
   status: ListingStatus;
   isPublished: boolean;
@@ -283,6 +285,7 @@ function serializeBooking(
       pricePerMonth: Prisma.Decimal;
       securityDeposit: Prisma.Decimal;
       insuranceFee: Prisma.Decimal;
+      sizeM2: number | null;
       sizeSqFt: number | null;
       status: ListingStatus;
       isPublished: boolean;
@@ -363,6 +366,7 @@ function serializeBooking(
       pricePerMonth: toMoneyString(booking.listing.pricePerMonth),
       securityDeposit: toMoneyString(booking.listing.securityDeposit),
       insuranceFee: toMoneyString(booking.listing.insuranceFee),
+      sizeM2: booking.listing.sizeM2,
       sizeSqFt: booking.listing.sizeSqFt,
       status: booking.listing.status,
       isPublished: booking.listing.isPublished,
@@ -450,8 +454,10 @@ export function calculateBookingCharges(params: {
   const monthlyPrice = toDecimal(params.monthlyPrice);
   const securityDeposit = toDecimal(params.securityDeposit ?? 0);
   const insuranceFee = toDecimal(params.insuranceFee ?? 0);
-  const platformCommission = monthlyPrice.mul(0.2).toDecimalPlaces(2);
-  const ownerAmount = monthlyPrice.sub(platformCommission).toDecimalPlaces(2);
+  const { platformCommission, ownerAmount } = calculateMarketplaceSplit(
+    monthlyPrice,
+    monthlyPrice,
+  );
   const totalMonthlyAmount = monthlyPrice.toDecimalPlaces(2);
 
   return {
@@ -543,6 +549,24 @@ export async function createRenterBooking(params: {
     where: { id: booking.id },
     include: bookingInclude,
   });
+
+  if (refreshed) {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { id: listing.ownerId },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (owner?.userId) {
+      await createNotificationForUser({
+        userId: owner.userId,
+        title: "Booking request",
+        body: `You received a new booking request for ${listing.title}.`,
+        linkUrl: "/owner/dashboard",
+      });
+    }
+  }
 
   return refreshed ? serializeBooking(refreshed as Parameters<typeof serializeBooking>[0]) : null;
 }
@@ -760,6 +784,24 @@ export async function updateBookingForViewer(params: {
     if (reloaded) {
       refreshedUpdated = reloaded;
     }
+  }
+
+  if (params.data.status === BookingStatus.APPROVED) {
+    await createNotificationForUser({
+      userId: updated.renter.userId,
+      title: "Request accepted",
+      body: `Your booking request ${updated.bookingNumber} was accepted.`,
+      linkUrl: "/renter/dashboard",
+    });
+  }
+
+  if (params.data.status === BookingStatus.REJECTED) {
+    await createNotificationForUser({
+      userId: updated.renter.userId,
+      title: "Request rejected",
+      body: `Your booking request ${updated.bookingNumber} was rejected.`,
+      linkUrl: "/renter/dashboard",
+    });
   }
 
   if (params.data.status === BookingStatus.CANCELLED) {
