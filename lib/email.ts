@@ -25,6 +25,13 @@ type LoginVerificationEmailInput = {
   expiresInMinutes: number;
 };
 
+type PasswordResetEmailInput = {
+  recipientEmail: string;
+  recipientName: string;
+  resetUrl: string;
+  expiresInMinutes: number;
+};
+
 let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
 
 function getSmtpConfig() {
@@ -184,6 +191,60 @@ export async function sendLoginVerificationCodeEmail(
     to: input.recipientEmail,
     subject: "Your GetYourCave login code",
     text: `Your GetYourCave verification code is ${input.code}. It expires in ${input.expiresInMinutes} minutes.`,
+    html,
+  });
+
+  return { sent: true as const };
+}
+
+export async function sendPasswordResetEmail(
+  input: PasswordResetEmailInput,
+) {
+  const activeTransporter = getTransporter();
+  const smtpConfig = getSmtpConfig();
+
+  if (!activeTransporter || !smtpConfig) {
+    return { sent: false as const };
+  }
+
+  const html = `
+    <div style="background:#f6f4ef;padding:32px 0;font-family:Arial,sans-serif;color:#1f2937">
+      <div style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #ebe4da;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(15,23,42,0.08)">
+        <div style="padding:28px 30px;border-bottom:1px solid #f1ede7;background:linear-gradient(135deg,#fff8f1,#fff)">
+          <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#c15f1a;font-weight:700;margin-bottom:10px">GetYourCave</div>
+          <h1 style="margin:0;font-size:24px;line-height:1.25;color:#111827">Reset your password</h1>
+          <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:#4b5563">
+            Hi ${escapeHtml(input.recipientName)}, we received a request to reset your GetYourCave password.
+          </p>
+        </div>
+        <div style="padding:28px 30px">
+          <div style="background:#faf7f3;border:1px solid #ede5d8;border-radius:18px;padding:20px 22px">
+            <div style="font-size:16px;line-height:1.7;color:#1f2937">
+              Click the button below to verify your request and choose a new password.
+            </div>
+            <div style="margin-top:12px;font-size:14px;line-height:1.6;color:#4b5563">
+              This link expires in ${String(input.expiresInMinutes)} minutes.
+            </div>
+          </div>
+          <div style="margin-top:24px">
+            <a href="${escapeHtml(input.resetUrl)}" style="display:inline-block;background:#f26a1b;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px">Reset password</a>
+          </div>
+          <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#4b5563">
+            If you did not request a password reset, you can safely ignore this email.
+          </p>
+        </div>
+        <div style="padding:18px 30px 28px;font-size:12px;line-height:1.6;color:#6b7280;border-top:1px solid #f1ede7">
+          This message was sent to protect your account and ensure only you can change your password.
+        </div>
+      </div>
+    </div>
+  `;
+
+  await activeTransporter.sendMail({
+    from: smtpConfig.from,
+    to: input.recipientEmail,
+    subject: "Reset your GetYourCave password",
+    text: `We received a request to reset your GetYourCave password. Use this link to continue: ${input.resetUrl}\n\nThis link expires in ${input.expiresInMinutes} minutes.`,
     html,
   });
 

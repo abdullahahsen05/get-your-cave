@@ -362,6 +362,14 @@ export default function LoginPage() {
                             value={formState.password}
                           />
                         </div>
+                        <div className="flex justify-end">
+                          <Link
+                            className="text-sm font-semibold text-secondary transition-colors hover:text-[#d9590f]"
+                            href="/forget_password_page"
+                          >
+                            {t("auth.forgotPassword")}
+                          </Link>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-2.5">
