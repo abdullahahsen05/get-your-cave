@@ -14,10 +14,19 @@ function createPrismaClient() {
     throw new Error("DATABASE_URL is required.");
   }
 
+  // Enable SSL for hosted databases (Supabase, Railway, Neon, etc.).
+  // Supabase requires SSL for all external connections.
+  const requiresSsl =
+    connectionString.includes("supabase.co") ||
+    connectionString.includes("neon.tech") ||
+    connectionString.includes("railway.app") ||
+    connectionString.includes("sslmode=require");
+
   const pool =
     globalForPrisma.pgPool ??
     new pg.Pool({
       connectionString,
+      ...(requiresSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     });
 
   if (process.env.NODE_ENV !== "production") {
