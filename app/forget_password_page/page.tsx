@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 
       try {
         const response = await fetch(
-          `/api/auth/forgot-password/verify?token=${encodeURIComponent(token)}`,
+          `/api/auth/forgot-password/verify?token=${encodeURIComponent(token ?? "")}`,
           {
             method: "GET",
             headers: {

@@ -110,6 +110,20 @@ type PendingUserRow = {
   createdAt: string;
 };
 
+function RoleBadge({ role }: { role: string }) {
+  const colorClass =
+    role === "OWNER"
+      ? "bg-primary/10 text-primary"
+      : role === "RENTER"
+        ? "bg-secondary-container/25 text-secondary"
+        : "bg-surface-container text-on-surface-variant";
+  return (
+    <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${colorClass}`}>
+      {role}
+    </span>
+  );
+}
+
 function getListingStatusLabel(status: string, t: (key: string) => string) {
   const key = `status.listing.${status}`;
   const translated = t(key);
@@ -232,6 +246,24 @@ export default function AdminDashboardWorkspace() {
     id: string;
     action: "approve" | "reject";
   } | null>(null);
+  const [reviewListingId, setReviewListingId] = useState<string | null>(null);
+  const [reviewListingDetail, setReviewListingDetail] = useState<{
+    id: string;
+    title: string;
+    description: string;
+    city: string;
+    address: string;
+    postalCode: string | null;
+    storageType: string;
+    pricePerMonth: string;
+    sizeM2: number | null;
+    sizeSqFt: number | null;
+    amenityNames: string[];
+    status: string;
+    owner: { user: { fullName: string; email: string } };
+    images: Array<{ url: string; isPrimary: boolean }>;
+  } | null>(null);
+  const [reviewDetailLoading, setReviewDetailLoading] = useState(false);
 
   const verificationRows = useMemo<GroupedVerificationRow[]>(() => {
     const groups = new Map<string, GroupedVerificationRow>();
@@ -440,6 +472,37 @@ export default function AdminDashboardWorkspace() {
     };
   }, [page, search, t]);
 
+  async function openListingReview(listingId: string) {
+    if (reviewListingId === listingId) {
+      setReviewListingId(null);
+      setReviewListingDetail(null);
+      return;
+    }
+
+    setReviewListingId(listingId);
+    setReviewListingDetail(null);
+    setReviewDetailLoading(true);
+
+    try {
+      const response = await fetch(`/api/admin/listings/${listingId}`, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        setReviewListingDetail(null);
+        return;
+      }
+
+      const data = (await response.json()) as { listing?: typeof reviewListingDetail };
+      setReviewListingDetail(data.listing ?? null);
+    } catch {
+      setReviewListingDetail(null);
+    } finally {
+      setReviewDetailLoading(false);
+    }
+  }
+
   async function handleModerationAction(
     kind: "listing" | "verification" | "user",
     id: string,
@@ -498,11 +561,16 @@ export default function AdminDashboardWorkspace() {
       });
 
       if (!response.ok) {
-        throw new Error(t("errors.unableToUpdateModerationItem"));
+        const errorData = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(errorData?.error ?? t("errors.unableToUpdateModerationItem"));
       }
 
       setDashboardReloadKey((value) => value + 1);
       setModerationReloadKey((value) => value + 1);
+      if (kind === "listing") {
+        setReviewListingId(null);
+        setReviewListingDetail(null);
+      }
     } catch (moderationActionError) {
       setModerationError(
         moderationActionError instanceof Error
@@ -584,7 +652,7 @@ export default function AdminDashboardWorkspace() {
 
   return (
     <div className="min-h-screen bg-background font-body-md text-on-surface antialiased">
-      <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 sm:px-6 sm:pt-8 md:space-y-8 lg:space-y-10 lg:px-10 xl:px-12">
+      <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 pt-24 sm:px-6 sm:pt-28 md:space-y-8 lg:space-y-10 lg:px-10 lg:pt-32 xl:px-12">
         <div className="mb-2 flex flex-col gap-3 rounded-[2rem] tonal-card rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 px-5 shadow-[0_12px_40px_rgba(17,24,39,0.06)] sm:px-7 sm:py-8 lg:px-10 mb-8">
           <h1 className="max-w-[760px] text-[30px] font-bold leading-[1.08] tracking-[-0.03em] text-primary sm:text-[40px] lg:text-[50px]">
             {t("dashboard.admin.title")}
@@ -792,6 +860,13 @@ export default function AdminDashboardWorkspace() {
                         <td className="py-4 text-right">
                           <div className="flex flex-col justify-end gap-2 sm:flex-row">
                             <button
+                              className={`rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${reviewListingId === listing.id ? "border-secondary bg-secondary text-white" : "border-outline-variant text-primary hover:bg-surface-container-low"}`}
+                              type="button"
+                              onClick={() => { void openListingReview(listing.id); }}
+                            >
+                              {t("common.viewDetails")}
+                            </button>
+                            <button
                               className="rounded-full bg-primary px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                               disabled={
                                 busyAction?.kind === "listing" &&
@@ -839,6 +914,91 @@ export default function AdminDashboardWorkspace() {
                 {t("dashboard.admin.noPendingListings")}
               </div>
             )}
+
+            {reviewListingId ? (
+              <div className="mt-4 rounded-[1.5rem] border border-outline-variant/60 bg-surface-container-low/60 p-4 sm:p-5">
+                {reviewDetailLoading ? (
+                  <p className="text-sm font-medium text-on-surface-variant">{t("common.loading")}</p>
+                ) : reviewListingDetail ? (
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <h4 className="text-base font-bold text-primary">{reviewListingDetail.title}</h4>
+                      <button
+                        className="material-symbols-outlined text-on-surface-variant hover:text-primary"
+                        type="button"
+                        onClick={() => { setReviewListingId(null); setReviewListingDetail(null); }}
+                      >
+                        close
+                      </button>
+                    </div>
+
+                    {reviewListingDetail.images.length > 0 ? (
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {reviewListingDetail.images.slice(0, 4).map((image, index) => (
+                          <img
+                            key={index}
+                            alt={reviewListingDetail.title}
+                            className="h-28 w-40 shrink-0 rounded-xl object-cover"
+                            src={image.url}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("profile.address")}</p>
+                        <p className="mt-0.5 font-medium text-primary">{reviewListingDetail.address}, {reviewListingDetail.city}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("createListing.monthlyPrice")}</p>
+                        <p className="mt-0.5 font-medium text-primary">{formatCurrency(reviewListingDetail.pricePerMonth, "EUR")}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("createListing.storageType")}</p>
+                        <p className="mt-0.5 font-medium text-primary">{reviewListingDetail.storageType}</p>
+                      </div>
+                      {reviewListingDetail.sizeM2 ? (
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("listingDetail.unitSize")}</p>
+                          <p className="mt-0.5 font-medium text-primary">{reviewListingDetail.sizeM2} m²</p>
+                        </div>
+                      ) : null}
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("dashboard.admin.owner")}</p>
+                        <p className="mt-0.5 font-medium text-primary">{reviewListingDetail.owner.user.fullName}</p>
+                        <p className="text-xs text-on-surface-variant">{reviewListingDetail.owner.user.email}</p>
+                      </div>
+                    </div>
+
+                    {reviewListingDetail.description ? (
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("createListing.description")}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-on-surface">{reviewListingDetail.description}</p>
+                      </div>
+                    ) : null}
+
+                    {reviewListingDetail.amenityNames.length > 0 ? (
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant">{t("createListing.amenityDetails")}</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {reviewListingDetail.amenityNames.map((amenity) => (
+                            <span
+                              key={amenity}
+                              className="rounded-full border border-outline-variant/60 bg-surface px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-primary"
+                            >
+                              {amenity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="text-sm text-on-surface-variant">{t("errors.unableToLoadListing")}</p>
+                )}
+              </div>
+            ) : null}
           </div>
 
           <div className="tonal-card rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 p-5 shadow-[0_12px_40px_rgba(17,24,39,0.05)] sm:p-6 lg:p-7">
@@ -868,12 +1028,15 @@ export default function AdminDashboardWorkspace() {
                         {t("dashboard.admin.documents")}
                       </th>
                       <th className="px-0 py-3 text-xs font-semibold uppercase tracking-[0.05em] text-on-surface-variant text-right">
-                        {t("dashboard.admin.status")}
+                        {t("dashboard.admin.actions")}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant/60">
-                    {verificationRows.map((row) => (
+                    {verificationRows.map((row) => {
+                      const idCard = row.documents.idCard;
+                      const ownershipProof = row.documents.ownershipProof;
+                      return (
                       <tr key={row.userId}>
                         <td className="py-4 pr-4">
                           <p className="text-sm font-semibold leading-[1.5] text-primary">
@@ -881,64 +1044,106 @@ export default function AdminDashboardWorkspace() {
                           </p>
                           <p className="text-xs leading-[1.5] text-on-surface-variant">{row.email}</p>
                         </td>
-                        <td className="py-4 pr-4 text-sm leading-[1.5] text-on-surface-variant">
-                          {row.role}
+                        <td className="py-4 pr-4">
+                          <RoleBadge role={row.role} />
                         </td>
                         <td className="py-4 pr-4">
-                          <div className="grid gap-2 sm:min-w-[360px] sm:grid-cols-2">
+                          <div className="flex flex-col gap-1.5">
                             <a
-                              className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                                row.documents.idCard
+                              className={`inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                idCard
                                   ? "bg-secondary text-on-secondary hover:bg-secondary/90"
                                   : "cursor-not-allowed border border-outline-variant/60 text-primary opacity-60"
                               }`}
-                              href={row.documents.idCard ? `/api/verification-documents/${row.documents.idCard.id}` : "#"}
+                              href={idCard ? `/api/verification-documents/${idCard.id}` : "#"}
                               rel="noreferrer"
                               target="_blank"
-                              onClick={(event) => {
-                                if (!row.documents.idCard) {
-                                  event.preventDefault();
-                                }
-                              }}
+                              onClick={(event) => { if (!idCard) event.preventDefault(); }}
                             >
                               {t("dashboard.admin.viewIdCard")}
                             </a>
                             {row.role === "OWNER" ? (
                               <a
-                                className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                                  row.documents.ownershipProof
+                                className={`inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                  ownershipProof
                                     ? "border border-outline-variant/60 text-primary hover:bg-surface-container-low"
                                     : "cursor-not-allowed border border-outline-variant/60 text-primary opacity-60"
                                 }`}
-                                href={
-                                  row.documents.ownershipProof
-                                    ? `/api/verification-documents/${row.documents.ownershipProof.id}`
-                                    : "#"
-                                }
+                                href={ownershipProof ? `/api/verification-documents/${ownershipProof.id}` : "#"}
                                 rel="noreferrer"
                                 target="_blank"
-                                onClick={(event) => {
-                                  if (!row.documents.ownershipProof) {
-                                    event.preventDefault();
-                                  }
-                                }}
+                                onClick={(event) => { if (!ownershipProof) event.preventDefault(); }}
                               >
                                 {t("dashboard.admin.viewOwnershipProof")}
                               </a>
                             ) : (
-                              <span className="inline-flex w-full items-center justify-center rounded-full border border-dashed border-outline-variant/60 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                              <span className="inline-flex items-center justify-center rounded-full border border-dashed border-outline-variant/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary/70">
                                 {t("verification.notRequiredForRenters")}
                               </span>
                             )}
                           </div>
                         </td>
                         <td className="py-4 text-right">
-                          <span className="inline-flex rounded-full bg-secondary-container/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary">
-                            {t("status.account.PENDING_VERIFICATION")}
-                          </span>
+                          <div className="flex flex-col items-end gap-2">
+                            {idCard ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">
+                                  {t("dashboard.admin.viewIdCard").split(" ")[1] ?? "ID"}
+                                </span>
+                                <button
+                                  className="rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                                  disabled={busyAction?.kind === "verification" && busyAction.id === idCard.id && busyAction.action === "approve"}
+                                  type="button"
+                                  onClick={() => { void handleModerationAction("verification", idCard.id, "approve"); }}
+                                >
+                                  {busyAction?.kind === "verification" && busyAction.id === idCard.id && busyAction.action === "approve"
+                                    ? t("common.loading")
+                                    : t("common.approve")}
+                                </button>
+                                <button
+                                  className="rounded-full border border-outline-variant px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface disabled:opacity-60"
+                                  disabled={busyAction?.kind === "verification" && busyAction.id === idCard.id && busyAction.action === "reject"}
+                                  type="button"
+                                  onClick={() => { void handleModerationAction("verification", idCard.id, "reject"); }}
+                                >
+                                  {busyAction?.kind === "verification" && busyAction.id === idCard.id && busyAction.action === "reject"
+                                    ? t("common.loading")
+                                    : t("common.reject")}
+                                </button>
+                              </div>
+                            ) : null}
+                            {row.role === "OWNER" && ownershipProof ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">
+                                  {t("dashboard.admin.viewOwnershipProof").split(" ")[1] ?? "Proof"}
+                                </span>
+                                <button
+                                  className="rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                                  disabled={busyAction?.kind === "verification" && busyAction.id === ownershipProof.id && busyAction.action === "approve"}
+                                  type="button"
+                                  onClick={() => { void handleModerationAction("verification", ownershipProof.id, "approve"); }}
+                                >
+                                  {busyAction?.kind === "verification" && busyAction.id === ownershipProof.id && busyAction.action === "approve"
+                                    ? t("common.loading")
+                                    : t("common.approve")}
+                                </button>
+                                <button
+                                  className="rounded-full border border-outline-variant px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-surface disabled:opacity-60"
+                                  disabled={busyAction?.kind === "verification" && busyAction.id === ownershipProof.id && busyAction.action === "reject"}
+                                  type="button"
+                                  onClick={() => { void handleModerationAction("verification", ownershipProof.id, "reject"); }}
+                                >
+                                  {busyAction?.kind === "verification" && busyAction.id === ownershipProof.id && busyAction.action === "reject"
+                                    ? t("common.loading")
+                                    : t("common.reject")}
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -997,8 +1202,8 @@ export default function AdminDashboardWorkspace() {
                           </p>
                           <p className="text-xs leading-[1.5] text-on-surface-variant">{user.email}</p>
                         </td>
-                        <td className="py-4 pr-4 text-sm leading-[1.5] text-on-surface-variant">
-                          {user.role}
+                        <td className="py-4 pr-4">
+                          <RoleBadge role={user.role} />
                         </td>
                         <td className="py-4 pr-4">
                           <span className="inline-flex rounded-full bg-secondary-container/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary">

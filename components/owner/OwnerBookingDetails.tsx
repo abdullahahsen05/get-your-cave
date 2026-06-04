@@ -64,11 +64,11 @@ export default function OwnerBookingDetails({
           </div>
           <div className="rounded-2xl border border-secondary/15 bg-secondary-container/15 p-3 text-sm text-on-surface-variant">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
-              <span>Owner share (80%)</span>
+              <span>{t("listingDetail.ownerShare")}</span>
               <span className="font-semibold text-on-surface">{formatMoney(ownerShare)}</span>
             </div>
             <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-3">
-              <span>Platform commission (20%)</span>
+              <span>{t("listingDetail.platformCommission")}</span>
               <span className="font-semibold text-on-surface">
                 {formatMoney(platformCommission)}
               </span>

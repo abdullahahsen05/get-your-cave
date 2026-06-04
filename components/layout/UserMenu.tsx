@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +9,6 @@ import UserAvatar from "@/components/ui/UserAvatar";
 import { useNotifications } from "@/components/providers/NotificationsProvider";
 
 export default function UserMenu() {
-  const router = useRouter();
   const { t } = useTranslation();
   const { user } = useNotifications();
   const [open, setOpen] = useState(false);
@@ -38,8 +36,7 @@ export default function UserMenu() {
         Accept: "application/json",
       },
     });
-    router.replace("/login");
-    router.refresh();
+    window.location.assign("/login");
   }
 
   return (

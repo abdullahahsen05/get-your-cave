@@ -297,7 +297,18 @@ export default function ListingDetailPage({ listingId }: Props) {
       const data = (await response.json()) as {
         booking?: { bookingNumber?: string; status?: string };
         error?: string;
+        conflictStartDate?: string;
+        conflictEndDate?: string | null;
       };
+
+      if (response.status === 409 && data.error === "booking_conflict") {
+        const fmt = (d: string) =>
+          new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+        const start = data.conflictStartDate ? fmt(data.conflictStartDate) : "—";
+        const end = data.conflictEndDate ? fmt(data.conflictEndDate) : "—";
+        setBookingError(t("listingDetail.bookingConflict", { startDate: start, endDate: end }));
+        return;
+      }
 
       if (!response.ok || !data.booking?.bookingNumber) {
         setBookingError(t("listingDetail.bookingError"));

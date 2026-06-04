@@ -875,6 +875,66 @@ export async function getAdminListings(params: {
   };
 }
 
+export async function getAdminListingById(listingId: string) {
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      city: true,
+      address: true,
+      postalCode: true,
+      storageType: true,
+      pricePerMonth: true,
+      securityDeposit: true,
+      insuranceFee: true,
+      status: true,
+      availability: true,
+      isPublished: true,
+      sizeM2: true,
+      sizeSqFt: true,
+      createdAt: true,
+      updatedAt: true,
+      amenities: {
+        include: { amenity: true },
+      },
+      images: {
+        orderBy: [{ isPrimary: "desc" as const }, { sortOrder: "asc" as const }],
+        select: { id: true, url: true, isPrimary: true, altText: true },
+      },
+      owner: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+              status: true,
+            },
+          },
+          verificationStatus: true,
+        },
+      },
+    },
+  });
+
+  if (!listing) {
+    return null;
+  }
+
+  return {
+    ...listing,
+    pricePerMonth: listing.pricePerMonth.toFixed(2),
+    securityDeposit: listing.securityDeposit.toFixed(2),
+    insuranceFee: listing.insuranceFee.toFixed(2),
+    amenityNames: listing.amenities.map((item) => item.amenity.name),
+    amenities: undefined,
+  };
+}
+
 export async function getAdminVerifications(params: {
   page: number;
   limit: number;
@@ -1018,16 +1078,9 @@ async function recalculateUserVerificationState(
     profileStatus = VerificationStatus.REJECTED;
   }
 
-  const accountStatus = allApproved
-    ? AccountStatus.ACTIVE
-    : AccountStatus.PENDING_VERIFICATION;
-
-  await tx.user.update({
-    where: { id: user.id },
-    data: {
-      status: accountStatus,
-    },
-  });
+  // Do NOT auto-activate the user account here. Document approval only updates
+  // profile verification status. Admin must explicitly call activateUserForAdmin
+  // to set user.status = ACTIVE (which enforces the doc-approved guard).
 
   if (user.ownerProfile) {
     await tx.ownerProfile.update({
@@ -1047,7 +1100,6 @@ async function recalculateUserVerificationState(
     userId: user.id,
     role: user.role,
     profileStatus,
-    accountStatus,
     allApproved,
     requiredDocuments,
   };
@@ -1375,6 +1427,26 @@ export async function activateUserForAdmin(userId: string, adminId: string) {
 
     if (user.status === AccountStatus.ACTIVE) {
       return { error: "User is already active." } as const;
+    }
+
+    if (user.role === UserRole.OWNER) {
+      const uploadedDocs = await tx.verificationDocument.findMany({
+        where: { userId },
+        select: { type: true, status: true },
+      });
+      const requiredTypes = [DocumentType.ID_CARD, DocumentType.PROOF_OF_OWNERSHIP];
+      const missingApproved = requiredTypes.filter(
+        (requiredType) =>
+          !uploadedDocs.some(
+            (doc) => doc.type === requiredType && doc.status === VerificationStatus.APPROVED,
+          ),
+      );
+      if (missingApproved.length > 0) {
+        return {
+          error:
+            "Owner's required documents must be approved first. Use the Pending Verifications section to approve the owner's ID card and proof of ownership.",
+        } as const;
+      }
     }
 
     await tx.user.update({

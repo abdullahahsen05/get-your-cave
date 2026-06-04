@@ -47,6 +47,7 @@ function buildPaymentWhere(params: {
   checkoutSessionId?: string | null;
   paymentIntentId?: string | null;
   chargeId?: string | null;
+  customerId?: string | null;
 }) {
   const or: Prisma.PaymentWhereInput[] = [];
 
@@ -64,6 +65,13 @@ function buildPaymentWhere(params: {
 
   if (params.chargeId) {
     or.push({ stripeChargeId: params.chargeId });
+  }
+
+  // Last-resort fallback: match by Stripe customer ID when all other IDs are missing.
+  // This handles payments created before stripePaymentIntentId was reliably stored.
+  // Scoped to PAID status so we only match a completed payment, not a pending one.
+  if (params.customerId) {
+    or.push({ stripeCustomerId: params.customerId, status: PaymentStatus.PAID });
   }
 
   return or.length ? { OR: or } : null;
@@ -86,6 +94,53 @@ function logWebhookDebug(message: string, details?: Record<string, unknown>) {
   }
 
   console.info(`[stripe-webhook] ${message}`);
+}
+
+async function sendRefundNotifications(params: {
+  paymentId: string;
+  invoiceId: string | null;
+  ownerReverted: boolean;
+}) {
+  const payment = await prisma.payment.findUnique({
+    where: { id: params.paymentId },
+    select: {
+      booking: {
+        select: {
+          listing: { select: { title: true } },
+          owner: { select: { userId: true } },
+          renter: { select: { userId: true } },
+          invoices: {
+            orderBy: [{ createdAt: "desc" as const }],
+            take: 1,
+            select: { invoiceNumber: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!payment) {
+    return;
+  }
+
+  const invoiceNumber =
+    payment.booking.invoices[0]?.invoiceNumber ?? `#${params.paymentId.slice(0, 8)}`;
+
+  await createNotificationForUser({
+    userId: payment.booking.renter.userId,
+    title: "Payment refunded",
+    body: `Your payment for invoice ${invoiceNumber} has been refunded.`,
+    linkUrl: params.invoiceId ? `/invoices/${params.invoiceId}` : "/invoices",
+  });
+
+  if (params.ownerReverted) {
+    await createNotificationForUser({
+      userId: payment.booking.owner.userId,
+      title: "Refund processed",
+      body: `A payment for ${payment.booking.listing.title} was refunded and your balance was adjusted.`,
+      linkUrl: "/owner/dashboard",
+    });
+  }
 }
 
 async function sendPaymentSuccessNotifications(params: {
@@ -195,118 +250,169 @@ type RecurringBookingSnapshot = {
   approvedAt: Date | null;
 };
 
+const BOOKING_INCLUDE = {
+  owner: {
+    include: {
+      user: {
+        select: {
+          fullName: true,
+          email: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  },
+  renter: {
+    include: {
+      user: {
+        select: {
+          fullName: true,
+          email: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  },
+  listing: {
+    select: {
+      id: true,
+      title: true,
+      city: true,
+      address: true,
+      storageType: true,
+      pricePerMonth: true,
+    },
+  },
+} as const;
+
 async function loadBookingForRecurringSubscription(stripe: Stripe, subscriptionId: string) {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const metadata = readStripeSubscriptionMetadata(subscription.metadata);
 
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer | null)?.id ?? null;
+
+  logWebhookDebug("subscription lookup", {
+    subscriptionId,
+    customerId,
+    metadataBookingId: metadata?.bookingId ?? null,
+    metadataInvoiceId: metadata?.invoiceId ?? null,
+    metadataMissing: !metadata,
+  });
+
   if (!metadata) {
+    logWebhookDebug("subscription metadata missing — cannot map to booking", {
+      subscriptionId,
+      rawMetadataKeys: Object.keys(subscription.metadata ?? {}),
+    });
     return null;
   }
 
+  // Path 1: direct booking ID from subscription metadata.
   const booking = await prisma.booking.findUnique({
     where: { id: metadata.bookingId },
-    include: {
-      owner: {
-        include: {
-          user: {
-            select: {
-              fullName: true,
-              email: true,
-              avatarUrl: true,
-            },
-          },
-        },
-      },
-      renter: {
-        include: {
-          user: {
-            select: {
-              fullName: true,
-              email: true,
-              avatarUrl: true,
-            },
-          },
-        },
-      },
-      listing: {
-        select: {
-          id: true,
-          title: true,
-          city: true,
-          address: true,
-          storageType: true,
-          pricePerMonth: true,
-        },
-      },
-    },
+    include: BOOKING_INCLUDE,
   });
 
-  if (!booking) {
-    if (metadata.invoiceId) {
-      const invoice = await prisma.invoice.findUnique({
-        where: { id: metadata.invoiceId },
-        select: {
-          bookingId: true,
-        },
+  if (booking) {
+    logWebhookDebug("booking found via metadata bookingId", { bookingId: booking.id });
+    return { booking, metadata, subscription };
+  }
+
+  logWebhookDebug("booking not found by metadata ID, trying fallbacks", {
+    metadataBookingId: metadata.bookingId,
+    hasInvoiceId: Boolean(metadata.invoiceId),
+    customerId,
+  });
+
+  // Path 2: local invoice ID stored in metadata.
+  if (metadata.invoiceId) {
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: metadata.invoiceId },
+      select: { bookingId: true },
+    });
+
+    if (invoice) {
+      const bookingByInvoice = await prisma.booking.findUnique({
+        where: { id: invoice.bookingId },
+        include: BOOKING_INCLUDE,
       });
 
-      if (invoice) {
-        const bookingByInvoice = await prisma.booking.findUnique({
-          where: { id: invoice.bookingId },
-          include: {
-            owner: {
-              include: {
-                user: {
-                  select: {
-                    fullName: true,
-                    email: true,
-                    avatarUrl: true,
-                  },
-                },
-              },
-            },
-            renter: {
-              include: {
-                user: {
-                  select: {
-                    fullName: true,
-                    email: true,
-                    avatarUrl: true,
-                  },
-                },
-              },
-            },
-            listing: {
+      if (bookingByInvoice) {
+        logWebhookDebug("booking found via invoiceId fallback", { bookingId: bookingByInvoice.id });
+        return { booking: bookingByInvoice, metadata, subscription };
+      }
+    }
+  }
+
+  // Path 3: Stripe customer email → local User → their most recent active booking.
+  // This handles cases where the local bookingId in metadata no longer matches (e.g.
+  // after a DB seed/reset during development).
+  if (customerId) {
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      const customerEmail =
+        !("deleted" in customer) && customer.email ? customer.email : null;
+
+      logWebhookDebug("customer email fallback", { customerId, customerEmail });
+
+      if (customerEmail) {
+        const user = await prisma.user.findUnique({
+          where: { email: customerEmail },
+          select: {
+            renterProfile: {
               select: {
-                id: true,
-                title: true,
-                city: true,
-                address: true,
-                storageType: true,
-                pricePerMonth: true,
+                renterBookings: {
+                  where: {
+                    status: {
+                      in: [
+                        BookingStatus.PENDING,
+                        BookingStatus.APPROVED,
+                        BookingStatus.ACTIVE,
+                      ],
+                    },
+                  },
+                  orderBy: { createdAt: "desc" },
+                  take: 1,
+                  include: BOOKING_INCLUDE,
+                },
               },
             },
           },
         });
 
-        if (bookingByInvoice) {
-          return {
-            booking: bookingByInvoice,
-            metadata,
-            subscription,
-          };
-        }
-      }
-    }
+        const bookingByEmail =
+          user?.renterProfile?.renterBookings[0] ?? null;
 
-    return null;
+        if (bookingByEmail) {
+          logWebhookDebug("booking found via customer email fallback", {
+            bookingId: bookingByEmail.id,
+            customerEmail,
+          });
+          return { booking: bookingByEmail, metadata, subscription };
+        }
+
+        logWebhookDebug("customer email fallback: no matching booking found", {
+          customerEmail,
+        });
+      }
+    } catch (customerError) {
+      logWebhookDebug("customer email fallback error (non-fatal)", {
+        customerId,
+        error: customerError instanceof Error ? customerError.message : "Unknown",
+      });
+    }
   }
 
-  return {
-    booking,
-    metadata,
-    subscription,
-  };
+  logWebhookDebug("booking lookup exhausted all paths — cannot process subscription event", {
+    subscriptionId,
+    metadataBookingId: metadata.bookingId,
+    customerId,
+  });
+
+  return null;
 }
 
 async function syncRecurringInvoiceFromStripe(params: {
@@ -320,6 +426,7 @@ async function syncRecurringInvoiceFromStripe(params: {
     subscription?: string | Stripe.Subscription | null;
     payment_intent?: string | Stripe.PaymentIntent | null;
     customer?: string | Stripe.Customer | null;
+    charge?: string | Stripe.Charge | null;
     amount_paid?: number | null;
     amount_due?: number | null;
     total?: number | null;
@@ -329,6 +436,13 @@ async function syncRecurringInvoiceFromStripe(params: {
     typeof invoice.subscription === "string"
       ? invoice.subscription
       : invoice.subscription?.id ?? null;
+  // The Stripe Invoice.charge field is set once the invoice is paid.
+  // Storing it ensures the refund webhook can always find the payment by charge ID
+  // even when the payment_intent lookup fails.
+  const invoiceChargeId =
+    typeof invoice.charge === "string"
+      ? invoice.charge
+      : invoice.charge?.id ?? null;
 
   if (!subscriptionId) {
     return {
@@ -412,6 +526,7 @@ async function syncRecurringInvoiceFromStripe(params: {
             params.paymentStatus === PaymentStatus.FAILED ? now : null,
           refundedAt: null,
           stripePaymentIntentId: paymentIntentId,
+          stripeChargeId: invoiceChargeId ?? existingPayment.stripeChargeId ?? null,
           stripeCustomerId:
             typeof invoice.customer === "string"
               ? invoice.customer
@@ -445,6 +560,27 @@ async function syncRecurringInvoiceFromStripe(params: {
           ownerCredited = true;
         }
       }
+
+      // Backfill missing Stripe IDs even when the status transition was a no-op.
+      // This fixes the case where applyRecurringCheckoutRecovery created the payment
+      // without a PI/charge ID, and invoice.paid arrives later with the real IDs.
+      const needsIdBackfill =
+        (paymentIntentId && !existingPayment.stripePaymentIntentId) ||
+        (invoiceChargeId && !existingPayment.stripeChargeId);
+
+      if (needsIdBackfill) {
+        await transaction.payment.update({
+          where: { id: existingPayment.id },
+          data: {
+            ...(paymentIntentId && !existingPayment.stripePaymentIntentId
+              ? { stripePaymentIntentId: paymentIntentId }
+              : {}),
+            ...(invoiceChargeId && !existingPayment.stripeChargeId
+              ? { stripeChargeId: invoiceChargeId }
+              : {}),
+          },
+        });
+      }
     } else {
       currentPayment = await transaction.payment.create({
         data: {
@@ -459,6 +595,7 @@ async function syncRecurringInvoiceFromStripe(params: {
           failedAt:
             params.paymentStatus === PaymentStatus.FAILED ? now : null,
           stripePaymentIntentId: paymentIntentId,
+          stripeChargeId: invoiceChargeId,
           stripeCustomerId:
             typeof invoice.customer === "string"
               ? invoice.customer
@@ -664,10 +801,15 @@ async function applyRecurringCheckoutRecovery(params: {
   const stripeInvoice = params.stripeInvoice as Stripe.Invoice & {
     payment_intent?: string | Stripe.PaymentIntent | null;
     customer?: string | Stripe.Customer | null;
+    charge?: string | Stripe.Charge | null;
     amount_paid?: number | null;
     amount_due?: number | null;
     total?: number | null;
   };
+  const recoveryChargeId =
+    typeof stripeInvoice.charge === "string"
+      ? stripeInvoice.charge
+      : stripeInvoice.charge?.id ?? null;
 
   const amountSource =
     stripeInvoice.amount_paid ??
@@ -730,12 +872,18 @@ async function applyRecurringCheckoutRecovery(params: {
           typeof stripeInvoice.payment_intent === "string"
               ? stripeInvoice.payment_intent
               : stripeInvoice.payment_intent?.id ?? null,
+          stripeChargeId: recoveryChargeId,
           stripeCustomerId:
             typeof stripeInvoice.customer === "string"
               ? stripeInvoice.customer
               : stripeInvoice.customer?.id ?? null,
         },
       }));
+
+    const recoveryPiId =
+      typeof stripeInvoice.payment_intent === "string"
+        ? stripeInvoice.payment_intent
+        : stripeInvoice.payment_intent?.id ?? null;
 
     await transaction.payment.updateMany({
       where: {
@@ -752,16 +900,28 @@ async function applyRecurringCheckoutRecovery(params: {
         status: PaymentStatus.PAID,
         paidAt: now,
         stripeCheckoutSessionId: params.sessionId,
-        stripePaymentIntentId:
-          typeof stripeInvoice.payment_intent === "string"
-            ? stripeInvoice.payment_intent
-            : stripeInvoice.payment_intent?.id ?? null,
+        stripePaymentIntentId: recoveryPiId,
+        stripeChargeId: recoveryChargeId,
         stripeCustomerId:
           typeof stripeInvoice.customer === "string"
             ? stripeInvoice.customer
             : stripeInvoice.customer?.id ?? null,
       },
     });
+
+    // Backfill Stripe IDs on already-PAID payment (same timing-race fix as syncRecurring).
+    if (
+      (recoveryPiId && !payment.stripePaymentIntentId) ||
+      (recoveryChargeId && !payment.stripeChargeId)
+    ) {
+      await transaction.payment.update({
+        where: { id: payment.id },
+        data: {
+          ...(recoveryPiId && !payment.stripePaymentIntentId ? { stripePaymentIntentId: recoveryPiId } : {}),
+          ...(recoveryChargeId && !payment.stripeChargeId ? { stripeChargeId: recoveryChargeId } : {}),
+        },
+      });
+    }
 
     const invoicePayload = {
       paymentId: payment.id,
@@ -1165,16 +1325,47 @@ export async function POST(request: Request) {
   if (
     verifiedEvent.type === "charge.refunded" ||
     verifiedEvent.type === "refund.created" ||
-    verifiedEvent.type === "refund.updated"
+    verifiedEvent.type === "refund.updated" ||
+    (verifiedEvent.type === "charge.refund.updated" &&
+      (verifiedEvent.data.object as Stripe.Refund).status === "succeeded")
   ) {
     const refundObject = verifiedEvent.data.object as Stripe.Charge | Stripe.Refund;
     const metadata = readStripeCheckoutMetadata(refundObject.metadata);
     const paymentIntentId = getPaymentIntentId(refundObject);
     const chargeId = getStripeObjectChargeId(refundObject);
+
+    // Extract customer ID from charge.refunded (Stripe.Charge has .customer).
+    // Used as last-resort fallback when stripePaymentIntentId/stripeChargeId are null in DB.
+    const chargeCustomerId: string | null =
+      verifiedEvent.type === "charge.refunded"
+        ? (() => {
+            const c = (refundObject as Stripe.Charge).customer;
+            return typeof c === "string" ? c : (c as Stripe.Customer | null)?.id ?? null;
+          })()
+        : null;
+
+    // Log all available refund identifiers upfront so we can confirm the event
+    // arrived and see which IDs are present before any DB lookup attempt.
+    const isRefundObject = verifiedEvent.type !== "charge.refunded";
+    logWebhookDebug("refund event details", {
+      eventType: verifiedEvent.type,
+      eventId: verifiedEvent.id,
+      refundId: isRefundObject ? (refundObject as Stripe.Refund).id : null,
+      chargeId,
+      paymentIntentId,
+      chargeCustomerId,
+      refundedAmount: isRefundObject
+        ? (refundObject as Stripe.Refund).amount
+        : (refundObject as Stripe.Charge).amount_refunded,
+      currency: refundObject.currency,
+      hasMetadata: Boolean(metadata),
+      metadataPaymentId: metadata?.paymentId ?? null,
+    });
     const paymentWhere = buildPaymentWhere({
       metadata,
       paymentIntentId,
       chargeId,
+      customerId: chargeCustomerId,
     });
 
     if (!paymentWhere) {
@@ -1203,13 +1394,26 @@ export async function POST(request: Request) {
     });
 
     if (!currentPayment) {
-      logWebhookDebug("refund ignored because payment was not found", {
+      logWebhookDebug("refund outcome", {
+        localPaymentFound: false,
+        localInvoiceFound: false,
         paymentIntentId,
         chargeId,
         hasMetadata: Boolean(metadata),
+        statusChanged: false,
+        notificationAttempted: false,
+        emailAttempted: false,
       });
       return NextResponse.json({ received: true });
     }
+
+    logWebhookDebug("refund: payment found", {
+      localPaymentFound: true,
+      paymentId: currentPayment.id,
+      paymentStatus: currentPayment.status,
+      stripePaymentIntentId: currentPayment.stripePaymentIntentId ?? null,
+      stripeChargeId: currentPayment.stripeChargeId ?? null,
+    });
 
     const now = new Date();
     const invoicePaymentSelect = {
@@ -1265,8 +1469,11 @@ export async function POST(request: Request) {
         })
       )?.ownerId;
 
+    let refundApplied = false;
+    let ownerReverted = false;
+
     try {
-      await prisma.$transaction(async (transaction) => {
+      const result = await prisma.$transaction(async (transaction) => {
         const transition = await transaction.payment.updateMany({
           where: {
             id: currentPayment.id,
@@ -1283,6 +1490,7 @@ export async function POST(request: Request) {
           },
         });
 
+        let walletReverted = false;
         if (transition.count > 0 && refundOwnerId) {
           await transaction.ownerProfile.update({
             where: {
@@ -1300,6 +1508,7 @@ export async function POST(request: Request) {
               },
             },
           });
+          walletReverted = true;
         }
 
         if (currentInvoice) {
@@ -1312,7 +1521,12 @@ export async function POST(request: Request) {
             },
           });
         }
+
+        return { applied: transition.count > 0, walletReverted };
       });
+
+      refundApplied = result.applied;
+      ownerReverted = result.walletReverted;
     } catch (error) {
       logWebhookDebug("refund webhook failed", {
         paymentIntentId,
@@ -1329,12 +1543,35 @@ export async function POST(request: Request) {
       revalidatePaymentPaths(currentInvoice.id);
     }
 
-    logWebhookDebug("refund applied", {
+    let notificationAttempted = false;
+
+    if (refundApplied) {
+      notificationAttempted = true;
+      await sendRefundNotifications({
+        paymentId: currentPayment.id,
+        invoiceId: currentInvoice?.id ?? null,
+        ownerReverted,
+      }).catch((notifError) => {
+        logWebhookDebug("refund notification failed (non-fatal)", {
+          error: notifError instanceof Error ? notifError.message : "Unknown error",
+        });
+      });
+    }
+
+    // Comprehensive outcome log — placed after notifications so every field is final.
+    // emailAttempted mirrors notificationAttempted: createNotificationForUser fires
+    // an email automatically when emailNotificationsEnabled=true on the user record.
+    logWebhookDebug("refund outcome", {
+      localPaymentFound: true,
+      localInvoiceFound: currentInvoice !== null,
       paymentId: currentPayment.id,
-      bookingId: currentPayment.bookingId,
       invoiceId: currentInvoice?.id ?? null,
       paymentIntentId,
       chargeId,
+      statusChanged: refundApplied,
+      ownerReverted,
+      notificationAttempted,
+      emailAttempted: notificationAttempted,
     });
 
     return NextResponse.json({ received: true });

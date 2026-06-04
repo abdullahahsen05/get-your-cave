@@ -10,7 +10,8 @@
     "db:sanity": "tsx scripts/db-sanity-check.ts",
     "db:reset": "node scripts/reset-database.js",
     "db:seed-demo": "tsx prisma/seed-demo.ts",
-    "db:seed-admin": "node prisma/seed-admin.js --yes"
+    "db:seed-admin": "node prisma/seed-admin.js --yes",
+    "ngrok": "ngrok http 3000"
   },
   "prisma": {
     "seed": "tsx prisma/seed-demo.ts"

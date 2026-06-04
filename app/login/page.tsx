@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -45,7 +44,6 @@ const loginFeatures = [
 ] as const;
 
 export default function LoginPage() {
-  const router = useRouter();
   const { t } = useTranslation();
   const [nextPath] = useState<string | null>(() => {
     if (typeof window === "undefined") {
@@ -70,9 +68,13 @@ export default function LoginPage() {
       return nextPath ?? "/renter/dashboard";
     }
 
-    return user.status !== "ACTIVE" && (user.role === "OWNER" || user.role === "RENTER")
-      ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
-      : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
+    // Only OWNER needs to verify before accessing the platform.
+    // RENTER can access their dashboard and book regardless of verification status.
+    if (user.role === "OWNER" && user.status !== "ACTIVE") {
+      return `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`;
+    }
+
+    return nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
   }
 
   async function requestTwoFactorCode(credentials: LoginFormState) {
@@ -105,8 +107,7 @@ export default function LoginPage() {
       }
 
       if (data?.user?.role && data.requiresTwoFactor === false) {
-        router.replace(resolveDestination(data.user));
-        router.refresh();
+        window.location.assign(resolveDestination(data.user));
         return true;
       }
 
@@ -163,8 +164,7 @@ export default function LoginPage() {
         return false;
       }
 
-      router.replace(resolveDestination(user));
-      router.refresh();
+      window.location.assign(resolveDestination(user));
       return true;
     } catch {
       setErrorMessage(t("auth.loginError"));

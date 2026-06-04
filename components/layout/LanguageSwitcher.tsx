@@ -1,5 +1,6 @@
 "use client";
 
+import { startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
@@ -24,9 +25,15 @@ export default function LanguageSwitcher() {
       return;
     }
 
+    // Update client i18next immediately (affects client components like nav/topbar).
     setBrowserLocale(locale);
     void i18n.changeLanguage(locale);
-    router.refresh();
+
+    // Re-render server components in the background so they pick up the new locale cookie.
+    // startTransition marks this as non-urgent — the toggle stays responsive.
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   return (

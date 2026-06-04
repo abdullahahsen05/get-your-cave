@@ -17,7 +17,7 @@
     "cancel": "Annuler",
     "back": "Retour",
     "save": "Enregistrer",
-    "saveDraft": "Enregistrer le brouillon",
+    "saveDraft": "Sauvegarder",
     "submit": "Envoyer",
     "submitListing": "Publier",
     "edit": "Modifier",
@@ -56,8 +56,7 @@
     "owner": "Propriétaire",
     "renter": "Locataire",
     "admin": "Admin",
-    "status": "Statut",
-    "archive": "Archiver"
+    "status": "Statut"
   },
   "nav": {
     "home": "Accueil",
@@ -262,7 +261,36 @@
     "markAllRead": "Tout marquer comme lu",
     "unreadCount": "{{count}} notifications non lues",
     "emptyTitle": "Vous êtes à jour",
-    "emptyDescription": "Les nouvelles alertes et mises à jour de lecture apparaîtront ici en temps réel."
+    "emptyDescription": "Les nouvelles alertes et mises à jour de lecture apparaîtront ici en temps réel.",
+    "paymentReceived": "Paiement reçu",
+    "ownerPayoutCompleted": "Versement effectué",
+    "paymentFailed": "Paiement échoué",
+    "requestAccepted": "Demande acceptée",
+    "requestRejected": "Demande refusée",
+    "bookingRequest": "Demande de réservation",
+    "bookingCancelled": "Réservation annulée",
+    "listingPublished": "Annonce publiée",
+    "listingRejected": "Annonce refusée",
+    "documentApproved": "Document approuvé",
+    "documentRejected": "Document refusé",
+    "paymentRefunded": "Paiement remboursé",
+    "refundProcessed": "Remboursement traité",
+    "newMessageFrom": "Nouveau message de {{name}}",
+    "bodyPaymentReceived": "Votre paiement pour la réservation {{bookingNumber}} a été reçu.",
+    "bodyOwnerPayoutCompleted": "Votre versement pour la réservation {{bookingNumber}} a été ajouté à votre solde.",
+    "bodyPaymentFailedRecurring": "Votre paiement de réservation récurrente n'a pas pu être traité. Veuillez mettre à jour votre moyen de paiement.",
+    "bodyPaymentFailedStripe": "Votre paiement Stripe a échoué. Veuillez essayer un autre moyen de paiement ou mettre à jour votre carte.",
+    "bodyRequestAccepted": "Votre demande de réservation {{bookingNumber}} a été acceptée.",
+    "bodyRequestRejected": "Votre demande de réservation {{bookingNumber}} a été refusée.",
+    "bodyBookingCancelledRenter": "Votre réservation {{bookingNumber}} a été annulée et toutes les factures ouvertes ont été clôturées.",
+    "bodyBookingCancelledOwner": "La réservation {{bookingNumber}} a été annulée par le locataire.",
+    "bodyBookingRequest": "Vous avez reçu une nouvelle demande de réservation pour {{listingTitle}}.",
+    "bodyListingPublished": "Votre annonce « {{listingTitle}} » est maintenant publiée.",
+    "bodyListingRejected": "Votre annonce « {{listingTitle}} » a été refusée.",
+    "bodyDocumentApproved": "Votre {{docType}} a été approuvé.",
+    "bodyDocumentRejected": "Votre {{docType}} a été refusé.",
+    "bodyPaymentRefunded": "Votre paiement pour la facture {{invoiceNumber}} a été remboursé.",
+    "bodyRefundProcessed": "Un paiement pour {{listingTitle}} a été remboursé et votre solde a été ajusté."
   },
   "maps": {
     "title": "Vue carte",
@@ -318,7 +346,7 @@
     "verifying": "Vérification...",
     "resendCode": "Renvoyer le code",
     "backToCredentials": "Retour",
-    "emailPlaceholder": "nom@luxury.com",
+    "emailPlaceholder": "prenom.nom@example.com",
     "signingIn": "Connexion en cours...",
     "formError": "Veuillez vérifier les champs du formulaire.",
     "loginError": "Impossible de vous connecter pour le moment.",
@@ -452,16 +480,31 @@
       "tileFourSubtitle": "Propriétaires actifs"
     },
     "stats": {
-      "one": { "value": "1 240", "label": "Espaces disponibles" },
-      "two": { "value": "870", "label": "Propriétaires actifs" },
-      "three": { "value": "48", "label": "Villes couvertes" },
-      "four": { "value": "65%", "label": "Économie moyenne" }
+      "one": {
+        "value": "1 240",
+        "label": "Espaces disponibles"
+      },
+      "two": {
+        "value": "870",
+        "label": "Propriétaires actifs"
+      },
+      "three": {
+        "value": "48",
+        "label": "Villes couvertes"
+      },
+      "four": {
+        "value": "65%",
+        "label": "Économie moyenne"
+      }
     },
     "how": {
       "eyebrow": "Simple & rapide",
       "title": "Comment ça marche ?",
       "subtitle": "Trouver un espace de stockage de quartier n'a jamais été aussi simple.",
-      "tabs": { "find": "Je cherche un espace", "rent": "Je loue mon espace" },
+      "tabs": {
+        "find": "Je cherche un espace",
+        "rent": "Je loue mon espace"
+      },
       "find": {
         "step1": {
           "title": "Cherchez",
@@ -569,10 +612,22 @@
       "title": "Des espaces qui vous ressemblent",
       "subtitle": "Choisissez le format de stockage qui vous convient le mieux.",
       "action": "Explorer",
-      "card1": { "title": "Cave / cellier", "meta": "1 à 4 m²" },
-      "card2": { "title": "Box", "meta": "4 à 10 m²" },
-      "card3": { "title": "Local de stockage", "meta": "10 à 20 m²" },
-      "card4": { "title": "Autres espaces de stockage", "meta": "15 m² et +" }
+      "card1": {
+        "title": "Cave / cellier",
+        "meta": "1 à 4 m²"
+      },
+      "card2": {
+        "title": "Box",
+        "meta": "4 à 10 m²"
+      },
+      "card3": {
+        "title": "Local de stockage",
+        "meta": "10 à 20 m²"
+      },
+      "card4": {
+        "title": "Autres espaces de stockage",
+        "meta": "15 m² et +"
+      }
     },
     "simulator": {
       "eyebrow": "Propriétaires",
@@ -609,11 +664,16 @@
       "result": {
         "label": "Estimation mensuelle",
         "perMonth": "/ mois",
-        "note": "Après commission GetYourCave (8%)"
+        "note": "Après commission GetYourCave (20%)"
       },
-      "metrics": { "year": "Par an", "fiveYear": "Sur 5 ans" },
+      "metrics": {
+        "year": "Par an",
+        "fiveYear": "Sur 5 ans"
+      },
       "ownerTitle": "Publication",
-      "ownerResult": { "label": "Revenu estimé" }
+      "ownerResult": {
+        "label": "Revenu estimé"
+      }
     },
     "testimonials": {
       "eyebrow": "Ils nous font confiance",
@@ -643,7 +703,7 @@
     }
   },
   "storage": {
-    "searchPlaceholder": "De quel espace avez-vous besoin é",
+    "searchPlaceholder": "De quel espace avez-vous besoin ?",
     "searchType": "Type de recherche",
     "searchModeAll": "Tous les emplacements",
     "searchModeAddress": "Adresse",
@@ -655,9 +715,9 @@
     "searchCityPlaceholder": "Ville",
     "searchGeolocationPlaceholder": "Rechercher un lieu ou un quartier",
     "sizePlaceholder": "Toutes tailles",
-    "sizeSmall": "Petit (5x5 pi)",
-    "sizeMedium": "Moyen (10x10 pi)",
-    "sizeLarge": "Grand (20x20 pi)",
+    "sizeSmall": "Petite (jusqu'à 5 m²)",
+    "sizeMedium": "Moyenne (5 à 15 m²)",
+    "sizeLarge": "Grande (15 m² et plus)",
     "moveInDate": "Date d’emménagement",
     "loadingCaves": "Chargement...",
     "storageCaves": "Espaces de stockage",
@@ -683,11 +743,11 @@
     "filter247": "Accès 24/7",
     "filterElevator": "Ascenseur",
     "filterVentilation": "Ventilation",
-    "filterHumidity": "Contrôle de léhumiditée",
+    "filterHumidity": "Contrôle de l'humidité",
     "latitudeLabel": "Latitude",
     "longitudeLabel": "Longitude",
     "useCurrentLocation": "Utiliser ma position",
-    "clearFilters": "Réinitialiser les filtres",
+    "clearFilters": "Effacer les filtres",
     "geoLookupFailed": "Impossible de localiser cet emplacement.",
     "geoUnsupported": "La géolocalisation n’est pas prise en charge par ce navigateur.",
     "locationUnavailable": "Impossible de déterminer votre position actuelle.",
@@ -732,17 +792,17 @@
     "noCoordinates": "L’aperçu de la carte apparaîtra dès que les coordonnées seront disponibles.",
     "bookingSubmitted": "Réservation envoyée."
   },
-    "createListing": {
-      "title": "Créer une annonce",
-      "subtitle": "Gérez tout depuis un seul endroit.",
-      "steps": {
-        "basic": "Détails de base",
-        "photos": "Photos",
-        "pricing": "Tarifs",
-        "location": "Emplacement",
-        "amenities": "Équipements",
-        "basicDetails": "Détails de base"
-      },
+  "createListing": {
+    "title": "Créer une annonce",
+    "subtitle": "Gérez tout depuis un seul endroit.",
+    "steps": {
+      "basic": "Détails de base",
+      "photos": "Photos",
+      "pricing": "Tarifs",
+      "location": "Emplacement",
+      "amenities": "Équipements",
+      "basicDetails": "Détails de base"
+    },
     "saveDraft": "Enregistrer le brouillon",
     "submitListing": "Publier",
     "continue": "Continuer",
@@ -779,26 +839,26 @@
     "address": "Adresse",
     "city": "Ville",
     "postalCode": "Code postal",
-      "storageTypes": {
-        "cellarCave": "Cave / cellier",
-        "box": "Box",
-        "closet": "Placard",
-        "storageRoom": "Local de stockage",
-        "otherStorageSpaces": "Autres espaces de stockage"
-      },
-      "amenities": {
-        "securityCamera": "Caméra de sécurité",
-        "alarmSystem": "Système d’alarme",
-        "access247": "Accès 24/7",
-        "elevator": "Ascenseur",
-        "ventilation": "Ventilation",
-        "humidityControl": "Contrôle de l’humidité",
-        "privateEntry": "Entrée privée",
-        "gated": "Accès sécurisé",
-        "loadingDock": "Quai de chargement",
-        "title": "Équipements",
-        "description": "Mettez en avant les atouts qui distinguent votre espace."
-      },
+    "storageTypes": {
+      "cellarCave": "Cave / cellier",
+      "box": "Box",
+      "closet": "Placard",
+      "storageRoom": "Local de stockage",
+      "otherStorageSpaces": "Autres espaces de stockage"
+    },
+    "amenities": {
+      "securityCamera": "Caméra de sécurité",
+      "alarmSystem": "Système d’alarme",
+      "access247": "Accès 24/7",
+      "elevator": "Ascenseur",
+      "ventilation": "Ventilation",
+      "humidityControl": "Contrôle de l’humidité",
+      "privateEntry": "Entrée privée",
+      "gated": "Accès sécurisé",
+      "loadingDock": "Quai de chargement",
+      "title": "Équipements",
+      "description": "Mettez en avant les atouts qui distinguent votre espace."
+    },
     "errors": {
       "bothCoordinates": "Saisissez la latitude et la longitude ensemble ou laissez les deux champs vides.",
       "unableToReadFile": "Impossible de lire ce fichier.",
@@ -925,7 +985,7 @@
       "bookingRequestsWaiting": "Vous avez {{count}} demandes de réservation en attente déapprobation",
       "noInvoices": "Aucune facture trouvée pour le moment.",
       "viewAllInvoices": "Voir toutes les factures",
-      "addNewCave": "Ajouter une nouvelle cave",
+      "addNewCave": "Ajouter une cave",
       "monthlyRevenue": "Revenu mensuel",
       "recentActivity": "Activité récente",
       "requested": "a demandé",
@@ -956,7 +1016,9 @@
       "invoiceNumber": "Facture #",
       "bookingColumn": "Réservation",
       "amountColumn": "Montant",
-      "statusColumn": "Statut"
+      "statusColumn": "Statut",
+      "actions": "Actions",
+      "contractNumber": "Contrat #"
     },
     "renter": {
       "title": "Tableau de bord locataire",
@@ -1254,11 +1316,15 @@
     "maxFileSize": "TAILLE MAXIMALE DU FICHIER 10 Mo",
     "accountStatusTitle": "Statut du compte",
     "deleteConfirmation": "Supprimer ce document é Les documents approuvés ne peuvent pas étre supprimés.",
-    "documentUploaded": "{{type}} téléversé avec succés."
+    "documentUploaded": "{{type}} téléversé avec succés.",
+    "pendingOverlayTitle": "Vérification en cours",
+    "pendingOverlayBody": "Vos documents ont été soumis et sont en cours d'examen. Vous pourrez créer une annonce une fois vos documents vérifiés.",
+    "pendingOverlayViewStatus": "Voir le statut de vérification",
+    "pendingOverlayDashboard": "Aller au tableau de bord"
   },
   "payments": {
-    "successTitle": "Paiement Stripe lancé avec succès",
-    "successDescription": "Stripe a reçu votre tentative de paiement. Une fois le webhook confirmé, votre facture et votre réservation seront mises à jour dans l’application.",
+    "successTitle": "Paiement réussi",
+    "successDescription": "Votre abonnement est actif. Votre facture et réservation seront mis à jour automatiquement.",
     "cancelTitle": "Paiement annulé",
     "cancelDescription": "Aucun paiement n’a été capturé. Vous pouvez revenir à votre facture et réessayer quand vous le souhaitez.",
     "returnToInvoice": "Retour à la facture",
@@ -1267,7 +1333,14 @@
     "goBack": "Retour",
     "payment": "Paiement",
     "invoiceReference": "Facture {{value}}",
-    "sessionReference": "Session {{value}}"
+    "sessionReference": "Session {{value}}",
+    "processingTitle": "Paiement en cours",
+    "processingDescription": "Votre paiement est en cours de confirmation. Cela prend généralement quelques secondes. Consultez votre facture pour le statut à jour.",
+    "refunded": "Remboursé",
+    "refundTitle": "Paiement remboursé",
+    "refundDescription": "Votre paiement pour la facture {{invoiceNumber}} a été remboursé.",
+    "refundOwnerTitle": "Remboursement traité",
+    "refundOwnerDescription": "Un paiement pour {{listingTitle}} a été remboursé et votre solde a été ajusté."
   },
   "listingDetail": {
     "reviewsLabel": "{{count}} avis",
@@ -1321,6 +1394,7 @@
     "sqFt": "m²",
     "loadError": "Impossible de charger l’annonce.",
     "bookingError": "Impossible de créer la réservation pour le moment.",
+    "bookingConflict": "Cette cave est déjà réservée du {{startDate}} au {{endDate}}.",
     "conversationError": "Impossible de lancer la conversation pour le moment.",
     "notFoundTitle": "Annonce introuvable",
     "notFoundDescription": "Léannonce demandée n’est pas disponible.",
@@ -1402,12 +1476,82 @@
     "allUsers": "Tous les utilisateurs",
     "ownerStatus": "Vérification propriétaire",
     "renterStatus": "Vérification locataire",
-    "suspendUser": "Suspendre l’utilisateur",
-    "reactivateUser": "Réactiver l'utilisateur",
+    "suspendUser": "Suspendre",
+    "reactivateUser": "Réactiver",
     "unableToUpdate": "Impossible de mettre à jour l'utilisateur.",
     "unableToDelete": "Impossible de supprimer l'utilisateur.",
     "unableToLoad": "Impossible de charger les détails de l'utilisateur.",
-    "empty": "Aucun utilisateur trouvé pour ces filtres."
+    "empty": "Aucun utilisateur trouvé pour ces filtres.",
+    "detail": {
+      "profileDetails": "Détails du profil",
+      "profileDetailsSubtitle": "Données du compte (lecture seule).",
+      "emailVerified": "E-mail vérifié",
+      "verifiedEmail": "E-mail vérifié",
+      "unverifiedEmail": "E-mail non vérifié",
+      "updated": "Mis à jour",
+      "ownerVerification": "Vérif. propriétaire",
+      "renterVerification": "Vérif. locataire",
+      "country": "Pays",
+      "responseRate": "Taux de réponse",
+      "walletBalance": "Solde portefeuille",
+      "ownerProfile": "Profil propriétaire",
+      "ownerProfileSubtitle": "IBAN, solde et adresse côté propriétaire.",
+      "renterProfile": "Profil locataire",
+      "renterProfileSubtitle": "Adresse et vérification côté locataire.",
+      "verificationDocuments": "Documents de vérification",
+      "verificationDocumentsSubtitle": "Fichiers soumis et statut d'examen.",
+      "unnamedFile": "Fichier sans nom",
+      "file": "Fichier",
+      "reviewedAt": "Examiné le",
+      "rejectionReason": "Motif de refus",
+      "noVerificationDocuments": "Aucun document de vérification trouvé.",
+      "ownerListings": "Annonces propriétaire",
+      "ownerListingsSubtitle": "Toutes les annonces de cet utilisateur.",
+      "published": "Publié",
+      "monthlyPrice": "Prix mensuel",
+      "created": "Créé le",
+      "noListings": "Aucune annonce trouvée.",
+      "ownerBookings": "Réservations propriétaire",
+      "ownerBookingsSubtitle": "Réservations liées aux annonces du propriétaire.",
+      "marketplaceSplit": "Répartition plateforme",
+      "marketplaceSplitValue": "80% propriétaire / 20% plateforme",
+      "totalMonthly": "Total mensuel",
+      "contract": "Contrat",
+      "invoice": "Facture",
+      "payment": "Paiement",
+      "noBookings": "Aucune réservation trouvée.",
+      "ownerContracts": "Contrats propriétaire",
+      "ownerContractsSubtitle": "Contrats signés et téléchargeables.",
+      "signedAt": "Signé le",
+      "openFile": "Ouvrir",
+      "noContracts": "Aucun contrat trouvé.",
+      "ownerInvoices": "Factures propriétaire",
+      "ownerInvoicesSubtitle": "Historique financier et factures téléchargeables.",
+      "platformFee": "Frais plateforme",
+      "pdf": "PDF",
+      "noInvoices": "Aucune facture trouvée.",
+      "ownerPayments": "Paiements propriétaire",
+      "ownerPaymentsSubtitle": "Paiements enregistrés et répartitions.",
+      "ownerAmount": "Part propriétaire",
+      "noPayments": "Aucun paiement trouvé.",
+      "renterBookings": "Réservations locataire",
+      "renterBookingsSubtitle": "Réservations liées au locataire.",
+      "renterContracts": "Contrats locataire",
+      "renterContractsSubtitle": "Contrats liés aux réservations du locataire.",
+      "renterInvoices": "Factures locataire",
+      "renterInvoicesSubtitle": "Factures et paiements du locataire.",
+      "renterPayments": "Paiements locataire",
+      "renterPaymentsSubtitle": "Paiements liés aux réservations du locataire.",
+      "notifications": "Notifications",
+      "notificationsSubtitle": "Notifications récentes envoyées à cet utilisateur.",
+      "read": "Lu",
+      "unread": "Non lu",
+      "link": "Lien",
+      "noNotifications": "Aucune notification trouvée.",
+      "adminLogs": "Journaux admin",
+      "adminLogsSubtitle": "Historique des actions sur cet utilisateur.",
+      "noAdminLogs": "Aucun journal admin trouvé."
+    }
   },
   "app": {
     "create": {

@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@/components/providers/NotificationsProvider";
 import { normalizeLocale } from "@/lib/i18n";
+import { translateNotification } from "@/lib/notifications-i18n";
 
 function formatTimeLabel(value: string | null, locale: string) {
   if (!value) {
@@ -119,6 +120,7 @@ export default function NotificationBell() {
             {sortedNotifications.length ? (
               sortedNotifications.map((notification) => {
                 const unread = !notification.readAt;
+                const translated = translateNotification(notification, t);
 
                 return (
                   <button
@@ -148,11 +150,11 @@ export default function NotificationBell() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-[14px] font-extrabold text-[#1f2937]">
-                            {notification.title}
+                            {translated.title}
                           </p>
-                          {notification.body ? (
+                          {translated.body ? (
                             <p className="mt-1 text-[13px] leading-6 text-[#4b5563]">
-                              {notification.body}
+                              {translated.body}
                             </p>
                           ) : null}
                         </div>

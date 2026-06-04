@@ -25,14 +25,18 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
   const invoiceId = firstValue(params.invoice_id);
   const sessionId = firstValue(params.session_id);
 
-  // Fallback: verify the Stripe session server-side in case the webhook hasn't arrived yet.
-  // This is idempotent — the webhook handler uses the same guards so no double-credit occurs.
-  if (sessionId) {
-    await confirmStripeSessionIfPaid(sessionId);
-  }
+  // Verify the Stripe session server-side and sync local state (fallback for missed webhooks).
+  // For subscription mode this also marks the invoice PAID if Stripe confirms payment.
+  const paymentConfirmed = sessionId
+    ? await confirmStripeSessionIfPaid(sessionId)
+    : false;
+
   const invoiceHref = invoiceId
     ? `/invoices/${invoiceId}${sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : ""}`
     : "/invoices";
+
+  const titleKey = paymentConfirmed ? "payments.successTitle" : "payments.processingTitle";
+  const descKey = paymentConfirmed ? "payments.successDescription" : "payments.processingDescription";
 
   return (
     <main className="min-h-screen bg-background text-on-background px-4 pb-20 pt-24 sm:px-6 sm:pb-24 sm:pt-28 lg:px-8">
@@ -47,10 +51,10 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
 
               <div className="mt-6 max-w-3xl space-y-4">
                 <h1 className="font-h1 text-[clamp(2.5rem,4vw,4.2rem)] leading-[0.95] text-primary">
-                  {t("payments.successTitle")}
+                  {t(titleKey)}
                 </h1>
                 <p className="max-w-2xl text-body-lg text-on-surface-variant">
-                  {t("payments.successDescription")}
+                  {t(descKey)}
                 </p>
               </div>
 
@@ -74,12 +78,12 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
               <div className="flex h-full flex-col justify-between gap-6 rounded-[28px] border border-outline-variant/60 bg-surface-container-low px-5 py-6">
                 <div className="space-y-3">
                   <div className="inline-flex rounded-full bg-secondary-container/20 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">
-                    {t("payments.successTitle")}
+                    {t(titleKey)}
                   </div>
                   <p className="text-sm text-on-surface-variant">
                     {invoiceId
                       ? t("payments.invoiceReference", { value: invoiceId })
-                      : t("payments.successDescription")}
+                      : t(descKey)}
                   </p>
                 </div>
 
@@ -90,7 +94,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
                   <p className="mt-2 text-sm text-on-surface-variant">
                     {sessionId
                       ? t("payments.sessionReference", { value: `${sessionId.slice(0, 18)}…` })
-                      : t("payments.successDescription")}
+                      : t(descKey)}
                   </p>
                 </div>
               </div>

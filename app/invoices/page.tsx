@@ -7,6 +7,7 @@ import {
   normalizeInvoiceSort,
   normalizeInvoiceStatusFilter,
 } from "@/lib/invoices/invoiceTypes";
+import { syncRecentPaidInvoicesRefundStatus } from "@/lib/payments/syncRefundStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,17 @@ export default async function InvoicesPage({ searchParams }: Props) {
   const search = getSingleValue(params.q);
   const status = normalizeInvoiceStatusFilter(getSingleValue(params.status));
   const sort = normalizeInvoiceSort(getSingleValue(params.sort));
+
+  // Sync refund status for recently-paid invoices before rendering the list.
+  // This ensures the list reflects Stripe refunds even when the webhook was not
+  // delivered (e.g. ngrok URL changed, charge.refunded event not enabled).
+  await syncRecentPaidInvoicesRefundStatus({
+    role: currentUser.role,
+    ownerProfileId: currentUser.ownerProfile?.id ?? null,
+    renterProfileId: currentUser.renterProfile?.id ?? null,
+  }).catch(() => {
+    // Non-fatal — Stripe API errors must not prevent the page from rendering.
+  });
 
   const invoicesResult = await getInvoicesForViewer(
     {

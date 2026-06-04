@@ -474,12 +474,15 @@ export async function generateInvoiceForBooking(params: {
     return null;
   }
 
+  // Each payable invoice represents exactly one monthly billing period.
+  // Stripe subscription duration (durationMonths) is tracked via cancel_at metadata,
+  // not by multiplying the invoice total. Pass billingPeriods: 1 always.
   const charges = calculateInvoiceCharges({
     monthlyPrice: booking.monthlyPrice,
     insuranceFee: booking.insuranceFee,
     securityDeposit: booking.securityDeposit,
     platformCommission: booking.platformCommission,
-    durationMonths: booking.durationMonths ?? 1,
+    billingPeriods: 1,
   });
 
   const issuedAt = new Date();

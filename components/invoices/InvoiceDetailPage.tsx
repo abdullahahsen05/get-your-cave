@@ -221,18 +221,18 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
               {invoice.payment ? (
                 <div className="rounded-2xl border border-secondary/15 bg-secondary-container/15 p-4">
                   <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
-                    Payment split
+                    {t("invoiceDetail.paymentSplit")}
                   </p>
                   <div className="mt-3 grid gap-3">
                     <div className="flex items-center justify-between gap-4">
-                      <span className="font-body-md font-semibold text-primary">Owner share (80%)</span>
+                      <span className="font-body-md font-semibold text-primary">{t("listingDetail.ownerShare")}</span>
                       <span className="font-body-md font-semibold text-primary">
                         {formatSplitAmount(invoice.payment.ownerAmount)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
                       <span className="font-body-md font-semibold text-primary">
-                        Platform commission (20%)
+                        {t("listingDetail.platformCommission")}
                       </span>
                       <span className="font-body-md font-semibold text-primary">
                         {formatSplitAmount(invoice.payment.platformCommission)}

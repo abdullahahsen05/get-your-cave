@@ -192,13 +192,14 @@ export default function SignUpPage() {
         return;
       }
 
+      // Only OWNER needs to verify before accessing the platform.
+      // RENTER goes directly to their dashboard after signup.
       const destination =
-        user.role === "OWNER" || user.role === "RENTER"
+        user.role === "OWNER"
           ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
           : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
 
-      router.replace(destination);
-      router.refresh();
+      window.location.assign(destination);
     } catch {
       setErrorMessage(t("auth.signupError"));
     } finally {

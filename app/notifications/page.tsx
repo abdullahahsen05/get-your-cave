@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { listNotificationsForUser } from "@/lib/notifications";
 import { createTranslator } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n.server";
+import { translateNotification } from "@/lib/notifications-i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function NotificationsPage() {
           {notifications.length ? (
             notifications.map((notification) => {
               const unread = !notification.readAt;
+              const translated = translateNotification(notification, t);
 
               return (
                 <article
@@ -65,10 +67,10 @@ export default async function NotificationsPage() {
                 >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <h2 className="font-h3 text-h3 text-primary">{notification.title}</h2>
-                      {notification.body ? (
+                      <h2 className="font-h3 text-h3 text-primary">{translated.title}</h2>
+                      {translated.body ? (
                         <p className="mt-2 max-w-3xl text-body-sm text-on-surface-variant">
-                          {notification.body}
+                          {translated.body}
                         </p>
                       ) : null}
                     </div>

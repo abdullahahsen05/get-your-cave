@@ -18,11 +18,18 @@ export type InvoiceChargeInput = {
   securityDeposit?: number | string | Prisma.Decimal | null;
   platformCommission?: number | string | Prisma.Decimal | null;
   taxAmount?: number | string | Prisma.Decimal | null;
-  durationMonths?: number | null;
+  /**
+   * billingPeriods controls how many months this invoice covers.
+   * For a payable invoice (stored in DB / sent to Stripe), always pass 1.
+   * Stripe subscription duration is controlled separately via cancel_at metadata,
+   * not by multiplying the invoice amount.
+   * Pass a value > 1 only for display-only contract-total estimates.
+   */
+  billingPeriods?: number | null;
 };
 
 export function calculateInvoiceCharges(input: InvoiceChargeInput) {
-  const months = Math.max(1, Math.round(input.durationMonths ?? 1));
+  const periods = Math.max(1, Math.round(input.billingPeriods ?? 1));
 
   const monthlyPrice    = toDecimal(input.monthlyPrice).toDecimalPlaces(2);
   const insuranceFee    = toDecimal(input.insuranceFee ?? 0).toDecimalPlaces(2);
@@ -30,18 +37,18 @@ export function calculateInvoiceCharges(input: InvoiceChargeInput) {
   const platformFee     = toDecimal(input.platformCommission ?? 0).toDecimalPlaces(2);
   const taxes           = toDecimal(input.taxAmount ?? 0).toDecimalPlaces(2);
 
-  // Recurring charges scale with duration; security deposit is one-time.
-  const totalRent      = monthlyPrice.mul(months).toDecimalPlaces(2);
-  const totalInsurance = insuranceFee.mul(months).toDecimalPlaces(2);
-  const totalPlatform  = platformFee.mul(months).toDecimalPlaces(2);
-  const totalTaxes     = taxes.mul(months).toDecimalPlaces(2);
+  // Recurring charges scale with billing periods; security deposit is one-time.
+  const totalRent      = monthlyPrice.mul(periods).toDecimalPlaces(2);
+  const totalInsurance = insuranceFee.mul(periods).toDecimalPlaces(2);
+  const totalPlatform  = platformFee.mul(periods).toDecimalPlaces(2);
+  const totalTaxes     = taxes.mul(periods).toDecimalPlaces(2);
 
   const subtotal   = totalRent.add(totalInsurance).add(securityDeposit).toDecimalPlaces(2);
   const total      = subtotal.add(totalTaxes).toDecimalPlaces(2);
   const ownerAmount = totalRent.sub(totalPlatform).toDecimalPlaces(2);
 
   return {
-    months,
+    periods,
     monthlyPrice,
     insuranceFee,
     securityDeposit,

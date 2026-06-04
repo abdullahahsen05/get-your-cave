@@ -96,7 +96,10 @@ export default async function OwnerDashboardPage() {
   }
 
   if (!currentUser.ownerProfile) {
-    redirect("/login?next=/owner/dashboard");
+    // Owner is authenticated but has no profile yet — send to document upload,
+    // not to /login. Redirecting to /login for an authenticated user looks like
+    // an unexpected logout.
+    redirect("/document");
   }
 
   const dashboard = await getOwnerDashboardSnapshot(currentUser.ownerProfile.id);

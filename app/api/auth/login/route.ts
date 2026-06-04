@@ -63,6 +63,8 @@ export async function POST(request: Request) {
 
   const { email, password } = parsed.data;
 
+  const isDev = process.env.NODE_ENV !== "production";
+
   const user = await prisma.user.findUnique({
     where: { email },
     select: {
@@ -72,6 +74,7 @@ export async function POST(request: Request) {
   });
 
   if (!user || !user.passwordHash) {
+    if (isDev) console.log("[login] FAIL — user not found:", email);
     return NextResponse.json(
       { error: "Invalid email or password." },
       { status: 401 },
@@ -80,11 +83,14 @@ export async function POST(request: Request) {
 
   const passwordMatches = await comparePassword(password, user.passwordHash);
   if (!passwordMatches) {
+    if (isDev) console.log("[login] FAIL — wrong password for:", email);
     return NextResponse.json(
       { error: "Invalid email or password." },
       { status: 401 },
     );
   }
+
+  if (isDev) console.log("[login] password OK — role:", user.role, "status:", user.status);
 
   const code = buildVerificationCode();
   const codeHash = await hashPassword(code);
@@ -113,8 +119,11 @@ export async function POST(request: Request) {
     );
 
     response.cookies.set(getAuthCookieName(), token, getAuthCookieOptions());
+    if (isDev) console.log("[login] SUCCESS — cookie set, no 2FA. Destination will be resolved client-side.");
     return response;
   }
+
+  if (isDev) console.log("[login] 2FA triggered for:", email);
 
   await deleteActiveLoginChallenges(user.id);
 

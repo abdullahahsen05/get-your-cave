@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function LogoutButton() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -20,9 +18,7 @@ export default function LogoutButton() {
         },
       });
     } finally {
-      router.replace("/login");
-      router.refresh();
-      setIsSigningOut(false);
+      window.location.assign("/login");
     }
   }
 

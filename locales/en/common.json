@@ -46,7 +46,7 @@
     "activeNow": "Active now",
     "connecting": "Connecting...",
     "justNow": "Just now",
-    "none": "â€”",
+    "none": "—",
     "owner": "Owner",
     "renter": "Renter",
     "admin": "Admin",
@@ -261,7 +261,36 @@
     "markAllRead": "Mark all read",
     "unreadCount": "{{count}} unread notifications",
     "emptyTitle": "You're all caught up",
-    "emptyDescription": "New message alerts and delivery updates will appear here in real time."
+    "emptyDescription": "New message alerts and delivery updates will appear here in real time.",
+    "paymentReceived": "Payment received",
+    "ownerPayoutCompleted": "Owner payout completed",
+    "paymentFailed": "Payment failed",
+    "requestAccepted": "Request accepted",
+    "requestRejected": "Request rejected",
+    "bookingRequest": "Booking request",
+    "bookingCancelled": "Booking cancelled",
+    "listingPublished": "Listing published",
+    "listingRejected": "Listing rejected",
+    "documentApproved": "Document approved",
+    "documentRejected": "Document rejected",
+    "paymentRefunded": "Payment refunded",
+    "refundProcessed": "Refund processed",
+    "newMessageFrom": "New message from {{name}}",
+    "bodyPaymentReceived": "Your payment for booking {{bookingNumber}} was received.",
+    "bodyOwnerPayoutCompleted": "Your payout for booking {{bookingNumber}} was added to your owner balance.",
+    "bodyPaymentFailedRecurring": "Your recurring booking payment could not be processed. Please update your payment method.",
+    "bodyPaymentFailedStripe": "Your Stripe payment failed. Please try another payment method or update your card.",
+    "bodyRequestAccepted": "Your booking request {{bookingNumber}} was accepted.",
+    "bodyRequestRejected": "Your booking request {{bookingNumber}} was rejected.",
+    "bodyBookingCancelledRenter": "Your booking {{bookingNumber}} has been cancelled and any open invoices were closed.",
+    "bodyBookingCancelledOwner": "Booking {{bookingNumber}} was cancelled by the renter.",
+    "bodyBookingRequest": "You received a new booking request for {{listingTitle}}.",
+    "bodyListingPublished": "Your listing \"{{listingTitle}}\" is now published publicly.",
+    "bodyListingRejected": "Your listing \"{{listingTitle}}\" was rejected.",
+    "bodyDocumentApproved": "Your {{docType}} was approved.",
+    "bodyDocumentRejected": "Your {{docType}} was rejected.",
+    "bodyPaymentRefunded": "Your payment for invoice {{invoiceNumber}} has been refunded.",
+    "bodyRefundProcessed": "A payment for {{listingTitle}} was refunded and your balance was adjusted."
   },
   "maps": {
     "title": "Map view",
@@ -317,7 +346,7 @@
     "verifying": "Verifying...",
     "resendCode": "Resend code",
     "backToCredentials": "Back",
-    "emailPlaceholder": "name@luxury.com",
+    "emailPlaceholder": "name@example.com",
     "signingIn": "Signing in...",
     "formError": "Please check the form fields.",
     "loginError": "Unable to log in right now.",
@@ -451,16 +480,31 @@
       "tileFourSubtitle": "Active hosts"
     },
     "stats": {
-      "one": { "value": "1,240", "label": "Available spaces" },
-      "two": { "value": "870", "label": "Active hosts" },
-      "three": { "value": "48", "label": "Cities covered" },
-      "four": { "value": "65%", "label": "Average savings" }
+      "one": {
+        "value": "1,240",
+        "label": "Available spaces"
+      },
+      "two": {
+        "value": "870",
+        "label": "Active hosts"
+      },
+      "three": {
+        "value": "48",
+        "label": "Cities covered"
+      },
+      "four": {
+        "value": "65%",
+        "label": "Average savings"
+      }
     },
     "how": {
       "eyebrow": "Simple & fast",
       "title": "How it works",
       "subtitle": "Finding neighborhood storage has never been easier.",
-      "tabs": { "find": "I need storage", "rent": "I want to rent my space" },
+      "tabs": {
+        "find": "I need storage",
+        "rent": "I want to rent my space"
+      },
       "find": {
         "step1": {
           "title": "Search",
@@ -568,10 +612,22 @@
       "title": "Spaces that feel like yours",
       "subtitle": "Choose the storage format that fits your life best.",
       "action": "Explore",
-      "card1": { "title": "Cellar / Cave", "meta": "1 to 4 m²" },
-      "card2": { "title": "Box", "meta": "4 to 10 m²" },
-      "card3": { "title": "Storage room", "meta": "10 to 20 m²" },
-      "card4": { "title": "Other storage spaces", "meta": "15 m² and up" }
+      "card1": {
+        "title": "Cellar / Cave",
+        "meta": "1 to 4 m²"
+      },
+      "card2": {
+        "title": "Box",
+        "meta": "4 to 10 m²"
+      },
+      "card3": {
+        "title": "Storage room",
+        "meta": "10 to 20 m²"
+      },
+      "card4": {
+        "title": "Other storage spaces",
+        "meta": "15 m² and up"
+      }
     },
     "simulator": {
       "eyebrow": "For hosts",
@@ -608,11 +664,16 @@
       "result": {
         "label": "Estimated monthly income",
         "perMonth": "/ month",
-        "note": "After GetYourCave’s 8% commission"
+        "note": "After GetYourCave’s 20% commission"
       },
-      "metrics": { "year": "Per year", "fiveYear": "Over 5 years" },
+      "metrics": {
+        "year": "Per year",
+        "fiveYear": "Over 5 years"
+      },
       "ownerTitle": "Publishing",
-      "ownerResult": { "label": "Estimated income" }
+      "ownerResult": {
+        "label": "Estimated income"
+      }
     },
     "testimonials": {
       "eyebrow": "People trust us",
@@ -655,9 +716,9 @@
     "searchGeolocationPlaceholder": "Search a place or neighborhood",
     "sizePlaceholder": "Any Size",
     "anySize": "Any Size",
-    "sizeSmall": "Small (5x5 ft)",
-    "sizeMedium": "Medium (10x10 ft)",
-    "sizeLarge": "Large (20x20 ft)",
+    "sizeSmall": "Small (up to 5 m²)",
+    "sizeMedium": "Medium (5–15 m²)",
+    "sizeLarge": "Large (15+ m²)",
     "moveInDate": "Move-in date",
     "loadingCaves": "Loading...",
     "storageCaves": "Storage Caves",
@@ -783,6 +844,7 @@
     "sqFt": "m²",
     "loadError": "Unable to load listing.",
     "bookingError": "Unable to create booking right now.",
+    "bookingConflict": "This cave is already booked from {{startDate}} to {{endDate}}.",
     "conversationError": "Unable to start a conversation right now.",
     "notFoundTitle": "Listing not found",
     "notFoundDescription": "The listing you requested is unavailable.",
@@ -848,13 +910,13 @@
       "selectedCount": "{{value}} selected",
       "countValue": "{{value}}"
     },
-      "storageTypes": {
-        "cellarCave": "Cellar / Cave",
-        "box": "Box",
-        "closet": "Closet",
-        "storageRoom": "Storage room",
-        "otherStorageSpaces": "Other storage spaces"
-      },
+    "storageTypes": {
+      "cellarCave": "Cellar / Cave",
+      "box": "Box",
+      "closet": "Closet",
+      "storageRoom": "Storage room",
+      "otherStorageSpaces": "Other storage spaces"
+    },
     "amenities": {
       "title": "Amenities",
       "description": "Highlight the features that make your space stand out.",
@@ -1376,12 +1438,16 @@
       "SIGNED_CONTRACT": "Signed contract",
       "PROFILE_PHOTO": "Profile photo",
       "OTHER": "Other"
-    }
+    },
+    "pendingOverlayTitle": "Verification under review",
+    "pendingOverlayBody": "Your documents have been submitted and are being reviewed. You can create a listing once your documents are verified.",
+    "pendingOverlayViewStatus": "View verification status",
+    "pendingOverlayDashboard": "Go to dashboard"
   },
   "payments": {
     "payment": "Payment",
-    "successTitle": "Checkout started successfully",
-    "successDescription": "Stripe has received your payment attempt. Once the webhook confirms it, your invoice and booking state will update in the app.",
+    "successTitle": "Payment successful",
+    "successDescription": "Your subscription is now active. Your invoice and booking will update automatically.",
     "cancelTitle": "Checkout was canceled",
     "cancelDescription": "No payment was captured. You can return to your invoice and try again whenever you are ready.",
     "returnToInvoice": "Return to invoice",
@@ -1389,7 +1455,14 @@
     "exportCsv": "Export CSV",
     "goBack": "Go back",
     "invoiceReference": "Invoice {{value}}",
-    "sessionReference": "Session {{value}}"
+    "sessionReference": "Session {{value}}",
+    "processingTitle": "Payment processing",
+    "processingDescription": "Your payment is being confirmed. This usually takes a few seconds. Check your invoice for the latest status.",
+    "refunded": "Refunded",
+    "refundTitle": "Payment refunded",
+    "refundDescription": "Your payment for invoice {{invoiceNumber}} has been refunded.",
+    "refundOwnerTitle": "Refund processed",
+    "refundOwnerDescription": "A payment for {{listingTitle}} was refunded and your balance was adjusted."
   },
   "adminUsers": {
     "title": "User management",
@@ -1406,7 +1479,77 @@
     "unableToUpdate": "Unable to update user.",
     "unableToDelete": "Unable to delete user.",
     "unableToLoad": "Unable to load user details.",
-    "empty": "No users found for the selected filters."
+    "empty": "No users found for the selected filters.",
+    "detail": {
+      "profileDetails": "Profile details",
+      "profileDetailsSubtitle": "Read-only account and address data.",
+      "emailVerified": "Email verified",
+      "verifiedEmail": "Verified email",
+      "unverifiedEmail": "Unverified email",
+      "updated": "Updated",
+      "ownerVerification": "Owner verification",
+      "renterVerification": "Renter verification",
+      "country": "Country",
+      "responseRate": "Response rate",
+      "walletBalance": "Wallet balance",
+      "ownerProfile": "Owner profile",
+      "ownerProfileSubtitle": "IBAN, wallet, and owner-side address data.",
+      "renterProfile": "Renter profile",
+      "renterProfileSubtitle": "Renter-side address and verification data.",
+      "verificationDocuments": "Verification documents",
+      "verificationDocumentsSubtitle": "Uploaded files and review status.",
+      "unnamedFile": "Unnamed file",
+      "file": "File",
+      "reviewedAt": "Reviewed at",
+      "rejectionReason": "Rejection reason",
+      "noVerificationDocuments": "No verification documents found.",
+      "ownerListings": "Owner listings",
+      "ownerListingsSubtitle": "All listings owned by this user.",
+      "published": "Published",
+      "monthlyPrice": "Monthly price",
+      "created": "Created",
+      "noListings": "No listings found.",
+      "ownerBookings": "Owner bookings",
+      "ownerBookingsSubtitle": "Bookings linked to owner inventory.",
+      "marketplaceSplit": "Marketplace split",
+      "marketplaceSplitValue": "80% owner / 20% platform",
+      "totalMonthly": "Total monthly",
+      "contract": "Contract",
+      "invoice": "Invoice",
+      "payment": "Payment",
+      "noBookings": "No bookings found.",
+      "ownerContracts": "Owner contracts",
+      "ownerContractsSubtitle": "Downloadable and signed contract records.",
+      "signedAt": "Signed at",
+      "openFile": "Open file",
+      "noContracts": "No contracts found.",
+      "ownerInvoices": "Owner invoices",
+      "ownerInvoicesSubtitle": "Financial history and downloadable invoice data.",
+      "platformFee": "Platform fee",
+      "pdf": "PDF",
+      "noInvoices": "No invoices found.",
+      "ownerPayments": "Owner payments",
+      "ownerPaymentsSubtitle": "Recorded payments and split amounts.",
+      "ownerAmount": "Owner amount",
+      "noPayments": "No payments found.",
+      "renterBookings": "Renter bookings",
+      "renterBookingsSubtitle": "Bookings linked to renter activity.",
+      "renterContracts": "Renter contracts",
+      "renterContractsSubtitle": "Contracts and signatures tied to renter bookings.",
+      "renterInvoices": "Renter invoices",
+      "renterInvoicesSubtitle": "Invoices and payment history for renter activity.",
+      "renterPayments": "Renter payments",
+      "renterPaymentsSubtitle": "Recorded payment events for renter bookings.",
+      "notifications": "Notifications",
+      "notificationsSubtitle": "Recent notifications sent to this user.",
+      "read": "Read",
+      "unread": "Unread",
+      "link": "Link",
+      "noNotifications": "No notifications found.",
+      "adminLogs": "Admin logs",
+      "adminLogsSubtitle": "Audit trail for actions involving this user.",
+      "noAdminLogs": "No admin logs found."
+    }
   },
   "app": {
     "create": {

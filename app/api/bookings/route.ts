@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
-import { createRenterBooking } from "@/lib/bookings";
+import { BookingConflictError, createRenterBooking } from "@/lib/bookings";
 import { bookingCreateSchema } from "@/lib/validations/booking";
 
 export const dynamic = "force-dynamic";
@@ -44,17 +44,32 @@ export async function POST(request: Request) {
     );
   }
 
-  const booking = await createRenterBooking({
-    renterProfileId: currentUser.renterProfile.id,
-    data: parsed.data,
-  });
+  try {
+    const booking = await createRenterBooking({
+      renterProfileId: currentUser.renterProfile.id,
+      data: parsed.data,
+    });
 
-  if (!booking) {
-    return NextResponse.json(
-      { error: "Unable to create booking right now." },
-      { status: 400 },
-    );
+    if (!booking) {
+      return NextResponse.json(
+        { error: "Unable to create booking right now." },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({ booking }, { status: 201 });
+  } catch (error) {
+    if (error instanceof BookingConflictError) {
+      return NextResponse.json(
+        {
+          error: "booking_conflict",
+          conflictStartDate: error.conflictStartDate.toISOString(),
+          conflictEndDate: error.conflictEndDate?.toISOString() ?? null,
+        },
+        { status: 409 },
+      );
+    }
+
+    throw error;
   }
-
-  return NextResponse.json({ booking }, { status: 201 });
 }

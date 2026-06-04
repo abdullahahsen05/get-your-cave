@@ -55,6 +55,7 @@ const bookingInclude = {
     take: 1,
     select: {
       status: true,
+      stripeCheckoutSessionId: true,
     },
   },
   invoices: {
@@ -204,11 +205,25 @@ export async function POST(request: Request) {
     getBookingLatestInvoiceStatus(booking) === InvoiceStatus.PAID
   ) {
     return NextResponse.json(
-      { error: "This booking already has an active paid checkout." },
+      { error: "This invoice is already paid." },
       { status: 409 },
     );
   }
 
+  // Block if a Stripe session was already created and is still pending
+  // (subscription created, waiting for webhook). Prevents duplicate subscriptions.
+  const latestPayment = booking.payments[0];
+  if (
+    latestPayment?.status === PaymentStatus.PENDING &&
+    latestPayment.stripeCheckoutSessionId
+  ) {
+    return NextResponse.json(
+      { error: "A Stripe checkout session is already in progress for this booking. Please complete it or wait for it to expire before starting a new one." },
+      { status: 409 },
+    );
+  }
+
+  const isDev = process.env.NODE_ENV !== "production";
   const stripe = getStripeClient();
   const appUrl = getAppUrl(request);
   const durationMonths = Math.max(1, booking.durationMonths ?? 1);
@@ -219,6 +234,16 @@ export async function POST(request: Request) {
     durationMonths: String(durationMonths),
     ...(invoiceId ? { invoiceId } : {}),
   });
+
+  if (isDev) {
+    console.log("[checkout] creating session", {
+      bookingId: booking.id,
+      invoiceId: invoiceId || null,
+      renterEmail: booking.renter.user.email,
+      monthlyAmount,
+      appUrl,
+    });
+  }
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -249,6 +274,16 @@ export async function POST(request: Request) {
     },
     metadata: subscriptionMetadata,
   });
+
+  if (isDev) {
+    console.log("[checkout] session created", {
+      sessionId: session.id,
+      mode: session.mode,
+      successUrl: session.success_url,
+      amountTotal: session.amount_total,
+      currency: session.currency,
+    });
+  }
 
   return NextResponse.json({
     sessionId: session.id,

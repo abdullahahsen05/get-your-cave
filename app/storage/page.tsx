@@ -1099,13 +1099,13 @@ export default function BrowseStoragePage() {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-[32px] border-t border-outline-variant/20 bg-surface/90 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_30px_rgba(17,24,39,0.08)] backdrop-blur-xl md:hidden">
+      <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-[32px] border-t border-outline-variant/20 bg-surface/90 px-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4 shadow-[0_-8px_30px_rgba(17,24,39,0.08)] backdrop-blur-xl sm:px-5 md:hidden">
         <a
-          className="flex flex-col items-center justify-center rounded-full bg-secondary-container/20 px-5 py-1.5 text-secondary"
+          className="flex flex-col items-center justify-center rounded-full bg-secondary-container/20 px-3 py-1.5 text-secondary sm:px-5"
           href="#"
         >
           <span className="material-symbols-outlined">search</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest">
+          <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-widest">
             {t("storage.mobileExplore")}
           </span>
         </a>
@@ -1115,7 +1115,7 @@ export default function BrowseStoragePage() {
           href="#"
         >
           <span className="material-symbols-outlined">favorite</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest">
+          <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-widest">
             {t("common.save")}
           </span>
         </a>
@@ -1125,7 +1125,7 @@ export default function BrowseStoragePage() {
           href="#"
         >
           <span className="material-symbols-outlined">person</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest">
+          <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-widest">
             {t("nav.dashboard")}
           </span>
         </a>

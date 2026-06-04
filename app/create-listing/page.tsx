@@ -16,6 +16,8 @@ import { useTranslation } from "react-i18next";
 
 import { listingPublishSchema } from "@/lib/validations/listing";
 import { StorageType } from "@prisma/client";
+import { useNotifications } from "@/components/providers/NotificationsProvider";
+import { getDashboardPath } from "@/lib/auth-routing";
 
 const steps = [
   { labelKey: "createListing.steps.basicDetails", icon: "info" },
@@ -329,6 +331,30 @@ function ListingPageContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { user, isLoading: sessionLoading } = useNotifications();
+
+  // Derive access state directly from the provider — no extra API call needed.
+  // NotificationsProvider is already seeded with the server-rendered user from the layout,
+  // so on first render this is instant and correct.
+  const sessionStatus: "loading" | "unauthenticated" | "wrong-role" | "pending" | "allowed" =
+    sessionLoading && !user
+      ? "loading"
+      : !user
+        ? "unauthenticated"
+        : user.role !== "OWNER"
+          ? "wrong-role"
+          : user.status !== "ACTIVE"
+            ? "pending"
+            : "allowed";
+
+  // Redirect unauthenticated users or wrong-role users (client-side, no server redirect available).
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") {
+      window.location.assign("/login");
+    } else if (sessionStatus === "wrong-role" && user) {
+      window.location.assign(getDashboardPath(user.role as "ADMIN" | "OWNER" | "RENTER"));
+    }
+  }, [sessionStatus, user]);
 
   const searchParams = useSearchParams();
   const listingIdFromUrl = searchParams.get("listingId");
@@ -709,6 +735,48 @@ function ListingPageContent() {
     }
 
     await persistListing("DRAFT", true);
+  }
+
+  if (sessionStatus === "loading" || sessionStatus === "unauthenticated" || sessionStatus === "wrong-role") {
+    return (
+      <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-24 sm:pt-28 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="h-48 rounded-[32px] bg-surface-container animate-pulse" />
+        </div>
+      </main>
+    );
+  }
+
+  if (sessionStatus === "pending") {
+    return (
+      <main className="min-h-screen bg-background text-on-surface font-body-md text-body-md antialiased pt-24 sm:pt-28 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 text-center">
+          <div className="w-full rounded-[32px] border border-outline-variant/60 bg-surface p-8 shadow-[0_16px_54px_rgba(17,24,39,0.06)] sm:p-12">
+            <span className="material-symbols-outlined text-[48px] text-secondary/50">schedule</span>
+            <h1 className="mt-4 font-h2 text-h2 text-primary">
+              {t("verification.pendingOverlayTitle")}
+            </h1>
+            <p className="mt-3 max-w-md mx-auto font-body-md text-body-md text-on-surface-variant">
+              {t("verification.pendingOverlayBody")}
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <a
+                href="/document"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-secondary px-7 py-3 font-label-caps text-label-caps uppercase text-white shadow-lg shadow-secondary/15 transition-all hover:bg-[#d9590f]"
+              >
+                {t("verification.pendingOverlayViewStatus")}
+              </a>
+              <a
+                href="/owner/dashboard"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-outline-variant/70 bg-surface-container-low px-6 py-3 font-label-caps text-label-caps uppercase text-primary transition-colors hover:border-secondary hover:text-secondary"
+              >
+                {t("verification.pendingOverlayDashboard")}
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (

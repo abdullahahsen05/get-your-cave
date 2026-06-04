@@ -470,6 +470,18 @@ export function calculateBookingCharges(params: {
   };
 }
 
+export class BookingConflictError extends Error {
+  readonly conflictStartDate: Date;
+  readonly conflictEndDate: Date | null;
+
+  constructor(conflictStartDate: Date, conflictEndDate: Date | null) {
+    super("BOOKING_CONFLICT");
+    this.name = "BookingConflictError";
+    this.conflictStartDate = conflictStartDate;
+    this.conflictEndDate = conflictEndDate;
+  }
+}
+
 export async function createRenterBooking(params: {
   renterProfileId: string;
   data: BookingCreateInput;
@@ -497,6 +509,22 @@ export async function createRenterBooking(params: {
 
   if (derivedEndDate.getTime() <= startDate.getTime()) {
     return null;
+  }
+
+  // Block overlapping APPROVED or ACTIVE bookings on the same listing.
+  // Overlap condition: existing.startDate < newEnd AND existing.endDate > newStart
+  const conflictingBooking = await prisma.booking.findFirst({
+    where: {
+      listingId: listing.id,
+      status: { in: [BookingStatus.APPROVED, BookingStatus.ACTIVE] },
+      startDate: { lt: derivedEndDate },
+      endDate: { gt: startDate },
+    },
+    select: { startDate: true, endDate: true },
+  });
+
+  if (conflictingBooking) {
+    throw new BookingConflictError(conflictingBooking.startDate, conflictingBooking.endDate);
   }
 
   const charges = calculateBookingCharges({

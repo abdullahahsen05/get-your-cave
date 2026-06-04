@@ -61,6 +61,14 @@ export default function Topbar() {
         <div className="hidden items-center justify-center gap-2 lg:flex">
           {navigation.visible.map((item) => {
             const active = isPathActive(pathname, item.href);
+            // Pending/unverified owners clicking "Create Listing" go to /document.
+            // Scoped to OWNER role so admin/renter links are never rerouted.
+            const resolvedHref =
+              item.href === "/create-listing" &&
+              user?.role === "OWNER" &&
+              user?.status !== "ACTIVE"
+                ? "/document"
+                : item.href;
 
             return (
               <Link
@@ -69,7 +77,7 @@ export default function Topbar() {
                     ? "bg-[#f26a1b]/10 text-[#f26a1b]"
                     : "text-[#212733] hover:bg-stone-50 hover:text-[#F26A1B]"
                 }`}
-                href={item.href}
+                href={resolvedHref}
                 key={item.href}
               >
                 <item.icon className="h-4 w-4" />
@@ -111,6 +119,12 @@ export default function Topbar() {
             <div className="space-y-2">
               {navigation.visible.map((item) => {
                 const active = isPathActive(pathname, item.href);
+                const resolvedHref =
+                  item.href === "/create-listing" &&
+                  user?.role === "OWNER" &&
+                  user?.status !== "ACTIVE"
+                    ? "/document"
+                    : item.href;
 
                 return (
                   <Link
@@ -119,7 +133,7 @@ export default function Topbar() {
                         ? "border-[#f26a1b]/25 bg-[#f26a1b]/10 text-[#f26a1b]"
                         : "border-stone-100 bg-white text-[#212733] hover:bg-stone-50"
                     }`}
-                    href={item.href}
+                    href={resolvedHref}
                     key={item.href}
                     onClick={() => setMobileOpen(false)}
                   >

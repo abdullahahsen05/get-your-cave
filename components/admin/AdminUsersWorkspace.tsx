@@ -334,9 +334,6 @@ function formatEnum(value: string | null | undefined) {
     .join(" ");
 }
 
-function formatMarketplaceSplitLabel() {
-  return "80% owner / 20% platform";
-}
 
 function SectionShell({
   title,
@@ -378,7 +375,7 @@ function Badge({ children }: { children: React.ReactNode }) {
 export default function AdminUsersWorkspace({ users }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
-  const marketplaceSplitLabel = formatMarketplaceSplitLabel();
+  const marketplaceSplitLabel = t("adminUsers.detail.marketplaceSplitValue");
   const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUserDetailResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -562,7 +559,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
               <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.18em]">
                 <Badge>{detailUser?.role ?? selectedUser?.role}</Badge>
                 <Badge>{detailUser?.status ?? selectedUser?.status}</Badge>
-                {detailUser?.emailVerified ? <Badge>Verified email</Badge> : <Badge>Unverified email</Badge>}
+                {detailUser?.emailVerified ? <Badge>{t("adminUsers.detail.verifiedEmail")}</Badge> : <Badge>{t("adminUsers.detail.unverifiedEmail")}</Badge>}
               </div>
             </div>
           </div>
@@ -572,13 +569,13 @@ export default function AdminUsersWorkspace({ users }: Props) {
           <div className="mt-6 grid gap-3 rounded-[24px] border border-outline-variant/60 bg-surface-container-low p-4 text-sm">
             <StatRow label={t("profile.phone")} value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
             <StatRow label={t("profile.createdAt")} value={formatDate(detailUser?.createdAt ?? selectedUser?.createdAt)} />
-            <StatRow label="Updated" value={formatDate(detailUser?.updatedAt)} />
+            <StatRow label={t("adminUsers.detail.updated")} value={formatDate(detailUser?.updatedAt)} />
             <StatRow
-              label="Owner verification"
+              label={t("adminUsers.detail.ownerVerification")}
               value={detailUser?.ownerProfile?.verificationStatus ?? selectedUser?.ownerProfile?.verificationStatus ?? "—"}
             />
             <StatRow
-              label="Renter verification"
+              label={t("adminUsers.detail.renterVerification")}
               value={detailUser?.renterProfile?.verificationStatus ?? selectedUser?.renterProfile?.verificationStatus ?? "—"}
             />
           </div>
@@ -612,38 +609,38 @@ export default function AdminUsersWorkspace({ users }: Props) {
         </section>
 
         <div className="space-y-4">
-          <SectionShell title="Profile details" subtitle="Read-only account and address data.">
-            <StatRow label="Email" value={detailUser?.email ?? selectedUser?.email ?? "—"} />
-            <StatRow label="Phone" value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
-            <StatRow label="Role" value={detailUser?.role ?? selectedUser?.role ?? "—"} />
-            <StatRow label="Status" value={detailUser?.status ?? selectedUser?.status ?? "—"} />
-            <StatRow label="Email verified" value={detailUser?.emailVerified ? "Yes" : "No"} />
+          <SectionShell title={t("adminUsers.detail.profileDetails")} subtitle={t("adminUsers.detail.profileDetailsSubtitle")}>
+            <StatRow label={t("profile.email")} value={detailUser?.email ?? selectedUser?.email ?? "—"} />
+            <StatRow label={t("profile.phone")} value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
+            <StatRow label={t("profile.role")} value={detailUser?.role ?? selectedUser?.role ?? "—"} />
+            <StatRow label={t("profile.status")} value={detailUser?.status ?? selectedUser?.status ?? "—"} />
+            <StatRow label={t("adminUsers.detail.emailVerified")} value={detailUser?.emailVerified ? t("common.yes") : t("common.no")} />
           </SectionShell>
 
           {detailUser?.ownerProfile ? (
-            <SectionShell title="Owner profile" subtitle="IBAN, wallet, and owner-side address data.">
-              <StatRow label="Address" value={detailUser.ownerProfile.address ?? "—"} />
-              <StatRow label="City" value={detailUser.ownerProfile.city ?? "—"} />
-              <StatRow label="Postal code" value={detailUser.ownerProfile.postalCode ?? "—"} />
-              <StatRow label="Country" value={detailUser.ownerProfile.country ?? "—"} />
-              <StatRow label="IBAN" value={detailUser.ownerProfile.iban ?? "—"} />
-              <StatRow label="Response rate" value={detailUser.ownerProfile.responseRate ?? "—"} />
-              <StatRow label="Wallet balance" value={detailUser.ownerProfile.walletBalance} />
-              <StatRow label="Pending payout" value={detailUser.ownerProfile.pendingPayout} />
-              <StatRow label="Total earnings" value={detailUser.ownerProfile.totalEarnings} />
+            <SectionShell title={t("adminUsers.detail.ownerProfile")} subtitle={t("adminUsers.detail.ownerProfileSubtitle")}>
+              <StatRow label={t("profile.address")} value={detailUser.ownerProfile.address ?? "—"} />
+              <StatRow label={t("profile.city")} value={detailUser.ownerProfile.city ?? "—"} />
+              <StatRow label={t("profile.postalCode")} value={detailUser.ownerProfile.postalCode ?? "—"} />
+              <StatRow label={t("adminUsers.detail.country")} value={detailUser.ownerProfile.country ?? "—"} />
+              <StatRow label={t("profile.iban")} value={detailUser.ownerProfile.iban ?? "—"} />
+              <StatRow label={t("adminUsers.detail.responseRate")} value={detailUser.ownerProfile.responseRate ?? "—"} />
+              <StatRow label={t("adminUsers.detail.walletBalance")} value={detailUser.ownerProfile.walletBalance} />
+              <StatRow label={t("dashboard.owner.pendingPayout")} value={detailUser.ownerProfile.pendingPayout} />
+              <StatRow label={t("dashboard.owner.totalEarnings")} value={detailUser.ownerProfile.totalEarnings} />
             </SectionShell>
           ) : null}
 
           {detailUser?.renterProfile ? (
-            <SectionShell title="Renter profile" subtitle="Renter-side address and verification data.">
-              <StatRow label="Address" value={detailUser.renterProfile.address ?? "—"} />
-              <StatRow label="City" value={detailUser.renterProfile.city ?? "—"} />
-              <StatRow label="Postal code" value={detailUser.renterProfile.postalCode ?? "—"} />
-              <StatRow label="Country" value={detailUser.renterProfile.country ?? "—"} />
+            <SectionShell title={t("adminUsers.detail.renterProfile")} subtitle={t("adminUsers.detail.renterProfileSubtitle")}>
+              <StatRow label={t("profile.address")} value={detailUser.renterProfile.address ?? "—"} />
+              <StatRow label={t("profile.city")} value={detailUser.renterProfile.city ?? "—"} />
+              <StatRow label={t("profile.postalCode")} value={detailUser.renterProfile.postalCode ?? "—"} />
+              <StatRow label={t("adminUsers.detail.country")} value={detailUser.renterProfile.country ?? "—"} />
             </SectionShell>
           ) : null}
 
-          <SectionShell title="Verification documents" subtitle="Uploaded files and review status.">
+          <SectionShell title={t("adminUsers.detail.verificationDocuments")} subtitle={t("adminUsers.detail.verificationDocumentsSubtitle")}>
             <div className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
               {selectedUserDetail?.verificationDocuments?.length ? (
                 selectedUserDetail.verificationDocuments.map((document) => (
@@ -655,27 +652,27 @@ export default function AdminUsersWorkspace({ users }: Props) {
                       <div>
                         <p className="font-semibold text-primary">{formatEnum(document.type)}</p>
                         <p className="text-xs text-on-surface-variant">
-                          {formatDate(document.createdAt)} · {document.fileName ?? "Unnamed file"}
+                          {formatDate(document.createdAt)} · {document.fileName ?? t("adminUsers.detail.unnamedFile")}
                         </p>
                       </div>
                       <Badge>{document.status}</Badge>
                     </div>
                     <div className="mt-3 grid gap-2 text-sm">
-                      <StatRow label="File" value={<a className="text-secondary underline" href={document.fileUrl} target="_blank" rel="noreferrer">Open</a>} />
-                      <StatRow label="Reviewed at" value={formatDate(document.reviewedAt)} />
-                      <StatRow label="Rejection reason" value={document.rejectionReason ?? "—"} />
+                      <StatRow label={t("adminUsers.detail.file")} value={<a className="text-secondary underline" href={document.fileUrl} target="_blank" rel="noreferrer">{t("common.open")}</a>} />
+                      <StatRow label={t("adminUsers.detail.reviewedAt")} value={formatDate(document.reviewedAt)} />
+                      <StatRow label={t("adminUsers.detail.rejectionReason")} value={document.rejectionReason ?? "—"} />
                     </div>
                   </article>
                 ))
               ) : (
-                <p className="text-sm text-on-surface-variant">No verification documents found.</p>
+                <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noVerificationDocuments")}</p>
               )}
             </div>
           </SectionShell>
 
           {ownerData ? (
             <>
-              <SectionShell title="Owner listings" subtitle="All listings owned by this user.">
+              <SectionShell title={t("adminUsers.detail.ownerListings")} subtitle={t("adminUsers.detail.ownerListingsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {ownerData.listings.length ? (
                     ownerData.listings.map((listing) => (
@@ -693,21 +690,21 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{listing.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Availability" value={listing.availability} />
-                          <StatRow label="Published" value={listing.isPublished ? "Yes" : "No"} />
-                          <StatRow label="Monthly price" value={listing.pricePerMonth} />
-                          <StatRow label="Created" value={formatDate(listing.createdAt)} />
-                          <StatRow label="Updated" value={formatDate(listing.updatedAt)} />
+                          <StatRow label={t("listing.availability")} value={listing.availability} />
+                          <StatRow label={t("adminUsers.detail.published")} value={listing.isPublished ? t("common.yes") : t("common.no")} />
+                          <StatRow label={t("adminUsers.detail.monthlyPrice")} value={listing.pricePerMonth} />
+                          <StatRow label={t("adminUsers.detail.created")} value={formatDate(listing.createdAt)} />
+                          <StatRow label={t("adminUsers.detail.updated")} value={formatDate(listing.updatedAt)} />
                         </div>
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No listings found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noListings")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Owner bookings" subtitle="Bookings linked to owner inventory.">
+              <SectionShell title={t("adminUsers.detail.ownerBookings")} subtitle={t("adminUsers.detail.ownerBookingsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {ownerData.bookings.length ? (
                     ownerData.bookings.map((booking) => (
@@ -725,23 +722,23 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{booking.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Renter" value={booking.renter.fullName} />
-                          <StatRow label="Monthly price" value={booking.monthlyPrice} />
-                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
-                          <StatRow label="Total monthly" value={booking.totalMonthlyAmount} />
-                          <StatRow label="Contract" value={booking.generatedContract?.contractNumber ?? "—"} />
-                          <StatRow label="Invoice" value={booking.invoiceStatus ?? "—"} />
-                          <StatRow label="Payment" value={booking.paymentStatus ?? "—"} />
+                          <StatRow label={t("common.renter")} value={booking.renter.fullName} />
+                          <StatRow label={t("adminUsers.detail.monthlyPrice")} value={booking.monthlyPrice} />
+                          <StatRow label={t("adminUsers.detail.marketplaceSplit")} value={marketplaceSplitLabel} />
+                          <StatRow label={t("adminUsers.detail.totalMonthly")} value={booking.totalMonthlyAmount} />
+                          <StatRow label={t("adminUsers.detail.contract")} value={booking.generatedContract?.contractNumber ?? "—"} />
+                          <StatRow label={t("adminUsers.detail.invoice")} value={booking.invoiceStatus ?? "—"} />
+                          <StatRow label={t("adminUsers.detail.payment")} value={booking.paymentStatus ?? "—"} />
                         </div>
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No bookings found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noBookings")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Owner contracts" subtitle="Downloadable and signed contract records.">
+              <SectionShell title={t("adminUsers.detail.ownerContracts")} subtitle={t("adminUsers.detail.ownerContractsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {ownerData.contracts.length ? (
                     ownerData.contracts.map((contract) => (
@@ -761,11 +758,11 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{contract.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Type" value={formatEnum(contract.type)} />
-                          <StatRow label="Renter" value={contract.booking.renter.fullName} />
-                          <StatRow label="Signed at" value={formatDate(contract.fullySignedAt)} />
+                          <StatRow label={t("contracts.type")} value={formatEnum(contract.type)} />
+                          <StatRow label={t("common.renter")} value={contract.booking.renter.fullName} />
+                          <StatRow label={t("adminUsers.detail.signedAt")} value={formatDate(contract.fullySignedAt)} />
                           <StatRow
-                            label="Download"
+                            label={t("common.download")}
                             value={
                               contract.signedPdfUrl || contract.generatedPdfUrl ? (
                                 <a
@@ -774,7 +771,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                                   target="_blank"
                                   rel="noreferrer"
                                 >
-                                  Open file
+                                  {t("adminUsers.detail.openFile")}
                                 </a>
                               ) : (
                                 "—"
@@ -785,12 +782,12 @@ export default function AdminUsersWorkspace({ users }: Props) {
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No contracts found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noContracts")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Owner invoices" subtitle="Financial history and downloadable invoice data.">
+              <SectionShell title={t("adminUsers.detail.ownerInvoices")} subtitle={t("adminUsers.detail.ownerInvoicesSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {ownerData.invoices.length ? (
                     ownerData.invoices.map((invoice) => (
@@ -810,11 +807,11 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{invoice.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Total" value={invoice.totalAmount} />
-                          <StatRow label="Platform fee" value={invoice.platformFee} />
-                          <StatRow label="Paid at" value={formatDate(invoice.paidAt)} />
+                          <StatRow label={t("invoices.total")} value={invoice.totalAmount} />
+                          <StatRow label={t("adminUsers.detail.platformFee")} value={invoice.platformFee} />
+                          <StatRow label={t("invoiceDetail.paidAt")} value={formatDate(invoice.paidAt)} />
                           <StatRow
-                            label="PDF"
+                            label={t("adminUsers.detail.pdf")}
                             value={
                               invoice.pdfUrl ? (
                                 <a
@@ -823,7 +820,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                                   target="_blank"
                                   rel="noreferrer"
                                 >
-                                  Open file
+                                  {t("adminUsers.detail.openFile")}
                                 </a>
                               ) : (
                                 "—"
@@ -834,12 +831,12 @@ export default function AdminUsersWorkspace({ users }: Props) {
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No invoices found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noInvoices")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Owner payments" subtitle="Recorded payments and split amounts.">
+              <SectionShell title={t("adminUsers.detail.ownerPayments")} subtitle={t("adminUsers.detail.ownerPaymentsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {ownerData.payments.length ? (
                     ownerData.payments.map((payment) => (
@@ -859,16 +856,16 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{payment.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Amount" value={payment.amount} />
-                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
-                          <StatRow label="Owner amount" value={payment.ownerAmount} />
-                          <StatRow label="Platform commission" value={payment.platformCommission} />
-                          <StatRow label="Paid at" value={formatDate(payment.paidAt)} />
+                          <StatRow label={t("invoiceDetail.amount")} value={payment.amount} />
+                          <StatRow label={t("adminUsers.detail.marketplaceSplit")} value={marketplaceSplitLabel} />
+                          <StatRow label={t("adminUsers.detail.ownerAmount")} value={payment.ownerAmount} />
+                          <StatRow label={t("listingDetail.platformCommission")} value={payment.platformCommission} />
+                          <StatRow label={t("invoiceDetail.paidAt")} value={formatDate(payment.paidAt)} />
                         </div>
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No payments found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noPayments")}</p>
                   )}
                 </div>
               </SectionShell>
@@ -877,7 +874,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
 
           {renterData ? (
             <>
-              <SectionShell title="Renter bookings" subtitle="Bookings linked to renter activity.">
+              <SectionShell title={t("adminUsers.detail.renterBookings")} subtitle={t("adminUsers.detail.renterBookingsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {renterData.bookings.length ? (
                     renterData.bookings.map((booking) => (
@@ -895,23 +892,23 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{booking.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Owner" value={booking.owner.fullName} />
-                          <StatRow label="Monthly price" value={booking.monthlyPrice} />
-                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
-                          <StatRow label="Total monthly" value={booking.totalMonthlyAmount} />
-                          <StatRow label="Contract" value={booking.generatedContract?.contractNumber ?? "—"} />
-                          <StatRow label="Invoice" value={booking.invoiceStatus ?? "—"} />
-                          <StatRow label="Payment" value={booking.paymentStatus ?? "—"} />
+                          <StatRow label={t("common.owner")} value={booking.owner.fullName} />
+                          <StatRow label={t("adminUsers.detail.monthlyPrice")} value={booking.monthlyPrice} />
+                          <StatRow label={t("adminUsers.detail.marketplaceSplit")} value={marketplaceSplitLabel} />
+                          <StatRow label={t("adminUsers.detail.totalMonthly")} value={booking.totalMonthlyAmount} />
+                          <StatRow label={t("adminUsers.detail.contract")} value={booking.generatedContract?.contractNumber ?? "—"} />
+                          <StatRow label={t("adminUsers.detail.invoice")} value={booking.invoiceStatus ?? "—"} />
+                          <StatRow label={t("adminUsers.detail.payment")} value={booking.paymentStatus ?? "—"} />
                         </div>
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No bookings found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noBookings")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Renter contracts" subtitle="Contracts and signatures tied to renter bookings.">
+              <SectionShell title={t("adminUsers.detail.renterContracts")} subtitle={t("adminUsers.detail.renterContractsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {renterData.contracts.length ? (
                     renterData.contracts.map((contract) => (
@@ -931,11 +928,11 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{contract.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Type" value={formatEnum(contract.type)} />
-                          <StatRow label="Owner" value={contract.booking.owner.fullName} />
-                          <StatRow label="Signed at" value={formatDate(contract.fullySignedAt)} />
+                          <StatRow label={t("contracts.type")} value={formatEnum(contract.type)} />
+                          <StatRow label={t("common.owner")} value={contract.booking.owner.fullName} />
+                          <StatRow label={t("adminUsers.detail.signedAt")} value={formatDate(contract.fullySignedAt)} />
                           <StatRow
-                            label="Download"
+                            label={t("common.download")}
                             value={
                               contract.signedPdfUrl || contract.generatedPdfUrl ? (
                                 <a
@@ -944,7 +941,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                                   target="_blank"
                                   rel="noreferrer"
                                 >
-                                  Open file
+                                  {t("adminUsers.detail.openFile")}
                                 </a>
                               ) : (
                                 "—"
@@ -955,12 +952,12 @@ export default function AdminUsersWorkspace({ users }: Props) {
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No contracts found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noContracts")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Renter invoices" subtitle="Invoices and payment history for renter activity.">
+              <SectionShell title={t("adminUsers.detail.renterInvoices")} subtitle={t("adminUsers.detail.renterInvoicesSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {renterData.invoices.length ? (
                     renterData.invoices.map((invoice) => (
@@ -980,11 +977,11 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{invoice.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Total" value={invoice.totalAmount} />
-                          <StatRow label="Platform fee" value={invoice.platformFee} />
-                          <StatRow label="Paid at" value={formatDate(invoice.paidAt)} />
+                          <StatRow label={t("invoices.total")} value={invoice.totalAmount} />
+                          <StatRow label={t("adminUsers.detail.platformFee")} value={invoice.platformFee} />
+                          <StatRow label={t("invoiceDetail.paidAt")} value={formatDate(invoice.paidAt)} />
                           <StatRow
-                            label="PDF"
+                            label={t("adminUsers.detail.pdf")}
                             value={
                               invoice.pdfUrl ? (
                                 <a
@@ -993,7 +990,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                                   target="_blank"
                                   rel="noreferrer"
                                 >
-                                  Open file
+                                  {t("adminUsers.detail.openFile")}
                                 </a>
                               ) : (
                                 "—"
@@ -1004,12 +1001,12 @@ export default function AdminUsersWorkspace({ users }: Props) {
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No invoices found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noInvoices")}</p>
                   )}
                 </div>
               </SectionShell>
 
-              <SectionShell title="Renter payments" subtitle="Recorded payment events for renter bookings.">
+              <SectionShell title={t("adminUsers.detail.renterPayments")} subtitle={t("adminUsers.detail.renterPaymentsSubtitle")}>
                 <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                   {renterData.payments.length ? (
                     renterData.payments.map((payment) => (
@@ -1029,23 +1026,23 @@ export default function AdminUsersWorkspace({ users }: Props) {
                           <Badge>{payment.status}</Badge>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm">
-                          <StatRow label="Amount" value={payment.amount} />
-                          <StatRow label="Marketplace split" value={marketplaceSplitLabel} />
-                          <StatRow label="Owner amount" value={payment.ownerAmount} />
-                          <StatRow label="Platform commission" value={payment.platformCommission} />
-                          <StatRow label="Paid at" value={formatDate(payment.paidAt)} />
+                          <StatRow label={t("invoiceDetail.amount")} value={payment.amount} />
+                          <StatRow label={t("adminUsers.detail.marketplaceSplit")} value={marketplaceSplitLabel} />
+                          <StatRow label={t("adminUsers.detail.ownerAmount")} value={payment.ownerAmount} />
+                          <StatRow label={t("listingDetail.platformCommission")} value={payment.platformCommission} />
+                          <StatRow label={t("invoiceDetail.paidAt")} value={formatDate(payment.paidAt)} />
                         </div>
                       </article>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">No payments found.</p>
+                    <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noPayments")}</p>
                   )}
                 </div>
               </SectionShell>
             </>
           ) : null}
 
-          <SectionShell title="Notifications" subtitle="Recent notifications sent to this user.">
+          <SectionShell title={t("adminUsers.detail.notifications")} subtitle={t("adminUsers.detail.notificationsSubtitle")}>
             <div className="max-h-[280px] space-y-3 overflow-y-auto pr-1">
               {selectedUserDetail?.notifications?.length ? (
                 selectedUserDetail.notifications.map((notification) => (
@@ -1058,21 +1055,21 @@ export default function AdminUsersWorkspace({ users }: Props) {
                         <p className="font-semibold text-primary">{notification.title}</p>
                         <p className="mt-1 text-sm text-on-surface-variant">{notification.body ?? "—"}</p>
                       </div>
-                      <Badge>{notification.readAt ? "Read" : "Unread"}</Badge>
+                      <Badge>{notification.readAt ? t("adminUsers.detail.read") : t("adminUsers.detail.unread")}</Badge>
                     </div>
                     <div className="mt-3 grid gap-2 text-sm">
-                      <StatRow label="Created" value={formatDate(notification.createdAt)} />
-                      <StatRow label="Link" value={notification.linkUrl ?? "—"} />
+                      <StatRow label={t("adminUsers.detail.created")} value={formatDate(notification.createdAt)} />
+                      <StatRow label={t("adminUsers.detail.link")} value={notification.linkUrl ?? "—"} />
                     </div>
                   </article>
                 ))
               ) : (
-                <p className="text-sm text-on-surface-variant">No notifications found.</p>
+                <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noNotifications")}</p>
               )}
             </div>
           </SectionShell>
 
-          <SectionShell title="Admin logs" subtitle="Audit trail for actions involving this user.">
+          <SectionShell title={t("adminUsers.detail.adminLogs")} subtitle={t("adminUsers.detail.adminLogsSubtitle")}>
             <div className="max-h-[280px] space-y-3 overflow-y-auto pr-1">
               {selectedUserDetail?.adminLogs?.length ? (
                 selectedUserDetail.adminLogs.map((log) => (
@@ -1092,7 +1089,7 @@ export default function AdminUsersWorkspace({ users }: Props) {
                   </article>
                 ))
               ) : (
-                <p className="text-sm text-on-surface-variant">No admin logs found.</p>
+                <p className="text-sm text-on-surface-variant">{t("adminUsers.detail.noAdminLogs")}</p>
               )}
             </div>
           </SectionShell>
