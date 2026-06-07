@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import OwnerActiveBookingActions from "@/components/owner/OwnerActiveBookingActions";
 import OwnerBookingActions from "@/components/owner/OwnerBookingActions";
 import OwnerBookingDetails from "@/components/owner/OwnerBookingDetails";
+import BookingDocumentUpload from "@/components/owner/BookingDocumentUpload";
 import OwnerListingActions from "@/components/owner/OwnerListingActions";
 import { getCurrentUser, getDashboardPath } from "@/lib/auth";
 import { getOwnerDashboardSnapshot } from "@/lib/dashboard/owner";
@@ -96,10 +97,7 @@ export default async function OwnerDashboardPage() {
   }
 
   if (!currentUser.ownerProfile) {
-    // Owner is authenticated but has no profile yet — send to document upload,
-    // not to /login. Redirecting to /login for an authenticated user looks like
-    // an unexpected logout.
-    redirect("/document");
+    redirect("/login");
   }
 
   const dashboard = await getOwnerDashboardSnapshot(currentUser.ownerProfile.id);
@@ -112,6 +110,11 @@ export default async function OwnerDashboardPage() {
       booking.status === "REJECTED",
     )
     .slice(0, 6);
+  const docsRequiredBookings = dashboard.ownerBookings.filter(
+    (booking) =>
+      booking.status === "DOCUMENTS_REQUIRED" ||
+      booking.status === "ADMIN_REVIEW",
+  );
   const recentActivity = dashboard.ownerBookings
     .filter((booking) => booking.status !== "PENDING")
     .slice(0, 4);
@@ -141,6 +144,13 @@ export default async function OwnerDashboardPage() {
             >
               <span className="material-symbols-outlined text-[18px]">chat</span>
               {t("nav.messages")}
+            </Link>
+            <Link
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/70 bg-surface-container-low px-5 py-3 text-body-sm font-bold text-primary hover:bg-secondary-container transition-colors"
+              href="/owner/wallet"
+            >
+              <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+              {t("wallet.myWallet")}
             </Link>
             <Link
               className="inline-flex items-center justify-center gap-2 rounded-full bg-secondary px-5 py-3 text-body-sm font-bold text-on-primary hover:bg-[#d9590f] transition-colors shadow-[0_12px_28px_rgba(242,106,27,0.22)]"
@@ -547,6 +557,64 @@ export default async function OwnerDashboardPage() {
             )}
           </div>
         </section>
+
+        {docsRequiredBookings.length > 0 && (
+          <section className="space-y-4" id="docs-required-bookings">
+            <div>
+              <h2 className="text-h2 font-h2 text-primary">{t("bookingDocs.sectionTitle")}</h2>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                {t("bookingDocs.sectionSubtitle")}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {docsRequiredBookings.map((booking) => (
+                <article
+                  className="rounded-[24px] border border-secondary/20 bg-surface p-5 sm:p-6 lg:p-7 shadow-[0_10px_32px_rgba(17,24,39,0.05)]"
+                  key={booking.id}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 lg:gap-8">
+                    <div className="space-y-2.5 min-w-0 flex-1">
+                      <p className="text-label-caps font-label-caps text-on-surface-variant">
+                        {booking.renter.fullName}
+                      </p>
+                      <h3 className="text-h3 font-h3 text-primary">{booking.listing.title}</h3>
+                      <p className="text-body-sm font-body-sm text-on-surface-variant">
+                        {booking.listing.address} • {booking.listing.city}
+                      </p>
+                      <BookingDocumentUpload
+                        bookingId={booking.id}
+                        bookingNumber={booking.bookingNumber}
+                        bookingStatus={booking.status}
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
+                      <div className="text-left lg:text-right">
+                        <p className="text-label-caps font-label-caps text-on-surface-variant">
+                          {t("dashboard.owner.statusLabel")}
+                        </p>
+                        <span className="inline-flex rounded-full bg-amber-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-700">
+                          {booking.status === "ADMIN_REVIEW"
+                            ? t("bookingDocs.adminReviewBadge")
+                            : t("bookingDocs.docsRequiredBadge")}
+                        </span>
+                      </div>
+                      <div className="text-left lg:text-right">
+                        <p className="text-label-caps font-label-caps text-on-surface-variant">
+                          {t("dashboard.owner.bookingColumn")}
+                        </p>
+                        <p className="text-body-sm font-medium text-on-surface">
+                          {booking.bookingNumber}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="space-y-4" id="active-bookings">
           <div>

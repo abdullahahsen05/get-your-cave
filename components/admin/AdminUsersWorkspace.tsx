@@ -12,6 +12,7 @@ export type AdminUserRow = {
   fullName: string;
   email: string;
   phone: string | null;
+  phoneVerified: boolean;
   avatarUrl: string | null;
   role: string;
   status: string;
@@ -567,7 +568,19 @@ export default function AdminUsersWorkspace({ users }: Props) {
           {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
 
           <div className="mt-6 grid gap-3 rounded-[24px] border border-outline-variant/60 bg-surface-container-low p-4 text-sm">
-            <StatRow label={t("profile.phone")} value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatRow label={t("profile.phone")} value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
+              {(detailUser?.phoneVerified ?? selectedUser?.phoneVerified) ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#4b6547]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#4b6547]">
+                  <span className="material-symbols-outlined text-[12px]">verified</span>
+                  {t("phoneVerification.verified")}
+                </span>
+              ) : (
+                <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700">
+                  {t("common.unverified")}
+                </span>
+              )}
+            </div>
             <StatRow label={t("profile.createdAt")} value={formatDate(detailUser?.createdAt ?? selectedUser?.createdAt)} />
             <StatRow label={t("adminUsers.detail.updated")} value={formatDate(detailUser?.updatedAt)} />
             <StatRow
@@ -611,7 +624,19 @@ export default function AdminUsersWorkspace({ users }: Props) {
         <div className="space-y-4">
           <SectionShell title={t("adminUsers.detail.profileDetails")} subtitle={t("adminUsers.detail.profileDetailsSubtitle")}>
             <StatRow label={t("profile.email")} value={detailUser?.email ?? selectedUser?.email ?? "—"} />
-            <StatRow label={t("profile.phone")} value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatRow label={t("profile.phone")} value={detailUser?.phone ?? selectedUser?.phone ?? "—"} />
+              {(detailUser?.phoneVerified ?? selectedUser?.phoneVerified) ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#4b6547]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#4b6547]">
+                  <span className="material-symbols-outlined text-[12px]">verified</span>
+                  {t("phoneVerification.verified")}
+                </span>
+              ) : (
+                <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700">
+                  {t("common.unverified")}
+                </span>
+              )}
+            </div>
             <StatRow label={t("profile.role")} value={detailUser?.role ?? selectedUser?.role ?? "—"} />
             <StatRow label={t("profile.status")} value={detailUser?.status ?? selectedUser?.status ?? "—"} />
             <StatRow label={t("adminUsers.detail.emailVerified")} value={detailUser?.emailVerified ? t("common.yes") : t("common.no")} />

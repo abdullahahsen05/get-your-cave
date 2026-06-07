@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import AdminPendingDocsPanel from "./AdminPendingDocsPanel";
 
 import type {
   AdminActivityPage,
@@ -1235,6 +1236,26 @@ export default function AdminDashboardWorkspace() {
             )}
           </section>
         ) : null}
+
+        <section className="tonal-card rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 p-5 shadow-[0_12px_40px_rgba(17,24,39,0.05)] sm:p-6 lg:p-7">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-[22px] font-semibold leading-[1.4] text-primary">
+                Pending Document Reviews
+              </h3>
+              <p className="text-body-sm text-on-surface-variant mt-0.5">
+                Owner documents awaiting approval for bookings in review.
+              </p>
+            </div>
+            <a
+              className="shrink-0 rounded-full border border-outline-variant/60 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-primary hover:bg-surface-container-low transition-colors"
+              href="/admin/booking-documents"
+            >
+              View All
+            </a>
+          </div>
+          <AdminPendingDocsPanel />
+        </section>
 
         <section className="tonal-card overflow-hidden rounded-[1.75rem] border border-outline-variant/60 bg-surface/75 shadow-[0_12px_40px_rgba(17,24,39,0.05)]">
           <div className="flex flex-col gap-4 border-b border-outline-variant/60 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-12">

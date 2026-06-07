@@ -24,9 +24,17 @@ const AVATAR_UPLOAD_ROOT = path.join(
   "avatars",
 );
 
+const BOOKING_DOCUMENT_UPLOAD_ROOT = path.join(
+  process.cwd(),
+  "public",
+  "uploads",
+  "booking-documents",
+);
+
 const VERIFICATION_UPLOAD_PUBLIC_PREFIX = "/uploads/verification-documents";
 const MESSAGE_UPLOAD_PUBLIC_PREFIX = "/uploads/messages";
 const AVATAR_UPLOAD_PUBLIC_PREFIX = "/uploads/avatars";
+const BOOKING_DOCUMENT_UPLOAD_PUBLIC_PREFIX = "/uploads/booking-documents";
 
 const supportedMimeTypes = new Map<string, string>([
   ["application/pdf", ".pdf"],
@@ -303,6 +311,73 @@ export function getVerificationDocumentPathFromPublicUrl(fileUrl: string) {
 
 export async function removeVerificationDocumentFile(fileUrl: string) {
   const filePath = getVerificationDocumentPathFromPublicUrl(fileUrl);
+  if (!filePath) {
+    return false;
+  }
+
+  try {
+    await fs.unlink(filePath);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return true;
+    }
+
+    return false;
+  }
+}
+
+// ─── Booking-document helpers ─────────────────────────────────────────────────
+
+export function getBookingDocumentUploadRoot() {
+  return BOOKING_DOCUMENT_UPLOAD_ROOT;
+}
+
+export function getBookingDocumentPublicPrefix() {
+  return BOOKING_DOCUMENT_UPLOAD_PUBLIC_PREFIX;
+}
+
+export async function ensureBookingDocumentUploadRoot() {
+  await fs.mkdir(BOOKING_DOCUMENT_UPLOAD_ROOT, { recursive: true });
+}
+
+export function buildStoredBookingDocumentFileName(
+  originalFileName: string,
+  mimeType: string,
+) {
+  const ext = getVerifiedFileExtension(originalFileName, mimeType);
+  if (!ext) {
+    return null;
+  }
+
+  return `bookingdoc-${Date.now()}-${randomUUID()}${ext}`;
+}
+
+export function getBookingDocumentPublicUrl(storedFileName: string) {
+  return `${BOOKING_DOCUMENT_UPLOAD_PUBLIC_PREFIX}/${storedFileName}`;
+}
+
+export function getBookingDocumentPathFromPublicUrl(fileUrl: string) {
+  if (!fileUrl.startsWith(`${BOOKING_DOCUMENT_UPLOAD_PUBLIC_PREFIX}/`)) {
+    return null;
+  }
+
+  const storedFileName = path.basename(fileUrl);
+  return path.join(BOOKING_DOCUMENT_UPLOAD_ROOT, storedFileName);
+}
+
+export async function saveBookingDocumentFile(file: File, storedFileName: string) {
+  await ensureBookingDocumentUploadRoot();
+
+  const filePath = path.join(BOOKING_DOCUMENT_UPLOAD_ROOT, storedFileName);
+  const bytes = Buffer.from(await file.arrayBuffer());
+  await fs.writeFile(filePath, bytes);
+
+  return filePath;
+}
+
+export async function removeBookingDocumentFile(fileUrl: string) {
+  const filePath = getBookingDocumentPathFromPublicUrl(fileUrl);
   if (!filePath) {
     return false;
   }

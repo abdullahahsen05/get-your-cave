@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import UserAvatar from "@/components/ui/UserAvatar";
 import type { SafeUser } from "@/lib/auth";
+import PhoneVerificationSection from "@/components/profile/PhoneVerificationSection";
 
 export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
   const router = useRouter();
@@ -30,6 +31,8 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
   const [emailNotifications, setEmailNotifications] = useState(user.emailNotificationsEnabled);
   const [smsNotifications, setSmsNotifications] = useState(user.smsNotificationsEnabled);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(user.twoFactorEnabled);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(user.phoneVerified);
+  const [verifiedPhone, setVerifiedPhone] = useState(user.phone ?? "");
 
   useEffect(() => {
     setAvatarUrl(user.avatarUrl ?? "");
@@ -43,6 +46,8 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
     setEmailNotifications(user.emailNotificationsEnabled);
     setSmsNotifications(user.smsNotificationsEnabled);
     setTwoFactorEnabled(user.twoFactorEnabled);
+    setIsPhoneVerified(user.phoneVerified);
+    setVerifiedPhone(user.phone ?? "");
   }, [
     user.avatarUrl,
     user.email,
@@ -58,6 +63,8 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
     user.renterProfile?.postalCode,
     user.smsNotificationsEnabled,
     user.twoFactorEnabled,
+    user.phoneVerified,
+    user.phone,
   ]);
 
   async function handleAvatarUpload(file: File | null) {
@@ -268,6 +275,15 @@ export default function ProfileSettingsWorkspace({ user }: { user: SafeUser }) {
             />
           </label>
         </div>
+
+        <PhoneVerificationSection
+          currentPhone={verifiedPhone || user.phone}
+          phoneVerified={isPhoneVerified}
+          onVerified={(phone) => {
+            setVerifiedPhone(phone);
+            setIsPhoneVerified(true);
+          }}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2">

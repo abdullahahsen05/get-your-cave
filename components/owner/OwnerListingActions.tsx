@@ -142,8 +142,8 @@ export default function OwnerListingActions({
           }}
         >
           {busyAction === "submitReview"
-            ? t("loading")
-            : t("submitForReview")}
+            ? t("common.loading")
+            : t("common.publish")}
         </button>
         <button
           className={`${actionClasses} border border-outline-variant/70 bg-surface-container-low text-primary hover:bg-surface-container`}
@@ -159,7 +159,7 @@ export default function OwnerListingActions({
             );
           }}
         >
-          {busyAction === "draft" ? t("loading") : t("draft")}
+          {busyAction === "draft" ? t("common.loading") : t("common.saveDraft")}
         </button>
         <button
           className={`${actionClasses} border border-outline-variant/70 bg-surface-container-low text-primary hover:bg-surface-container`}

@@ -1,5 +1,7 @@
 import {
   Bell,
+  BookOpen,
+  CreditCard,
   FileSignature,
   FileText,
   FolderOpen,
@@ -8,9 +10,12 @@ import {
   MessageSquareText,
   PlusCircle,
   Search,
+  ShieldCheck,
   UserPlus,
   UserRound,
   Users,
+  Wallet,
+  ArrowDownToLine,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -60,13 +65,13 @@ export const roleNavigation: Record<NavigationRole, NavigationGroup> = {
     visible: [
       { href: "/renter/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
       { href: "/storage", labelKey: "nav.findACave", icon: Search },
+      sharedOtherNavigation.contracts,
       { href: "/invoices", labelKey: "nav.invoices", icon: FileText },
       { href: "/profile", labelKey: "nav.profile", icon: UserRound },
     ],
     other: [
       { href: "/messaging", labelKey: "nav.messages", icon: MessageSquareText },
       { href: "/notifications", labelKey: "nav.notifications", icon: Bell },
-      sharedOtherNavigation.contracts,
       sharedOtherNavigation.dashboardContracts,
       sharedOtherNavigation.documents,
     ],
@@ -76,31 +81,34 @@ export const roleNavigation: Record<NavigationRole, NavigationGroup> = {
     visible: [
       { href: "/owner/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
       { href: "/create-listing", labelKey: "nav.createListing", icon: PlusCircle },
-      { href: "/invoices", labelKey: "nav.invoices", icon: FileText },
+      sharedOtherNavigation.contracts,
+      { href: "/owner/wallet", labelKey: "nav.wallet", icon: Wallet },
       { href: "/profile", labelKey: "nav.profile", icon: UserRound },
     ],
     other: [
       { href: "/messaging", labelKey: "nav.messages", icon: MessageSquareText },
       { href: "/notifications", labelKey: "nav.notifications", icon: Bell },
-      sharedOtherNavigation.contracts,
       sharedOtherNavigation.dashboardContracts,
       sharedOtherNavigation.documents,
       sharedOtherNavigation.findACave,
+      { href: "/invoices", labelKey: "nav.invoices", icon: FileText },
     ],
   },
   ADMIN: {
     titleKey: "nav.overview",
     visible: [
       { href: "/admin/dashboard", labelKey: "nav.overview", icon: LayoutDashboard },
+      { href: "/admin/bookings", labelKey: "nav.bookings", icon: BookOpen },
+      { href: "/admin/contracts", labelKey: "nav.contracts", icon: FileSignature },
+      { href: "/admin/payments", labelKey: "nav.payments", icon: CreditCard },
+      { href: "/admin/withdrawals", labelKey: "nav.withdrawals", icon: ArrowDownToLine },
       { href: "/admin/users", labelKey: "nav.users", icon: Users },
-      { href: "/invoices", labelKey: "nav.invoices", icon: FileText },
-      { href: "/profile", labelKey: "nav.profile", icon: UserRound },
     ],
     other: [
+      { href: "/admin/booking-documents", labelKey: "nav.bookingDocuments", icon: ShieldCheck },
+      { href: "/profile", labelKey: "nav.profile", icon: UserRound },
       { href: "/messaging", labelKey: "nav.messages", icon: MessageSquareText },
       { href: "/notifications", labelKey: "nav.notifications", icon: Bell },
-      sharedOtherNavigation.contracts,
-      sharedOtherNavigation.dashboardContracts,
       sharedOtherNavigation.documents,
       sharedOtherNavigation.findACave,
     ],

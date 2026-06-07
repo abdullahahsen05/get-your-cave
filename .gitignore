@@ -51,5 +51,13 @@ dev-server.log
 # generated contract documents (runtime artifacts)
 /docs/generated/
 
+# BoldSign runtime artifacts (signed PDFs and audit trails)
+/docs/signed/
+/docs/audit/
+
+# uploaded booking documents (runtime uploads)
+/public/uploads/booking-documents/*
+!/public/uploads/booking-documents/.gitkeep
+
 # Claude Code local settings
 .claude/settings.local.json

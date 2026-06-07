@@ -97,19 +97,6 @@ export async function PATCH(
     );
   }
 
-  if (
-    currentUser.role === "OWNER" &&
-    "status" in parsed.data &&
-    parsed.data.status === ListingStatus.APPROVED
-  ) {
-    return NextResponse.json(
-      {
-        error: "Owners cannot approve listings. Submit the listing for review instead.",
-      },
-      { status: 403 },
-    );
-  }
-
   const ownerProfileId = currentUser.ownerProfile?.id;
   if (!ownerProfileId) {
     return NextResponse.json(
@@ -118,10 +105,16 @@ export async function PATCH(
     );
   }
 
+  // Listings go live immediately — map PENDING_APPROVAL → APPROVED + isPublished=true.
+  const listingData =
+    rawStatus === "PENDING_APPROVAL"
+      ? { ...parsed.data, status: ListingStatus.APPROVED, isPublished: true }
+      : parsed.data;
+
   const listing = await updateOwnerListing({
     listingId: id,
     ownerProfileId,
-    data: parsed.data,
+    data: listingData,
   });
 
   if (!listing) {

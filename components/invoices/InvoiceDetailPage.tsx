@@ -81,6 +81,11 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                 title: invoice.bookingTitle,
               })}
             </p>
+            {invoice.contractNumber ? (
+              <p className="max-w-3xl font-body-lg text-body-lg text-on-surface-variant">
+                {t("invoiceDetail.contractRef")}: {invoice.contractNumber}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -141,6 +146,26 @@ export default function InvoiceDetailPage({ invoice, canGenerate, canPay }: Prop
                   label={t("invoiceDetail.storageTypeLabel")}
                   value={formatStorageTypeLabel(invoice.bookingStorageType, t)}
                 />
+                {invoice.stripeChargeId ? (
+                  <div className="rounded-2xl bg-surface-container-low p-4 sm:p-5 border border-outline-variant/60">
+                    <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
+                      {t("invoiceDetail.paymentRef")}
+                    </p>
+                    <p className="mt-2 text-body-sm font-semibold text-primary font-mono text-xs">
+                      {invoice.stripeChargeId}
+                    </p>
+                  </div>
+                ) : null}
+                {invoice.stripeInvoiceId ? (
+                  <div className="rounded-2xl bg-surface-container-low p-4 sm:p-5 border border-outline-variant/60">
+                    <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">
+                      {t("invoiceDetail.stripeInvoiceRef")}
+                    </p>
+                    <p className="mt-2 text-body-sm font-semibold text-primary font-mono text-xs">
+                      {invoice.stripeInvoiceId}
+                    </p>
+                  </div>
+                ) : null}
               </div>
             </div>
 

@@ -192,12 +192,14 @@ export default function SignUpPage() {
         return;
       }
 
-      // Only OWNER needs to verify before accessing the platform.
-      // RENTER goes directly to their dashboard after signup.
-      const destination =
-        user.role === "OWNER"
-          ? `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
-          : nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
+      function isNextPathAllowedForRole(path: string, role: "ADMIN" | "OWNER" | "RENTER") {
+        if (path.startsWith("/owner") || path === "/create-listing") return role === "OWNER";
+        if (path.startsWith("/renter")) return role === "RENTER";
+        if (path.startsWith("/admin")) return role === "ADMIN";
+        return true;
+      }
+      const dashboard = getDashboardPath(user.role);
+      const destination = nextPath && isNextPathAllowedForRole(nextPath, user.role) ? nextPath : dashboard;
 
       window.location.assign(destination);
     } catch {

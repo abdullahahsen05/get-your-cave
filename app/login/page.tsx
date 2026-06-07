@@ -63,18 +63,23 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  function isNextPathAllowedForRole(path: string, role: "ADMIN" | "OWNER" | "RENTER") {
+    if (path.startsWith("/owner") || path === "/create-listing") return role === "OWNER";
+    if (path.startsWith("/renter")) return role === "RENTER";
+    if (path.startsWith("/admin")) return role === "ADMIN";
+    return true;
+  }
+
   function resolveDestination(user: { role?: "ADMIN" | "OWNER" | "RENTER"; status?: string }) {
     if (!user.role) {
-      return nextPath ?? "/renter/dashboard";
+      return getDashboardPath("RENTER");
     }
 
-    // Only OWNER needs to verify before accessing the platform.
-    // RENTER can access their dashboard and book regardless of verification status.
-    if (user.role === "OWNER" && user.status !== "ACTIVE") {
-      return `/document${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`;
+    const dashboard = getDashboardPath(user.role);
+    if (nextPath && isNextPathAllowedForRole(nextPath, user.role)) {
+      return nextPath;
     }
-
-    return nextPath ?? getDashboardPath(user.role) ?? "/renter/dashboard";
+    return dashboard;
   }
 
   async function requestTwoFactorCode(credentials: LoginFormState) {

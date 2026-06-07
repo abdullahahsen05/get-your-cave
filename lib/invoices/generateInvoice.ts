@@ -57,6 +57,9 @@ const invoiceInclude = {
           },
         },
       },
+      generatedContract: {
+        select: { contractNumber: true },
+      },
     },
   },
   owner: {
@@ -92,6 +95,7 @@ const invoiceInclude = {
       ownerAmount: true,
       paidAt: true,
       createdAt: true,
+      stripeChargeId: true,
     },
   },
   items: {
@@ -220,6 +224,9 @@ export type SafeInvoice = {
     at: string | null;
     active: boolean;
   }>;
+  contractNumber: string | null;
+  stripeChargeId: string | null;
+  stripeInvoiceId: string | null;
 };
 
 export type InvoiceListFilters = {
@@ -360,6 +367,9 @@ function toSafeInvoice(record: InvoiceRecord): SafeInvoice {
       : null,
     items,
     timeline: buildTimeline(record),
+    contractNumber: record.booking?.generatedContract?.contractNumber ?? null,
+    stripeChargeId: record.payment?.stripeChargeId ?? null,
+    stripeInvoiceId: record.stripeInvoiceId ?? null,
   };
 }
 

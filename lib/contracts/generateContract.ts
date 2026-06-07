@@ -64,6 +64,8 @@ const contractBookingInclude = {
       },
     },
   },
+
+
   generatedContract: {
     select: {
       contractNumber: true,
@@ -154,6 +156,7 @@ export type SafeGeneratedContract = {
   status: ContractStatus;
   generatedFilePath: string;
   generatedFileName: string;
+  generatedPdfPath: string | null;
   generatedAt: string;
   updatedAt: string;
   bookingStatus: string;
@@ -161,11 +164,21 @@ export type SafeGeneratedContract = {
   listingAddress: string;
   ownerName: string;
   renterName: string;
+  ownerEmail: string;
+  renterEmail: string;
   startDate: string;
   endDate: string | null;
   monthlyPrice: string;
   depositAmount: string;
   insuranceFee: string;
+  // BoldSign fields
+  boldsignDocumentId: string | null;
+  signatureProvider: string | null;
+  signedPdfPath: string | null;
+  auditTrailPath: string | null;
+  ownerSignedAt: string | null;
+  tenantSignedAt: string | null;
+  signatureFailedReason: string | null;
   placeholders: ContractPlaceholderData;
   signatures: Array<{
     userId: string;
@@ -326,6 +339,7 @@ function toSafeContract(record: GeneratedContractRecord): SafeGeneratedContract 
     status: record.status,
     generatedFilePath: record.generatedFilePath,
     generatedFileName: record.generatedFileName,
+    generatedPdfPath: record.generatedPdfPath ?? null,
     generatedAt: record.generatedAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
     bookingStatus: record.booking.status,
@@ -333,11 +347,20 @@ function toSafeContract(record: GeneratedContractRecord): SafeGeneratedContract 
     listingAddress: record.booking.listing.address,
     ownerName: record.booking.owner.user.fullName,
     renterName: record.booking.renter.user.fullName,
+    ownerEmail: record.booking.owner.user.email,
+    renterEmail: record.booking.renter.user.email,
     startDate: record.booking.startDate.toISOString(),
     endDate: record.booking.endDate?.toISOString() ?? null,
     monthlyPrice: record.booking.monthlyPrice.toFixed(2),
     depositAmount: record.booking.securityDeposit.toFixed(2),
     insuranceFee: record.booking.insuranceFee.toFixed(2),
+    boldsignDocumentId: record.boldsignDocumentId ?? null,
+    signatureProvider: record.signatureProvider ?? null,
+    signedPdfPath: record.signedPdfPath ?? null,
+    auditTrailPath: record.auditTrailPath ?? null,
+    ownerSignedAt: record.ownerSignedAt?.toISOString() ?? null,
+    tenantSignedAt: record.tenantSignedAt?.toISOString() ?? null,
+    signatureFailedReason: record.signatureFailedReason ?? null,
     placeholders,
     signatures,
   };

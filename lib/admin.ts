@@ -774,6 +774,7 @@ export async function getAdminUsers(params: {
         fullName: true,
         email: true,
         phone: true,
+        phoneVerified: true,
         avatarUrl: true,
         role: true,
         status: true,
@@ -1407,7 +1408,7 @@ export async function rejectVerificationDocumentForAdmin(
 }
 
 export async function activateUserForAdmin(userId: string, adminId: string) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.findUnique({
       where: { id: userId },
       select: {
@@ -1477,6 +1478,17 @@ export async function activateUserForAdmin(userId: string, adminId: string) {
       status: AccountStatus.ACTIVE,
     } as const;
   });
+
+  if (!("error" in result)) {
+    await createNotificationForUser({
+      userId,
+      title: "Account activated",
+      body: "Your account has been verified and activated. You can now use all platform features.",
+      linkUrl: "/profile",
+    });
+  }
+
+  return result;
 }
 
 export function listVerificationDocumentsForUser(userId: string): Promise<VerificationDocumentView[]> {

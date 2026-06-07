@@ -12,6 +12,8 @@ type ContractsWorkspaceProps = {
   canGenerate: boolean;
   isAdmin: boolean;
   viewerRole: string;
+  viewerOwnerProfileId?: string | null;
+  viewerRenterProfileId?: string | null;
 };
 
 function formatDate(value: string, locale: string) {
@@ -49,8 +51,12 @@ function getStatusStyles(status: SafeGeneratedContract["status"]) {
     case "SENT_FOR_SIGNATURE":
       return "bg-tertiary-fixed text-on-tertiary-fixed-variant";
     case "PARTIALLY_SIGNED":
+    case "OWNER_SIGNED":
+    case "TENANT_SIGNED":
       return "bg-surface-container-highest text-on-surface-variant";
     case "CANCELLED":
+      return "bg-error-container text-on-error-container";
+    case "SIGNATURE_FAILED":
       return "bg-error-container text-on-error-container";
     default:
       return "bg-surface-container-highest text-on-surface-variant";
@@ -78,6 +84,7 @@ export function ContractsWorkspace({
   canGenerate,
   isAdmin,
   viewerRole,
+  viewerOwnerProfileId,
 }: ContractsWorkspaceProps) {
   const { t, i18n } = useTranslation();
   const locale = normalizeLocale(i18n.language);
@@ -184,6 +191,45 @@ export function ContractsWorkspace({
     }
 
     return viewerRole === "OWNER" || viewerRole === "RENTER" || viewerRole === "ADMIN";
+  }
+
+  function canSendForBoldsign(contract: SafeGeneratedContract) {
+    const sendableStatuses = ["GENERATED", "SENT", "PARTIALLY_SIGNED", "APPROVED", "SIGNATURE_FAILED"];
+    if (!sendableStatuses.includes(contract.status)) return false;
+    if (viewerRole === "ADMIN") return true;
+    if (viewerRole === "OWNER" && viewerOwnerProfileId && viewerOwnerProfileId === contract.ownerId) return true;
+    return false;
+  }
+
+  async function handleSendForSignature(contract: SafeGeneratedContract) {
+    setBusyId(contract.id);
+    setNotice(null);
+
+    try {
+      const response = await fetch(`/api/contracts/${contract.id}/send-for-signature`, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+      });
+
+      const payload = (await response.json()) as { status?: string; error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? t("contracts.unableToSign"));
+      }
+
+      setContracts((current) =>
+        current.map((item) =>
+          item.id === contract.id
+            ? { ...item, status: (payload.status ?? "SENT_FOR_SIGNATURE") as SafeGeneratedContract["status"] }
+            : item,
+        ),
+      );
+      setNotice(t("contracts.sentForSignature"));
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : t("contracts.unableToSign"));
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function handleSign(contract: SafeGeneratedContract) {
@@ -535,45 +581,80 @@ export function ContractsWorkspace({
               <p className="text-body-sm font-body-sm text-primary">{notice}</p>
             ) : null}
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a
-                className={`flex-1 rounded-full bg-secondary py-3 text-center text-sm font-bold text-on-secondary transition-opacity ${selectedContract ? "" : "pointer-events-none opacity-50"}`}
-                href={
-                  selectedContract
-                    ? downloadHref(selectedContract.id)
-                    : "#"
-                }
-                download={selectedContract?.generatedFileName}
-                >
-                  {t("contracts.download")}
-                </a>
+            <div className="flex flex-col gap-3">
+              {/* SIGNED: show only the BoldSign-signed PDF as the main download */}
+              {selectedContract?.status === "SIGNED" && selectedContract.signedPdfPath ? (
+                <>
+                  <a
+                    className="w-full rounded-full bg-[#4b6547] px-4 py-3 text-center text-sm font-bold text-white transition-opacity hover:opacity-90"
+                    href={`/api/contracts/${selectedContract.id}/signed-pdf`}
+                    download
+                  >
+                    {t("contracts.downloadSigned")}
+                  </a>
+                  {selectedContract.auditTrailPath ? (
+                    <a
+                      className="w-full rounded-full border border-outline-variant/60 px-4 py-3 text-center text-sm font-bold text-primary transition-colors hover:bg-surface-container-low"
+                      href={`/api/contracts/${selectedContract.id}/audit-trail`}
+                      download
+                    >
+                      {t("contracts.downloadAuditTrail")}
+                    </a>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  {/* Pre-signature: draft download + generate */}
+                  <div className="flex gap-3">
+                    <a
+                      className={`flex-1 rounded-full bg-secondary px-4 py-3 text-center text-sm font-bold text-on-secondary transition-opacity hover:bg-[#d9590f] ${selectedContract ? "" : "pointer-events-none opacity-50"}`}
+                      href={selectedContract ? downloadHref(selectedContract.id) : "#"}
+                      download={selectedContract?.generatedFileName}
+                    >
+                      {t("contracts.download")}
+                    </a>
+                    <button
+                      className="flex-1 rounded-full border border-outline-variant/60 px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low disabled:opacity-50"
+                      disabled={!selectedContract || !canGenerate || busyId === selectedContract?.id}
+                      type="button"
+                      onClick={() => { if (selectedContract) void handleGenerate(selectedContract); }}
+                    >
+                      {busyId === selectedContract?.id ? t("common.loading") : t("contracts.generate")}
+                    </button>
+                  </div>
 
-              {selectedContract && canSignContract(selectedContract) ? (
-                <button
-                  className="flex-1 rounded-full border border-secondary/35 py-3 text-sm font-bold text-secondary transition-colors hover:bg-secondary-container/20 disabled:opacity-50"
-                  disabled={busyId === selectedContract.id}
-                  type="button"
-                  onClick={() => {
-                    void handleSign(selectedContract);
-                  }}
-                >
-                  {busyId === selectedContract.id ? t("common.loading") : t("sign")}
-                </button>
-              ) : null}
+                  {/* Send for Signature */}
+                  {selectedContract && canSendForBoldsign(selectedContract) ? (
+                    <button
+                      className="w-full rounded-full border border-secondary/60 bg-secondary-container/20 px-4 py-3 text-sm font-bold text-secondary transition-colors hover:bg-secondary-container/35 disabled:opacity-50"
+                      disabled={busyId === selectedContract.id}
+                      type="button"
+                      onClick={() => void handleSendForSignature(selectedContract)}
+                    >
+                      {busyId === selectedContract.id ? t("common.loading") : t("contracts.sendForSignature")}
+                    </button>
+                  ) : null}
 
-              <button
-                className="flex-1 rounded-full border border-outline-variant/60 py-3 text-sm font-bold text-primary transition-colors hover:bg-surface-container-low disabled:opacity-50"
-                disabled={!selectedContract || !canGenerate || busyId === selectedContract?.id}
-                type="button"
-                onClick={() => {
-                  if (selectedContract) {
-                    void handleGenerate(selectedContract);
-                  }
-                }}
-              >
-                {busyId === selectedContract?.id ? t("common.loading") : t("contracts.generate")}
-              </button>
+                  {/* Manual sign (non-BoldSign fallback) */}
+                  {selectedContract && canSignContract(selectedContract) && !selectedContract.boldsignDocumentId ? (
+                    <button
+                      className="w-full rounded-full border border-secondary/35 px-4 py-3 text-sm font-bold text-secondary transition-colors hover:bg-secondary-container/20 disabled:opacity-50"
+                      disabled={busyId === selectedContract.id}
+                      type="button"
+                      onClick={() => void handleSign(selectedContract)}
+                    >
+                      {busyId === selectedContract.id ? t("common.loading") : t("sign")}
+                    </button>
+                  ) : null}
+                </>
+              )}
             </div>
+
+            {selectedContract?.signatureFailedReason ? (
+              <p className="rounded-[12px] border border-error/30 bg-error/5 px-3 py-2 text-xs text-error font-medium">
+                {t("contracts.signatureFailed")}: {selectedContract.signatureFailedReason}
+              </p>
+            ) : null}
 
             {selectedContract ? (
               <div className="grid grid-cols-2 gap-3 sm:gap-4">

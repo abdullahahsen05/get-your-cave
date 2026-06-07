@@ -45,6 +45,8 @@ export default async function ContractsRoutePage() {
           initialContracts={contracts}
           isAdmin={currentUser.role === "ADMIN"}
           viewerRole={currentUser.role}
+          viewerOwnerProfileId={currentUser.ownerProfile?.id ?? null}
+          viewerRenterProfileId={currentUser.renterProfile?.id ?? null}
         />
       ) : (
         <div className="rounded-[28px] border border-outline-variant/60 bg-surface-container-low p-6 text-on-surface-variant shadow-[0_10px_32px_rgba(17,24,39,0.05)] sm:p-8">

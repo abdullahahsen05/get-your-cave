@@ -5,10 +5,9 @@ import { getCurrentUser, getDashboardPath } from "@/lib/auth";
 /**
  * Server-side auth guard for /create-listing.
  *
- * 1. No session        → /login
- * 2. Non-owner         → correct dashboard
- * 3. Unverified owner  → /document  (shows verification status, "upload to proceed")
- * 4. Active owner      → render children (the form)
+ * 1. No session  → /login
+ * 2. Non-owner   → correct dashboard
+ * 3. Any owner   → render children immediately (no verification gate)
  */
 export default async function CreateListingLayout({
   children,
@@ -23,10 +22,6 @@ export default async function CreateListingLayout({
 
   if (currentUser.role !== "OWNER") {
     redirect(getDashboardPath(currentUser.role));
-  }
-
-  if (currentUser.status !== "ACTIVE") {
-    redirect("/document");
   }
 
   return <>{children}</>;

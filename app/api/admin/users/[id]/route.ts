@@ -26,6 +26,7 @@ const publicUserSelect = {
   role: true,
   status: true,
   emailVerified: true,
+  phoneVerified: true,
   createdAt: true,
   updatedAt: true,
   ownerProfile: {

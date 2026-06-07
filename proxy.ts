@@ -68,10 +68,6 @@ function hasRouteProfileAccess(
     return false;
   }
 
-  if (user.status !== "ACTIVE") {
-    return false;
-  }
-
   if (role === "OWNER") {
     return Boolean(user.ownerProfile);
   }

@@ -32,12 +32,20 @@ export default async function RootLayout({
   const currentUser = await getCurrentUser();
 
   return (
-    <html lang={locale} className={`${manrope.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      translate="no"
+      suppressHydrationWarning
+      className={`${manrope.variable} h-full antialiased`}
+    >
       <head>
         <meta
           content="width=device-width, initial-scale=1, viewport-fit=cover"
           name="viewport"
         />
+        {/* App ships its own EN/FR i18n; block browser auto-translate (Google
+            Translate) which mutates the DOM before hydration and breaks React. */}
+        <meta name="google" content="notranslate" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"

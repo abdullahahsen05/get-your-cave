@@ -22,10 +22,26 @@ const TITLE_KEY_MAP: Record<string, string> = {
   "Booking cancelled": "notifications.bookingCancelled",
   "Listing published": "notifications.listingPublished",
   "Listing rejected": "notifications.listingRejected",
+  "Listing expired": "notifications.listingExpired",
   "Document approved": "notifications.documentApproved",
   "Document rejected": "notifications.documentRejected",
+  "Documents required": "notifications.documentsRequired",
+  "Documents approved": "notifications.documentsApproved",
   "Payment refunded": "notifications.paymentRefunded",
   "Refund processed": "notifications.refundProcessed",
+  "Withdrawal requested": "notifications.withdrawalRequested",
+  "Withdrawal processing": "notifications.withdrawalProcessing",
+  "Withdrawal paid": "notifications.withdrawalPaid",
+  "Withdrawal rejected": "notifications.withdrawalRejected",
+  "Withdrawal cancelled": "notifications.withdrawalCancelled",
+  "Contract sent for signature": "notifications.contractSentForSignature",
+  "You signed the contract": "notifications.ownerSignedContract",
+  "Owner signed the contract": "notifications.ownerSignedContract",
+  "Tenant signed the contract": "notifications.tenantSignedContract",
+  "Contract fully signed": "notifications.contractFullySigned",
+  "Contract signature failed": "notifications.contractSignatureFailed",
+  "Phone number verified": "notifications.phoneVerified",
+  "Account activated": "notifications.accountActivated",
 };
 
 export function translateNotificationTitle(title: string, t: TranslateFn): string {
@@ -123,6 +139,22 @@ export function translateNotificationBody(
       case "Refund processed": {
         const m = body.match(/payment for (.+) was refunded/);
         if (m?.[1]) return t("notifications.bodyRefundProcessed", { listingTitle: m[1] });
+        break;
+      }
+      case "Documents required":
+        return t("notifications.bodyDocumentsRequired");
+      case "Documents approved":
+        return t("notifications.bodyDocumentsApproved");
+      case "Phone number verified": {
+        const m = body.match(/phone number (.+) has been verified/);
+        if (m?.[1]) return t("notifications.bodyPhoneVerified", { phone: m[1] });
+        break;
+      }
+      case "Account activated":
+        return t("notifications.bodyAccountActivated");
+      case "Listing expired": {
+        const m = body.match(/listing "(.+)" is now archived/);
+        if (m?.[1]) return t("notifications.bodyListingExpired", { listingTitle: m[1] });
         break;
       }
     }

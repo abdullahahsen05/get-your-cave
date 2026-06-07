@@ -86,11 +86,9 @@ export function getBrowserStoredLocale() {
     return null;
   }
 
-  const fromStorage = window.localStorage.getItem(languageCookieName);
-  if (fromStorage) {
-    return normalizeLocale(fromStorage);
-  }
-
+  // Cookie first: it is the single source of truth the server also reads
+  // (getServerLocale), so client and server agree and never flip locale after
+  // hydration. localStorage is only a fallback if the cookie is missing.
   const cookie = document.cookie
     .split(";")
     .map((item) => item.trim())
@@ -99,6 +97,11 @@ export function getBrowserStoredLocale() {
   if (cookie) {
     const value = cookie.slice(languageCookieName.length + 1);
     return normalizeLocale(decodeURIComponent(value));
+  }
+
+  const fromStorage = window.localStorage.getItem(languageCookieName);
+  if (fromStorage) {
+    return normalizeLocale(fromStorage);
   }
 
   return null;

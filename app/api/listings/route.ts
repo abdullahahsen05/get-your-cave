@@ -10,6 +10,7 @@ import {
   listingDraftSchema,
   listingPublishSchema,
 } from "@/lib/validations/listing";
+import { ListingStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -67,9 +68,16 @@ export async function POST(request: Request) {
     );
   }
 
+  // Listings go live immediately — no admin approval required.
+  // Map PENDING_APPROVAL (sent by the client form) to APPROVED + isPublished=true.
+  const listingData =
+    rawStatus === "PENDING_APPROVAL"
+      ? { ...parsed.data, status: ListingStatus.APPROVED, isPublished: true }
+      : parsed.data;
+
   const listing = await createOwnerListing({
     ownerProfileId: currentUser.ownerProfile.id,
-    data: parsed.data,
+    data: listingData,
   });
 
   if (!listing) {

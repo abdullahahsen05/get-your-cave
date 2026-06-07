@@ -55,6 +55,8 @@ export type SafeUser = {
   emailNotificationsEnabled: boolean;
   smsNotificationsEnabled: boolean;
   twoFactorEnabled: boolean;
+  phoneVerified: boolean;
+  phoneVerifiedAt: Date | null;
   ownerProfile: SafeOwnerProfile | null;
   renterProfile: SafeRenterProfile | null;
 };
@@ -97,6 +99,8 @@ export const safeUserSelect = {
   emailNotificationsEnabled: true,
   smsNotificationsEnabled: true,
   twoFactorEnabled: true,
+  phoneVerified: true,
+  phoneVerifiedAt: true,
   ownerProfile: {
     select: safeOwnerProfileSelect,
   },
@@ -280,6 +284,8 @@ export function mapUserToSafeUser(user: {
   emailNotificationsEnabled: boolean;
   smsNotificationsEnabled: boolean;
   twoFactorEnabled: boolean;
+  phoneVerified: boolean;
+  phoneVerifiedAt: Date | null;
   ownerProfile: SafeOwnerProfile | null;
   renterProfile: SafeRenterProfile | null;
 }): SafeUser {
